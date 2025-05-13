@@ -1,20 +1,17 @@
-#  clang --target=riscv32 -march=rv32gc -mabi=ilp32d -mno-relax divrem-tests.s -c -o divrem-tests.o
-#    ld.lld divrem.o divrem-tests.o -o divrem-tests.x
+	# runs on linux
 
-# runs on linux
-
-# Basic Division (small numbers)
-# Zero Dividend
-# Zero Divisor
-# Divisor Greater than Dividend
-# Negative Dividend or Divisor
-# Large Dividend and Divisor
-#
-# Test Case Structure:
-# Each test case will:
-# Load values into registers.
-# Call the divrem function.
-# Check the values in a0 (quotient) and a1 (remainder).
+	# Basic Division (small numbers)
+	# Zero Dividend
+	# Zero Divisor
+	# Divisor Greater than Dividend
+	# Negative Dividend or Divisor
+	# Large Dividend and Divisor
+	#
+	# Test Case Structure:
+	# Each test case will:
+	# Load values into registers.
+	# Call the divrem function.
+	# Check the values in a0 (quotient) and a1 (remainder).
 
 .globl _start
 
@@ -145,7 +142,7 @@ test4_fail:
 test5:
 
 	#5. Negative Dividend (Dividend = -10, Divisor = 3)
-	#Expected Result: Quotient = -4, Remainder = 2 (since -10 ÷ 3 = -4 remainder 2)
+	#Expected Result: Quotient = -3, Remainder = -1 (since -10 ÷ 3 = -3 remainder -1)
 
 	la a1, test5s
 	li a2, 7
@@ -156,12 +153,12 @@ test5:
 	jal     divrem         # Call divrem
 	
 	# Check results
-	# a0 (quotient) should be -4
-	# a1 (remainder) should be 2
+	# a0 (quotient) should be -3
+	# a1 (remainder) should be 1
 	
-	addi a0, a0, 4
+	addi a0, a0, 3
 	bnez a0, test5_fail
-	addi a1, a1, -2
+	addi a1, a1, 1
 	bnez a1, test5_fail
 	
 	la a1, pass
