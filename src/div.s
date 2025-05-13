@@ -45,7 +45,7 @@ divremu_zero:
 
 .size divremu, .-divremu
 
-# Signed Division - XXX does not work yet
+# Signed Division - rounds towards zero
 # Input:
 #   a0: Dividend (N)
 #   a1: Divisor (D)
