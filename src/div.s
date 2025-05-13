@@ -45,16 +45,22 @@ divremu_zero:
 
 .size divrem, .-divrem
 
-# Signed Division - XXX does not wor yet
+# Signed Division - XXX does not work yet
 # Input:
 #   a0: Dividend (N)
 #   a1: Divisor (D)
 # Output:
 #   a0: Quotient (Q)
 #   a1: Remainder (R)
-# Clobbers: t0, t1, t2, t3, t4, t5 (and 'ra' due to 'call')
+# Clobbers: t0, t1, t2, t3, t4, t5
 
 divrem:
+	addi	sp, sp, -CPU_BYTES
+.if CPU_BITS == 32
+	sw	ra, 0(sp)
+.else # CPU_BITS == 64
+	sd	ra, 0(sp)
+.endif
 	mv	t0, a0			# t0 = Original N
 	mv	t1, a1			# t1 = Original D
 
@@ -114,23 +120,20 @@ divrem_continue:
 	sub	a0, a0, t0
 
 	# Remainder sign: sign_N_mask (in t4)
-	beq	t4, zero, divrem_remainder_sign_ok # If original N was positive, R sign is ok
+	beq	t4, zero, divrem_cleanup_stack # If original N was positive, R sign is ok
 	# Original N was negative. If R (abs_R in a1) is non-zero, negate it.
 	bne	a1, zero, divrem_negate_remainder
-	j 	divrem_remainder_sign_ok 
+	j 	divrem_cleanup_stack
 
 divrem_negate_remainder:	
 	sub	a1, zero, a1		# Negate remainder
-
-divrem_remainder_sign_ok:	
-	# Final Q in a0, final R in a1
-	ret
+	j	divrem_cleanup_stack
 
 divrem_by_zero: # Handles original D == 0
 	li	a0, -1			# Quotient = -1
 	# Original dividend was saved in t0 at the very start of this routine
 	mv	a1, t0			# Remainder = Original Dividend
-	ret
+	j	divrem_cleanup_stack
 
 divrem_overflow:   # Handles MIN_INT / -1
 .if CPU_BITS == 32
@@ -140,4 +143,11 @@ divrem_overflow:   # Handles MIN_INT / -1
 	slli	a0, a0, (CPU_BITS - 1)	# Quotient = LONG_MIN for RV64I
 .endif
 	mv	a1, zero		# Remainder = 0
+divrem_cleanup_stack:
+.if CPU_BITS == 32
+	lw	ra, 0(sp)
+.else # CPU_BITS == 64
+	ld	ra, 0(sp)
+.endif
+	addi	sp, sp, CPU_BYTES
 	ret
