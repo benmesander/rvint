@@ -1,5 +1,5 @@
 # rvint
-Subroutines which implement RISC-V M extension functionality on I, E, and Zmmul instruction sets.
+Subroutines which implement RISC-V M extension functionality on I, and Zmmul instruction sets. If there is interest, I could support other instruction sets such as E.
 
 Currently unsigned 32 or 64 bit division is provided. 
 
