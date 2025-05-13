@@ -23,11 +23,9 @@ divremu:
 
 divremu_loop:
 	slli	a1, a1, 1	# shift remainder left by 1
-	#	and	t2, t0, t3	# Isolate the highest bit of the dividend
-	#	or	a1, a1, t2	# insert next dividend bit into remainder
-	and	t2, t0, t3
+	and	t2, t0, t3	# Isolate the highest bit of the dividend
 	snez	t2, t2
-	add	a1, a1, t2
+	add	a1, a1, t2	# insert next dividend bit into remainder
 
 	# Check if remainder is greater than or equal to divisor
 	bltu	a1, t1, divremu_continue
