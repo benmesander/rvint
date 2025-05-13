@@ -9,12 +9,12 @@
 # uses the restoring division algorithm
 # in: a0 = dividend
 # in: a1 = divisor
-# out: a0 = quotient 
+# out: a0 = quotient
 # out: a1 = remainder
 divremu:
 	# check for division by zero, if so immediately return
 	beqz	a1, divremu_zero
-	
+
 	mv	t0, a0		# dividend
 	mv	t1, a1		# divisor
 	li	a0, 0		# quotient
@@ -43,7 +43,7 @@ divremu_zero:
 	li	a1, -1
 	ret
 
-.size divrem, .-divrem
+.size divremu, .-divremu
 
 # Signed Division - XXX does not work yet
 # Input:
@@ -74,19 +74,19 @@ divrem:
 	li	t2, 1
 	slli	t2, t2, (CPU_BITS - 1)	# t2 = LONG_MIN for RV64I
 .endif
-	li	t3, -1               	# t3 = -1 (for divisor check)
+	li	t3, -1			# t3 = -1 (for divisor check)
 	beq	t0, t2, divrem_check_overflow_denom # Check original N
 	j	divrem_continue
 
-divrem_check_overflow_denom:	
+divrem_check_overflow_denom:
 	beq	t1, t3, divrem_overflow	# Check original D
 
 divrem_continue:
 	# Original N in t0, Original D in t1.
 	# Use t2 for sign_N_mask, t3 for sign_D_mask initially.
 	# These will be moved to t4, t5 before calling divremu as divremu clobbers t0-t3.
-	srai 	t2, t0, (CPU_BITS - 1)	# t2 = sign_N_mask
-	srai 	t3, t1, (CPU_BITS - 1)	# t3 = sign_D_mask
+	srai	t2, t0, (CPU_BITS - 1)	# t2 = sign_N_mask
+	srai	t3, t1, (CPU_BITS - 1)	# t3 = sign_D_mask
 
 	# abs(N) into t0_abs (use t0 itself)
 	xor	t0, t0, t2
@@ -99,11 +99,11 @@ divrem_continue:
 	# Move sign masks to t4, t5 to preserve them across divremu call
 	mv	t4, t2			# t4 = sign_N_mask
 	mv	t5, t3			# t5 = sign_D_mask
-	
+
 	# Prepare arguments for divremu: a0 = abs(N), a1 = abs(D)
 	mv	a0, t0			# a0 = abs(N)
 	mv	a1, t1			# a1 = abs(D)
-	
+
 	call	divremu
 	# divremu returns: a0 = abs(Q), a1 = abs(R)
 	# Original N/D and intermediate abs(N)/abs(D) in t0,t1 are now clobbered.
@@ -123,9 +123,9 @@ divrem_continue:
 	beq	t4, zero, divrem_cleanup_stack # If original N was positive, R sign is ok
 	# Original N was negative. If R (abs_R in a1) is non-zero, negate it.
 	bne	a1, zero, divrem_negate_remainder
-	j 	divrem_cleanup_stack
+	j	divrem_cleanup_stack
 
-divrem_negate_remainder:	
+divrem_negate_remainder:
 	sub	a1, zero, a1		# Negate remainder
 	j	divrem_cleanup_stack
 
@@ -151,3 +151,5 @@ divrem_cleanup_stack:
 .endif
 	addi	sp, sp, CPU_BYTES
 	ret
+
+.size divrem, .-divrem

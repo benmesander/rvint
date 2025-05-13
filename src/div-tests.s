@@ -177,62 +177,62 @@ test6:
 	#6. Negative Divisor (Dividend = 10, Divisor = -3)
 	#Expected Result: Quotient = -3, Remainder = -1 (since 10 ÷ -3 = -3 remainder -1)
 
-	#	la a1, test6s
-	#	li a2, 7
-	#	call title
-	#
-	#	li      a0, 10         # Load dividend (10) into a0
-	#	li      a1, -3         # Load divisor (-3) into a1
-	#	jal     divremu         # Call divremu
-	#
-	#	# Check results
-	#	# a0 (quotient) should be -3
-	#	# a1 (remainder) should be -1
-	#
-	#	addi a0, a0, 3
-	#	bnez a0, test6_fail
-	#	addi a1, a1, 1
-	#	bnez a0, test6_fail
-	#
-	#	la a1, pass
-	#	call result
-	#
-	#	j test7
-	#
-	#test6_fail:
-	#	la a1, fail
-	#	call result
+	la a1, test6s
+	li a2, 7
+	call title
+	
+	li      a0, 10         # Load dividend (10) into a0
+	li      a1, -3         # Load divisor (-3) into a1
+	jal     divrem         # Call divrem
+
+	# Check results
+	# a0 (quotient) should be -3
+	# a1 (remainder) should be -1
+	
+	addi a0, a0, 3
+	bnez a0, test6_fail
+	addi a1, a1, 1
+	bnez a0, test6_fail
+
+	la a1, pass
+	call result
+
+	j test7
+
+test6_fail:
+	la a1, fail
+	call result
 
 test7:
 
 	#7. Both Dividend and Divisor Negative (Dividend = -10, Divisor = -3)
 	#Expected Result: Quotient = 3, Remainder = -1 (since -10 ÷ -3 = 3 remainder -1)
 
-	#	la a1, test7s
-	#	li a2, 7
-	#	call title
-	#
-	#	li      a0, -10        # Load dividend (-10) into a0
-	#	li      a1, -3         # Load divisor (-3) into a1
-	#	jal     divremu         # Call divremu
-	#
-	#	# Check results
-	#	# a0 (quotient) should be 3
-	#	# a1 (remainder) should be -1
-	#
-	#	addi a0, a0, -3
-	#	bnez a0, test7_fail
-	#	addi a1, a1, 1
-	#	bnez a1, test7_fail
-	#
-	#	la a1, pass
-	#	call result
-	#
-	#	j test8
-	#
-	#test7_fail:
-	#	la a1, fail
-	#	call result
+	la a1, test7s
+	li a2, 7
+	call title
+
+	li      a0, -10        # Load dividend (-10) into a0
+	li      a1, -3         # Load divisor (-3) into a1
+	jal     divrem         # Call divrem
+
+	# Check results
+	# a0 (quotient) should be 3
+	# a1 (remainder) should be -1
+
+	addi a0, a0, -3
+	bnez a0, test7_fail
+	addi a1, a1, 1
+	bnez a1, test7_fail
+
+	la a1, pass
+	call result
+
+	j test8
+
+test7_fail:
+	la a1, fail
+	call result
 
 test8:
 
