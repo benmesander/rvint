@@ -1,6 +1,7 @@
 .include "config.s"
 
 .global divremu
+.global divrem
 
 .text
 
@@ -38,8 +39,105 @@ divremu_continue:
 	ret
 
 divremu_zero:
-	li	a0, -1		# return quotient, remainder = -1 as error code
+	mv	a1, a0
 	li	a1, -1
 	ret
 
 .size divrem, .-divrem
+
+# Signed Division - XXX does not wor yet
+# Input:
+#   a0: Dividend (N)
+#   a1: Divisor (D)
+# Output:
+#   a0: Quotient (Q)
+#   a1: Remainder (R)
+# Clobbers: t0, t1, t2, t3, t4, t5 (and 'ra' due to 'call')
+
+divrem:
+	mv	t0, a0			# t0 = Original N
+	mv	t1, a1			# t1 = Original D
+
+	# Handle original division by zero (signed spec)
+	beq	t1, zero, divrem_by_zero
+
+	# Handle overflow: MIN_INT / -1
+.if CPU_BITS == 32
+	li	t2, 0x80000000		# t2 = INT_MIN for RV32I
+.else # CPU_BITS == 64
+	li	t2, 1
+	slli	t2, t2, (CPU_BITS - 1)	# t2 = LONG_MIN for RV64I
+.endif
+	li	t3, -1               	# t3 = -1 (for divisor check)
+	beq	t0, t2, divrem_check_overflow_denom # Check original N
+	j	divrem_continue
+
+divrem_check_overflow_denom:	
+	beq	t1, t3, divrem_overflow	# Check original D
+
+divrem_continue:
+	# Original N in t0, Original D in t1.
+	# Use t2 for sign_N_mask, t3 for sign_D_mask initially.
+	# These will be moved to t4, t5 before calling divremu as divremu clobbers t0-t3.
+	srai 	t2, t0, (CPU_BITS - 1)	# t2 = sign_N_mask
+	srai 	t3, t1, (CPU_BITS - 1)	# t3 = sign_D_mask
+
+	# abs(N) into t0_abs (use t0 itself)
+	xor	t0, t0, t2
+	sub	t0, t0, t2		# t0 now holds abs(N)
+
+	# abs(D) into t1_abs (use t1 itself)
+	xor	t1, t1, t3
+	sub	t1, t1, t3		# t1 now holds abs(D)
+
+	# Move sign masks to t4, t5 to preserve them across divremu call
+	mv	t4, t2			# t4 = sign_N_mask
+	mv	t5, t3			# t5 = sign_D_mask
+	
+	# Prepare arguments for divremu: a0 = abs(N), a1 = abs(D)
+	mv	a0, t0			# a0 = abs(N)
+	mv	a1, t1			# a1 = abs(D)
+	
+	call	divremu
+	# divremu returns: a0 = abs(Q), a1 = abs(R)
+	# Original N/D and intermediate abs(N)/abs(D) in t0,t1 are now clobbered.
+	# Sign masks are safe in t4, t5.
+
+	# Apply signs.
+	# abs_Q in a0, abs_R in a1.
+	# sign_N_mask in t4. sign_D_mask in t5.
+
+	# Quotient sign: sign_N_mask ^ sign_D_mask
+	# Use t0 (clobbered by divremu, now free) for sign_Q_mask.
+	xor	t0, t4, t5		# t0 = sign_Q_mask
+	xor	a0, a0, t0		# Apply sign to quotient a0
+	sub	a0, a0, t0
+
+	# Remainder sign: sign_N_mask (in t4)
+	beq	t4, zero, divrem_remainder_sign_ok # If original N was positive, R sign is ok
+	# Original N was negative. If R (abs_R in a1) is non-zero, negate it.
+	bne	a1, zero, divrem_negate_remainder
+	j 	divrem_remainder_sign_ok 
+
+divrem_negate_remainder:	
+	sub	a1, zero, a1		# Negate remainder
+
+divrem_remainder_sign_ok:	
+	# Final Q in a0, final R in a1
+	ret
+
+divrem_by_zero: # Handles original D == 0
+	li	a0, -1			# Quotient = -1
+	# Original dividend was saved in t0 at the very start of this routine
+	mv	a1, t0			# Remainder = Original Dividend
+	ret
+
+divrem_overflow:   # Handles MIN_INT / -1
+.if CPU_BITS == 32
+	li	a0, 0x80000000		# Quotient = INT_MIN for RV32I
+.else # CPU_BITS == 64
+	li	a0, 1
+	slli	a0, a0, (CPU_BITS - 1)	# Quotient = LONG_MIN for RV64I
+.endif
+	mv	a1, zero		# Remainder = 0
+	ret
