@@ -56,11 +56,7 @@ divremu_zero:
 
 divrem:
 	addi	sp, sp, -CPU_BYTES
-.if CPU_BITS == 32
-	sw	ra, 0(sp)
-.else # CPU_BITS == 64
-	sd	ra, 0(sp)
-.endif
+	PUSH	ra, 0, sp
 	mv	t0, a0			# t0 = Original N
 	mv	t1, a1			# t1 = Original D
 
@@ -144,11 +140,7 @@ divrem_overflow:   # Handles MIN_INT / -1
 .endif
 	mv	a1, zero		# Remainder = 0
 divrem_cleanup_stack:
-.if CPU_BITS == 32
-	lw	ra, 0(sp)
-.else # CPU_BITS == 64
-	ld	ra, 0(sp)
-.endif
+	POP	ra, 0, sp
 	addi	sp, sp, CPU_BYTES
 	ret
 
