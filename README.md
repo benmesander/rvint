@@ -1,2 +1,2 @@
 # rvint
-Implement subroutines to implement RISC-V M extension functionality on I and Zmmul instruction sets.
+Subroutines which implement RISC-V M extension functionality on I and Zmmul instruction sets.
