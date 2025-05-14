@@ -1,11 +1,12 @@
 .include "config.s"
 
-.global divremu
-.global divrem
+.globl divremu
+.globl divrem
 
 .text
 
 # Unsigned integer division without using M extension
+# 64-bit on 64-bit CPUs, 32-bit on 32-bit CPUs
 # uses the restoring division algorithm
 # in: a0 = dividend
 # in: a1 = divisor
@@ -46,6 +47,7 @@ divremu_zero:
 .size divremu, .-divremu
 
 # Signed Division - rounds towards zero
+# XXX: this can be optimized further
 # Input:
 #   a0: Dividend (N)
 #   a1: Divisor (D)
@@ -55,7 +57,7 @@ divremu_zero:
 # Clobbers: t0, t1, t2, t3, t4, t5
 
 divrem:
-	addi	sp, sp, -CPU_BYTES
+	addi	sp, sp, -CPU_BYTES	# need a stack frame as we call unsigned div routine
 	PUSH	ra, 0, sp
 	mv	t0, a0			# t0 = Original N
 	mv	t1, a1			# t1 = Original D

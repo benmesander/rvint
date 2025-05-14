@@ -1,7 +1,10 @@
-all: div-tests.x
+all: div-tests.x mul.o
 
-div.o: div.s config.s
+div.o: div.s config.s 
 	clang --target=riscv32 -march=rv32gc -mabi=ilp32d div.s -c -o div.o
+
+mul.o: mul.s config.s
+	clang --target=riscv32 -march=rv32gc -mabi=ilp32d mul.s -c -o mul.o
 
 div-tests.o: div-tests.s config.s
 	clang --target=riscv32 -march=rv32gc -mabi=ilp32d div-tests.s -c -o div-tests.o
