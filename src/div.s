@@ -79,26 +79,14 @@ divrem_check_overflow_denom:
 
 divrem_continue:
 	# Original N in t0, Original D in t1.
-	# Use t2 for sign_N_mask, t3 for sign_D_mask initially.
-	# These will be moved to t4, t5 before calling divremu as divremu clobbers t0-t3.
-	srai	t2, t0, (CPU_BITS - 1)	# t2 = sign_N_mask
-	srai	t3, t1, (CPU_BITS - 1)	# t3 = sign_D_mask
+	srai	t4, t0, (CPU_BITS - 1)	# t2 = sign_N_mask
+	srai	t5, t1, (CPU_BITS - 1)	# t3 = sign_D_mask
 
-	# abs(N) into t0_abs (use t0 itself)
-	xor	t0, t0, t2
-	sub	t0, t0, t2		# t0 now holds abs(N)
+	xor	a0, t0, t4
+	sub	a0, a0, t4		# a0 now holds abs(N)
 
-	# abs(D) into t1_abs (use t1 itself)
-	xor	t1, t1, t3
-	sub	t1, t1, t3		# t1 now holds abs(D)
-
-	# Move sign masks to t4, t5 to preserve them across divremu call
-	mv	t4, t2			# t4 = sign_N_mask
-	mv	t5, t3			# t5 = sign_D_mask
-
-	# Prepare arguments for divremu: a0 = abs(N), a1 = abs(D)
-	mv	a0, t0			# a0 = abs(N)
-	mv	a1, t1			# a1 = abs(D)
+	xor	a1, t1, t5
+	sub	a1, a1, t5		# a1 now holds abs(D)
 
 	call	divremu
 	# divremu returns: a0 = abs(Q), a1 = abs(R)
