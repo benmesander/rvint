@@ -70,10 +70,13 @@ to_bin_loop:
 	beqz	a2, to_bin_no_space
 	andi	t2, a1, 0x7
 	bnez	t2, to_bin_no_space
+	beqz	a1, to_bin_no_space	# no trailing space
 	sb	t3, 0(t0)
 	addi	t0, t0, 1
 to_bin_no_space:
 	bnez 	a1, to_bin_loop
+
+	sb	zero, 0(t0)
 	la	a0, iobuf
 	sub	a1, t0, a0
 	ret
