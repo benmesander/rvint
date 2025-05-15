@@ -15,6 +15,7 @@
 	#
 	# output
 	# a0 - address of nul-terminated buffer with output
+	# a1 - length of string
 to_hex:
 	la	t0, iobuf
 	li	t3, '9' + 1	# '@'
@@ -30,7 +31,7 @@ to_hex_loop:
 	srl	t2, a0, t1
 	andi	t2, t2, 0xf
 	addi	t2, t2, '0'	# numeral
-	bge	t2, t3, to_hex_digit
+	bge	t2, t3, to_hex_digit # xxx: wrong
 	addi	t2, t2, 'a'-'0'	# too big for numeral, add offset to alpha
 to_hex_digit:
 	sb	t2, 0(t0)
@@ -38,6 +39,7 @@ to_hex_digit:
 	bnez	a1, to_hex_loop
 	sb	zero, 0(t0)	# nul terminate
 	la	a0, iobuf
+	sub	a1, t0, a0
 	ret
 
 .size to_hex, .-to_hex
@@ -49,6 +51,7 @@ to_hex_digit:
 #
 # output
 # a0 - address of nul-terminated buffer with output
+# a1 - length of string
 
 to_bin:
 	la	t0, iobuf
@@ -72,6 +75,7 @@ to_bin_loop:
 to_bin_no_space:
 	bnez 	a1, to_bin_loop
 	la	a0, iobuf
+	sub	a1, t0, a0
 	ret
 
 .size to_bin, .-to_bin
@@ -81,6 +85,7 @@ to_bin_no_space:
 #
 # output
 # a0 - address of nul-terminated buffer with output
+# a1 - length of string
 to_dec:	
 	addi	sp, sp, -(CPU_BYTES) # need stack frame as we will call udivrem
 	PUSH	ra, 0
