@@ -20,12 +20,12 @@ Note: signed division routine will be further optimized
 
 ### On 32-bit processors:
 - 32-bit by 32-bit signed and unsigned multiplication with 32-bit result.
-- 32-bit by 32-bit signed and unsigned multiplication with 64-bit result. (not yet implemented)
+- 32-bit by 32-bit signed and unsigned multiplication with 64-bit result.
 
 ### on 64-bit processors:
-- 32-bit by 32-bit signed and unsigned multiplication with 64-bit result. (not yet implemented)
+- 32-bit by 32-bit signed and unsigned multiplication with 64-bit result.
 - 64-bit by 64-bit signed and unsigned multiplication with 64-bit result.
-- 64-bit by 64-bit signed and unsigned multiplication with 128-bit result. (not yet implemented)
+- 64-bit by 64-bit signed and unsigned multiplication with 128-bit result.
 
 ## Base Conversions & I/O Operations (not yet implemented)
 
