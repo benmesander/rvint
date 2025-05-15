@@ -58,7 +58,7 @@ divremu_zero:
 
 divrem:
 	addi	sp, sp, -CPU_BYTES	# need a stack frame as we call unsigned div routine
-	PUSH	ra, 0, sp
+	PUSH	ra, 0
 	mv	t0, a0			# t0 = Original N
 	mv	t1, a1			# t1 = Original D
 
@@ -130,7 +130,7 @@ divrem_overflow:   # Handles MIN_INT / -1
 .endif
 	mv	a1, zero		# Remainder = 0
 divrem_cleanup_stack:
-	POP	ra, 0, sp
+	POP	ra, 0
 	addi	sp, sp, CPU_BYTES
 	ret
 
