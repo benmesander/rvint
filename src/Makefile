@@ -26,14 +26,12 @@ all: $(EXES)
 %.o: %.s
 	$(CC) $(CFLAGS) -c $< -o $@
 
-
 div.o: div.s config.s
 mul.o: mul.s config.s
 io.o: io.s config.s
 
 div-tests.x: $(DIV_TESTS_OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
-
 
 mul-tests.x: $(MUL_TESTS_OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
