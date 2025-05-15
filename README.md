@@ -14,8 +14,6 @@ provided for RV32I, RV64I, and similar instruction sets.
 ### On 64-bit processors
 - 64-bit by 64-bit signed and unsigned division with 64-bit result and remainder.
 
-Note: signed division routine will be further optimized
-
 ## Multiplication
 
 ### On 32-bit processors:
@@ -27,17 +25,17 @@ Note: signed division routine will be further optimized
 - 64-bit by 64-bit signed and unsigned multiplication with 64-bit result.
 - 64-bit by 64-bit signed and unsigned multiplication with 128-bit result.
 
-## Base Conversions & I/O Operations (not yet implemented)
+## Base Conversions & I/O Operations
 
 These operations support 32-bit numbers on 32-bit architectures and
 64-bit numbers on 64-bit architectures.
 
-- ASCII binary to binary
-- ASCII signed decimal to two's complement binary
-- ASCII hexadecimal to binary
+- ASCII binary to binary - not complete
+- ASCII signed decimal to two's complement binary - not complete
+- ASCII hexadecimal to binary - not complete
 
-- binary to ASCII binary
-- two's complement binary to ASCII signed decimal
+- binary to ASCII binary 
+- two's complement binary to ASCII signed decimal - not complete
 - binary to ASCII hexadecimal
 
 

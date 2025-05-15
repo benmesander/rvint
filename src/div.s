@@ -40,14 +40,14 @@ divremu_continue:
 	ret
 
 divremu_zero:
-	mv	a1, a0
-	li	a1, -1
+	mv	t2, a0
+	li	a0, -1
+	mv	a1, t2
 	ret
 
 .size divremu, .-divremu
 
 # Signed Division - rounds towards zero
-# XXX: this can be optimized further
 # Input:
 #   a0: Dividend (N)
 #   a1: Divisor (D)

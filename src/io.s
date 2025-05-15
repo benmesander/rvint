@@ -60,10 +60,8 @@ to_bin:
 
 to_bin_loop:
 	addi	a1, a1, -1
-	li	t1, 1
-	sll	t1, t1, a1
-	and	t2, t1, a0
-	srl	t2, t2, a1
+	srl	t2, a0, a1
+	andi	t2, t2, 1
 	addi	t2, t2, '0'
 	sb	t2, 0(t0)
 	addi	t0, t0, 1
@@ -111,4 +109,4 @@ from_hex:
 .bss
 .globl iobuf
 .equ IOBUF_SIZE, 80 # one punch card worth
-.comm iobuf, IOBUF_SIZE
+.comm iobuf, IOBUF_SIZE, 4
