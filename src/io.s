@@ -8,14 +8,14 @@
 
 .text
 
-	# input
-	# a0 - number to convert to ascii hex
-	# a1 - number of bytes to convert (eg, 1, 2, 4, 8)
-	# a2 - 0 do not insert leading 0x, 1 insert leading 0x
-	#
-	# output
-	# a0 - address of nul-terminated buffer with output
-	# a1 - length of string
+# input
+# a0 - number to convert to ascii hex
+# a1 - number of bytes to convert (eg, 1, 2, 4, 8)
+# a2 - 0 do not insert leading 0x, 1 insert leading 0x
+#
+# output
+# a0 - address of nul-terminated buffer with output
+# a1 - length of string
 to_hex:
 	la	t0, iobuf
 	li	t3, '9' + 1	# '@'
@@ -87,12 +87,13 @@ to_bin_no_space:
 # a0 - address of nul-terminated buffer with output
 # a1 - length of string
 to_dec:	
-	addi	sp, sp, -(CPU_BYTES) # need stack frame as we will call udivrem
+	FRAME	1
 	PUSH	ra, 0
 
-	POP	ra, 0
-	addi	sp, sp, (CPU_BYTES)
 	la	a0, iobuf # xxx: wrong
+
+	POP	ra, 0
+	EFRAME	1
 	ret
 
 .size to_dec, .-to_dec
