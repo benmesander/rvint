@@ -38,8 +38,34 @@ test5:
 	li	a2, 0xabcdef01
 	li	a3, 0xabcdef01
 	call	nmul_test
-	
 
+test6:
+	li	a0, 6
+	li	a1, 2
+	li	a2, 3
+	li	a3, 6
+	call	nmul_test
+
+test7:
+	li	a0, 7
+	li	a1, 0xf0
+	li	a2, 0xf0
+	li	a3, 0xe100
+	call	nmul_test
+
+test8:
+	li	a0, 8
+	li	a1, 0xffff
+	li	a2, 0xffff
+	li	a3, 0xffe0001
+	call	nmul_test
+
+test9:
+	li	a0, 9
+	li	a1, 0x10000
+	li	a2, 0xffff
+	li	a3, 0xffff0000
+	call	nmul_test
 
 	j	_end
 	

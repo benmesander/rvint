@@ -18,7 +18,7 @@
 # a1 - length of string
 to_hex:
 	la	t0, iobuf
-	li	t3, '9' + 1	# '@'
+	li	t3, '9'
 	slli	a1, a1, 1	# count of nibbles
 	beqz	a2, to_hex_loop
 	li	t1, 0x7830	# '0x' in ascii, little-endian
@@ -31,8 +31,8 @@ to_hex_loop:
 	srl	t2, a0, t1
 	andi	t2, t2, 0xf
 	addi	t2, t2, '0'	# numeral
-	bge	t3, t2, to_hex_digit
-	addi	t2, t2, 'a'-'0'	# too big for numeral, add offset to alpha
+	ble	t2, t3, to_hex_digit
+	addi	t2, t2, 'a'-('0'+10) # too big for numeral, add offset to alpha
 to_hex_digit:
 	sb	t2, 0(t0)
 	addi	t0, t0, 1
