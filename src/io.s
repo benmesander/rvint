@@ -19,7 +19,7 @@
 to_hex:
 	la	t0, iobuf
 	li	t3, '9' + 1	# '@'
-	slli	a1, a1, 2	# count of nibbles
+	slli	a1, a1, 1	# count of nibbles
 	beqz	a2, to_hex_loop
 	li	t1, 0x7830	# '0x' in ascii, little-endian
 	sw	t1, 0(t0)
@@ -31,7 +31,7 @@ to_hex_loop:
 	srl	t2, a0, t1
 	andi	t2, t2, 0xf
 	addi	t2, t2, '0'	# numeral
-	bge	t2, t3, to_hex_digit # xxx: wrong
+	bge	t3, t2, to_hex_digit
 	addi	t2, t2, 'a'-'0'	# too big for numeral, add offset to alpha
 to_hex_digit:
 	sb	t2, 0(t0)
@@ -55,7 +55,7 @@ to_hex_digit:
 
 to_bin:
 	la	t0, iobuf
-	slli	a1, a1, 4	# count of bits (a1 * 8)
+	slli	a1, a1, 3	# count of bits (a1 * 8)
 	li	t3, ' '
 
 to_bin_loop:

@@ -24,7 +24,7 @@ print_header:
 	la	a1, test
 	li	a2, 5
 	call	print
-	li	a0, 0
+	mv	a0, s0
 	li	a1, 1
 	li	a2, 1
 	call	to_hex
@@ -50,4 +50,4 @@ _end:
 test:	.asciz	"test "
 pass:	.asciz	"pass\n"
 fail:	.asciz	"fail\n"
-colon:	.asciz	": "
+colon:	.asciz	":\n"
