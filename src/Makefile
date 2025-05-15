@@ -1,32 +1,42 @@
 # edit config.s to match target
-TARGET?=riscv64
-ARCH?=rv64gc
-ABI?=lp64
+TARGET	?=riscv64
+ARCH	?=rv64gc
+ABI	?=lp64
 
-#TARGET?=riscv32
-#ARCH?=rv32gc
-#ABI?=ilp32d
+#TARGET	?=riscv32
+#ARCH	?=rv32gc
+#ABI	?=ilp32d
 
-all: div-tests.x mul-tests.x
+CC	:= clang
+LD	:= ld.lld
+CFLAGS	:= --target=$(TARGET) -march=$(ARCH) -mabi=$(ABI)
+LDFLAGS	:=
 
-div.o: div.s config.s 
-	clang --target=$(TARGET) -march=$(ARCH) -mabi=$(ABI) div.s -c -o div.o
+SRCS	:= div.s mul.s io.s div-tests.s mul-tests.s
+OBJS	:= $(SRCS:.s=.o)
+EXES	:= div-tests.x mul-tests.x
 
+DIV_TESTS_OBJS	:= div-tests.o div.o
+MUL_TESTS_OBJS	:= mul-tests.o mul.o io.o
+
+.PHONY:	all clean
+
+all: $(EXES)
+
+%.o: %.s
+	$(CC) $(CFLAGS) -c $< -o $@
+
+
+div.o: div.s config.s
 mul.o: mul.s config.s
-	clang --target=$(TARGET) -march=$(ARCH) -mabi=$(ABI) mul.s -c -o mul.o
+io.o: io.s config.s
 
-div-tests.o: div-tests.s config.s div.s
-	clang --target=$(TARGET) -march=$(ARCH) -mabi=$(ABI) div-tests.s -c -o div-tests.o
+div-tests.x: $(DIV_TESTS_OBJS)
+	$(LD) $(LDFLAGS) $^ -o $@
 
-mul-tests.o: mul-tests.s config.s mul.s
-	clang --target=$(TARGET) -march=$(ARCH) -mabi=$(ABI) mul-tests.s -c -o mul-tests.o
 
-div-tests.x: div-tests.o div.o
-	ld.lld div.o div-tests.o -o div-tests.x
-
-mul-tests.x: mul-tests.o mul.o
-	ld.lld mul.o mul-tests.o -o mul-tests.x
-
+mul-tests.x: $(MUL_TESTS_OBJS)
+	$(LD) $(LDFLAGS) $^ -o $@
 
 clean:
-	rm *.o *.x
+	rm -f $(OBJS) $(EXES)
