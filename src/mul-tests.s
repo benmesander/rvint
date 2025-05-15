@@ -141,7 +141,7 @@ print_eqn:
 
 	POP	ra, 0
 	POP	s0, 1
-	POP	s1, 3
+	POP	s1, 2
 	EFRAME	3
 	ret
 
@@ -193,7 +193,7 @@ nmul_test_done:
 	POP	s0, 1
 	POP	s1, 2
 	POP	s2, 3
-	EFRAME	3
+	EFRAME	4
 	ret
 _end:
         li	a0, 0	# exit code
