@@ -6,34 +6,40 @@ _start:
 # nmul 0 x 0 = 0
 test1:
 	li	a0, 1
-	call	print_header
-	li	a0, 0
 	li	a1, 0
-	call	print_eqn
-	
-	mv	a0, zero
-	mv	a1, zero
-	call	nmul
-	mv	s0, a0
+	li	a2, 0
+	li	a3, 0
+	call	nmul_test
 
-	li	a1, 4
-	li	a2, 1
-	call	to_hex
-
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-
-	la	a1, space
-	li	a2, 1
-	call print
-
-	bnez	s0, test1_fail
-	call	print_pass
-	j	test2
-test1_fail:
-	call	print_fail
 test2:	
+	li	a0, 2
+	li	a1, 0
+	li	a2, 0x12345678
+	li	a3, 0
+	call	nmul_test
+
+test3:	
+	li	a0, 3
+	li	a1, 0x12345678
+	li	a2, 0
+	li	a3, 0
+	call	nmul_test
+
+test4:
+	li	a0, 4
+	li	a1, 0xabcdef01
+	li	a2, 1
+	li	a3, 0xabcdef01
+	call	nmul_test
+
+test5:
+	li	a0, 5
+	li	a1, 1
+	li	a2, 0xabcdef01
+	li	a3, 0xabcdef01
+	call	nmul_test
+	
+
 
 	j	_end
 	
@@ -85,8 +91,8 @@ print_eqn:
 	PUSH	s0, 1
 	PUSH	s1, 2
 
-	mv	a0, s0
-	mv	a1, s1
+	mv	s0, a0
+	mv	s1, a1
 	li	a1, 4
 	li	a2, 1
 	call	to_hex
@@ -113,6 +119,56 @@ print_eqn:
 	EFRAME	3
 	ret
 
+# test # a0
+# compute a1 * a2
+# expected value a3
+nmul_test:
+	FRAME	4
+	PUSH	ra, 0
+	PUSH	s0, 1
+	PUSH	s1, 2
+	PUSH	s2, 3
+	mv	s0, a1
+	mv	s1, a2
+	mv	s2, a3
+
+	call	print_header	# print test number a0
+
+	mv	a0, s0		# print the equation
+	mv	a1, s1
+	call	print_eqn
+
+	mv	a0, s0		# compute the result
+	mv	a1, s1
+	call	nmul
+	
+	mv	s0, a0		# print the result
+	li	a1, 4
+	li	a2, 1
+	call	to_hex
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+	la	a1, space
+	li	a2, 1
+	call	print
+
+	sub	a3, a3, s0
+	bnez	a3, nmul_test_fail
+
+	call	print_pass
+	j	nmul_test_done
+	
+nmul_test_fail:	
+	call	print_fail
+	
+nmul_test_done:
+	POP	ra, 0
+	POP	s0, 1
+	POP	s1, 2
+	POP	s2, 3
+	EFRAME	3
+	ret
 _end:
         li	a0, 0	# exit code
         li	a7, 93	# exit syscall
