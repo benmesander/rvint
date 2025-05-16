@@ -57,7 +57,7 @@ test8:
 	li	a0, 8
 	li	a1, 0xffff
 	li	a2, 0xffff
-	li	a3, 0xffe0001
+	li	a3, 0xfffe0001
 	call	nmul_test
 
 test9:

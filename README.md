@@ -38,6 +38,18 @@ These operations support 32-bit numbers on 32-bit architectures and
 - two's complement binary to ASCII signed decimal - not complete
 - binary to ASCII hexadecimal
 
+## Building
+
+clang and make are assumed. I'm currently using clang 18.
+The TARGET, ARCH, and ABI should be edited in the Makefile,
+and the CPU_BITS constant should be set to match in config.s
+
+The test programs assume Linux syscalls are available. In particular
+syscall 64 is write and 93 is exit.
+
+I use this emulator to run RV32I code:
+https://riscv-programming.org/ale/
+
 
 
 
