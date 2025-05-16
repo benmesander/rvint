@@ -6,15 +6,14 @@
 TARGET	?=riscv32
 ARCH	?=rv32gc
 ABI	?=ilp32d
-
 CC	:= clang
 LD	:= ld.lld
 CFLAGS	:= --target=$(TARGET) -march=$(ARCH) -mabi=$(ABI)
 LDFLAGS	:=
 
-SRCS	:= div.s mul.s io.s div-tests.s mul-tests.s
+SRCS	:= div.s mul.s io.s div-tests.s mul-tests.s sqrt.s
 OBJS	:= $(SRCS:.s=.o)
-EXES	:= div-tests.x mul-tests.x
+EXES	:= div-tests.x mul-tests.x sqrt.o
 
 DIV_TESTS_OBJS	:= div-tests.o div.o
 MUL_TESTS_OBJS	:= mul-tests.o mul.o io.o
@@ -29,6 +28,7 @@ all: $(EXES)
 div.o: div.s config.s
 mul.o: mul.s config.s
 io.o: io.s config.s
+sqrt.o: sqrt.s config.s
 
 div-tests.x: $(DIV_TESTS_OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
