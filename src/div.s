@@ -57,7 +57,7 @@ divremu_zero:
 # Clobbers: t0, t1, t2, t3, t4, t5
 
 divrem:
-	addi	sp, sp, -CPU_BYTES	# need a stack frame as we call unsigned div routine
+	FRAME	1
 	PUSH	ra, 0
 	mv	t0, a0			# t0 = Original N
 	mv	t1, a1			# t1 = Original D
@@ -131,7 +131,7 @@ divrem_overflow:   # Handles MIN_INT / -1
 	mv	a1, zero		# Remainder = 0
 divrem_cleanup_stack:
 	POP	ra, 0
-	addi	sp, sp, CPU_BYTES
+	EFRAME	1
 	ret
 
 .size divrem, .-divrem

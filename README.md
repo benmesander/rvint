@@ -50,7 +50,3 @@ syscall 64 is write and 93 is exit.
 I use this emulator to run RV32I code:
 https://riscv-programming.org/ale/
 
-
-
-
-CPU_BITS in config.s should be set to 32 or 64 as appropriate for your processor. Test code is designed to run on a Linux-like operating system. I use https://riscv-programming.org/ale/

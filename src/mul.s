@@ -50,7 +50,7 @@ nmul_skip:
 .size	nmul, .-nmul
 
 #
-# Unified Unsigned/Signed 32x32-bit to 64-bit multiply 
+# Unified (RV64I and RV32I) Unsigned/Signed 32x32-bit to 64-bit multiply 
 # - No 'M' Extension. Uses only argument and temporary registers. No stack frame.
 #
 # Inputs: a0 (op1), a1 (op2), a2 (signed_flag: 0=unsigned, 1=signed)
@@ -58,7 +58,6 @@ nmul_skip:
 #
 
 mul32:	
-
 	# Registers:
 	# a0: op1_in -> abs_op1_for_mult -> pl_accumulator -> prod_low_out
 	# a1: op2_in -> abs_op2_for_mult (temporarily) -> ph_accumulator -> prod_high_out
@@ -245,8 +244,8 @@ mul32_done:
 #
 
 m128:
-    # --- Argument Preparation & Sign Handling ---
-    # Move operands to temporary registers to free up a0, a1 for product accumulation.
+	# --- Argument Preparation & Sign Handling ---
+	# Move operands to temporary registers to free up a0, a1 for product accumulation.
 	mv	t0, a0				# t0 will hold |operand1| (initially operand1)
 	mv	t2, a1				# t2 will hold |operand2| (initially operand2)
 	mv	t6, zero			# t6 (final_product_is_negative_flag) = 0
