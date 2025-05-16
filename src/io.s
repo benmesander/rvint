@@ -88,13 +88,24 @@ to_bin_no_space:
 # a0 - address of nul-terminated buffer with output
 # a1 - length of string
 to_dec:	
-	FRAME	1
+	FRAME	2
 	PUSH	ra, 0
-
-	la	a0, iobuf # xxx: wrong
-
+	PUSH	s0, 1
+	la	s0, iobuf
+	addi	s0, s0, 79		# IOBUF_SIZE-1
+	sb	zero, 0(s0)
+	addi	s0, s0, -1
+	
+to_dec_loop:	
+	li	a1, 10
+	call	divremu			# a0 quotient a1, remainder
+	addi	a1, a1, '0'
+	sb	a1, 0(s0)
+	addi	s0, s0, -1
+	bnez	a0, to_dec_loop
 	POP	ra, 0
-	EFRAME	1
+	POP	s0, 1
+	EFRAME	2
 	ret
 
 .size to_dec, .-to_dec

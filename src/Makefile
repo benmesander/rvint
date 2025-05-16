@@ -16,7 +16,7 @@ OBJS	:= $(SRCS:.s=.o)
 EXES	:= div-tests.x mul-tests.x sqrt.o
 
 DIV_TESTS_OBJS	:= div-tests.o div.o
-MUL_TESTS_OBJS	:= mul-tests.o mul.o io.o
+MUL_TESTS_OBJS	:= mul-tests.o mul.o io.o div.o
 
 .PHONY:	all clean
 

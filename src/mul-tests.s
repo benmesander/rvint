@@ -98,7 +98,7 @@ print_header:
 	mv	a0, s0
 	li	a1, 1
 	li	a2, 1
-	call	to_hex
+	call	to_dec
 	mv	a2, a1
 	mv	a1, a0
 	call	print
