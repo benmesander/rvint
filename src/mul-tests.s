@@ -206,7 +206,7 @@ _end:
 test:	.asciz	"test "
 pass:	.asciz	"pass\n"
 fail:	.asciz	"fail\n"
-colon:	.asciz	":"
+colon:	.asciz	": "
 x:	.asciz	" x "
 equals:	.asciz	" = "
 nl:	.asciz	"\n"
