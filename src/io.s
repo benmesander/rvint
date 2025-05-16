@@ -125,14 +125,61 @@ to_decu_retvals:
 .size to_decu, .-to_decu
 
 # input
-# a0 - signed number to convert to ascii decimal
+# a0 - SIGNED number to convert to ascii decimal
 #
 # output
-# a0 - address of nul-terminated buffer with output
+# a0 - address of nul-terminated buffer with output (points into iobuf)
 # a1 - length of string
+
 to_dec:
-	# xxx
+	FRAME	3
+	PUSH	ra, 0
+	PUSH	s0, 1
+	PUSH	s1, 2
+
+	mv	s1, a0
+
+	la	s0, iobuf
+	addi	s0, s0, 78		# IOBUF_SIZE-1
+	sb	zero, 0(s0)
+
+	mv	t0, zero		# t0 will be a flag: 1 if original number was negative and non-zero
+					# For MIN_INT, it will become negative.
+	bgez	s1, to_dec_abs_done	# If s1 >= 0, skip negation
+	li	t0, 1			# Set negative flag
+	sub	s1, zero, s1	
+to_dec_abs_done:
+	# s1 now holds the absolute value (or MIN_INT if original was MIN_INT, which is treated as 2^(N-1) unsigned)
+	# t0 holds 1 if a minus sign is needed, 0 otherwise.
+
+to_dec_loop:
+	addi	s0, s0, -1
+	mv	a0, s1
+	li 	a1, 10
+	call	divremu			# Output: a0=quotient, a1=remainder
+	addi	a1, a1, '0'
+	sb	a1, 0(s0)
+	mv	s1, a0
+	bnez s1, to_dec_loop
+
+	# After loop, s0 points to the most significant digit.
+	# Now, if the number was negative (t0 == 1), prepend '-'
+	beqz	t0, to_dec_retval
+	addi	s0, s0, -1
+	li	t1, '-'
+	sb	t1, 0(s0)
+
+to_dec_retval:	
+	mv	a0, s0
+	la	t1, iobuf
+	addi	t1, t1, 79		# IOBUF_SIZE-1
+	sub	a1, t1, a0
+	POP s1, 2
+	POP s0, 1
+	POP ra, 0
+	EFRAME 3
 	ret
+
 .size to_dec, .-to_dec
 
 # input

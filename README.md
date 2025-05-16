@@ -35,7 +35,8 @@ These operations support 32-bit numbers on 32-bit architectures and
 - ASCII hexadecimal to binary - not complete
 
 - binary to ASCII binary 
-- two's complement binary to ASCII signed decimal - not complete
+- two's complement binary to ASCII signed decimal
+- unsigned binary to unsigned ASCII decimal
 - binary to ASCII hexadecimal
 
 ## Square Root
