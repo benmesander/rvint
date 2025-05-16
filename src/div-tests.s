@@ -95,10 +95,10 @@ test3:
 	# a0 (quotient) should be -1
 	# a1 (remainder) should be 10
 
-	addi a0, a0, -10
-	bnez a0, test3_fail
-	addi a1, a1, 1
+	addi a1, a1, -10
 	bnez a1, test3_fail
+	addi a0, a0, 1
+	bnez a0, test3_fail
 
 	la a1, pass
 	call result
