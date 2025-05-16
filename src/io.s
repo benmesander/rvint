@@ -99,12 +99,6 @@ to_decu:
 	la	s0, iobuf
 	addi	s0, s0, 79		# IOBUF_SIZE-1
 	sb	zero, 0(s0)
-	bnez	s1, to_decu_loop	# input is not zero
-
-	addi	s0, s0, -1
-	li	t0, '0'
-	sb	t0, 0(s0)
-	j	to_decu_retvals
 
 to_decu_loop:	
 	addi	s0, s0, -1
