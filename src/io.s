@@ -3,6 +3,7 @@
 .globl to_hex
 .globl to_bin
 .globl to_dec
+.globl to_decu
 .globl from_hex
 
 
@@ -82,32 +83,62 @@ to_bin_no_space:
 .size to_bin, .-to_bin
 
 # input
-# a0 - number to convert to ascii decimal
+# a0 - unsigned number to convert to ascii decimal
 #
 # output
 # a0 - address of nul-terminated buffer with output
 # a1 - length of string
-to_dec:	
-	FRAME	2
+to_decu:	
+	FRAME	3
 	PUSH	ra, 0
 	PUSH	s0, 1
+	PUSH	s1, 2
+
+	mv	s1, a0			# save original number
+
 	la	s0, iobuf
 	addi	s0, s0, 79		# IOBUF_SIZE-1
 	sb	zero, 0(s0)
+	bnez	s1, to_decu_loop	# input is not zero
+
 	addi	s0, s0, -1
-	
-to_dec_loop:	
+	li	t0, '0'
+	sb	t0, 0(s0)
+	j	to_decu_retvals
+
+to_decu_loop:	
+	addi	s0, s0, -1
+	mv	a0, s1
 	li	a1, 10
 	call	divremu			# a0 quotient a1, remainder
 	addi	a1, a1, '0'
 	sb	a1, 0(s0)
-	addi	s0, s0, -1
-	bnez	a0, to_dec_loop
+	mv	s1, a0
+	bnez	s1, to_decu_loop
+
+to_decu_retvals:
+	mv	a0, s0
+	la	t0, iobuf
+	addi	t0, t0, 79		# IOBUF_SIZE-1
+	sub	a1, t0, a0
+
 	POP	ra, 0
 	POP	s0, 1
-	EFRAME	2
+	POP	s1, 2
+	EFRAME	3
 	ret
 
+.size to_decu, .-to_decu
+
+# input
+# a0 - signed number to convert to ascii decimal
+#
+# output
+# a0 - address of nul-terminated buffer with output
+# a1 - length of string
+to_dec:
+	# xxx
+	ret
 .size to_dec, .-to_dec
 
 # input
