@@ -38,6 +38,10 @@ These operations support 32-bit numbers on 32-bit architectures and
 - two's complement binary to ASCII signed decimal - not complete
 - binary to ASCII hexadecimal
 
+## Square Root
+- 32-bit integer square root on 32-bit processors - not complete
+- 64-bit integer square root on 64-bit processors - not complete
+
 ## Building
 
 clang and make are assumed. I'm currently using clang 18.
