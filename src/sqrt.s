@@ -5,13 +5,13 @@
 # compute the integer square root
 # a0 - input (unsigned)
 # a0 - output
-
 isqrt:
-	FRAME	4
+	FRAME	5
 	PUSH	ra, 0
 	PUSH	s0, 1
 	PUSH	s1, 2
 	PUSH	s2, 3
+	PUSH	s3, 4
 	
 	li	t0, 2
 	blt	a0, t0, isqrt_skip
@@ -24,8 +24,10 @@ isqrt:
 	# s0 - shift
 	# s1 - large_cand
 	# s2 - result
+	# s3 - n
 
 	li	s0, 2
+	mv	a0, s3
 isqrt_shift_loop:
 	srl	t0, a0, s0
 	bnez	t0, isqrt_bit_setting
@@ -37,23 +39,31 @@ isqrt_shift_loop:
 isqrt_bit_setting:	
 	li	s2, 0
 isqrt_bit_setting_loop:
-	bge	s0, zero, isqrt_done
+	bgeu	s0, zero, isqrt_done
 	slli	s2, s2, 1
 	addi	s1, s2, 1
 
-	# xxx: set up stuff
-	call	nmul
+	mv	a0, s1
+	mv	a1, s1
+	call	nmul		# large_cand * large_cand
+	srl	t0, a0, s0	# t0 = n >> shift
+	bgu	a0, t0, isqrt_bit_setting_loop_end
+	mv	s2, a0		# result = large_cand
 	
-
+isqrt_bit_setting_loop_end:	
+	subi	s0, s0, 2	# shift -= 2
+	j	isqrt_bit_setting_loop
 
 isqrt_done:	
 	mv	a0, s2
+
 isqrt_skip:
 	POP	ra, 0
 	POP	s0, 1
 	POP	s1, 2
 	POP	s2, 3
-	EFRAME	4
+	POP	s3, 4
+	EFRAME	5
 	ret
 
 .size isqrt, .-isqrt
