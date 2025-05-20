@@ -27,19 +27,24 @@ isqrt:
 	# s3 - n
 
 	li	s0, 2
-	mv	a0, s3
+	mv	s3, a0
 isqrt_shift_loop:
-	srl	t0, a0, s0
-	bnez	t0, isqrt_bit_setting
-	addi	s0, s0, 2
-	j	isqrt_shift_loop
+#	srl	t0, a0, s0
+#	bnez	t0, isqrt_bit_setting
+#	addi	s0, s0, 2
+#	j	isqrt_shift_loop
+.if CPU_BITS == 64
+	li	s0, 62
+.else
+	li	s0, 30
+.endif
 
 # fix registers below
 
 isqrt_bit_setting:	
 	li	s2, 0
 isqrt_bit_setting_loop:
-	bgeu	s0, zero, isqrt_done
+	bltz	s0, isqrt_done
 	slli	s2, s2, 1
 	addi	s1, s2, 1
 
@@ -47,11 +52,11 @@ isqrt_bit_setting_loop:
 	mv	a1, s1
 	call	nmul		# large_cand * large_cand
 	srl	t0, a0, s0	# t0 = n >> shift
-	bgu	a0, t0, isqrt_bit_setting_loop_end
-	mv	s2, a0		# result = large_cand
+	bgtu	a0, t0, isqrt_bit_setting_loop_end
+	mv	s2, s1		# result = large_cand
 	
 isqrt_bit_setting_loop_end:	
-	subi	s0, s0, 2	# shift -= 2
+	addi	s0, s0, -2	# shift -= 2
 	j	isqrt_bit_setting_loop
 
 isqrt_done:	
