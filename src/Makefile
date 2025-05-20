@@ -1,22 +1,23 @@
 # edit config.s to match target
-#TARGET	?=riscv64
-#ARCH	?=rv64gc
-#ABI	?=lp64
+TARGET	?=riscv64
+ARCH	?=rv64gc
+ABI	?=lp64
 
-TARGET	?=riscv32
-ARCH	?=rv32gc
-ABI	?=ilp32d
+#TARGET	?=riscv32
+#ARCH	?=rv32gc
+#ABI	?=ilp32d
 CC	:= clang
 LD	:= ld.lld
 CFLAGS	:= --target=$(TARGET) -march=$(ARCH) -mabi=$(ABI)
 LDFLAGS	:=
 
-SRCS	:= div.s mul.s io.s div-tests.s mul-tests.s sqrt.s
+SRCS	:= div.s mul.s io.s div-tests.s mul-tests.s sqrt.s alg-tests.s
 OBJS	:= $(SRCS:.s=.o)
-EXES	:= div-tests.x mul-tests.x sqrt.o
+EXES	:= div-tests.x mul-tests.x alg-tests.x
 
 DIV_TESTS_OBJS	:= div-tests.o div.o
 MUL_TESTS_OBJS	:= mul-tests.o mul.o io.o div.o
+ALG_TESTS_OBJS	:= alg-tests.o mul.o sqrt.o io.o div.o
 
 .PHONY:	all clean
 
@@ -34,6 +35,9 @@ div-tests.x: $(DIV_TESTS_OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
 
 mul-tests.x: $(MUL_TESTS_OBJS)
+	$(LD) $(LDFLAGS) $^ -o $@
+
+alg-tests.x: $(ALG_TESTS_OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
 
 clean:

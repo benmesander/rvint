@@ -126,7 +126,9 @@ test14:
 .if CPU_BITS == 64
 test15:	
 
-.endif
+
+
+	.endif
 	j	_end
 	
 # a1 - ptr to string to print
