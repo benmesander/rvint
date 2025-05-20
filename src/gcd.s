@@ -26,7 +26,7 @@ gcd:
 	mv	a0, s1
 	call	bits_ctz	# a0 = j
 
-	bltu	a0, s2, gcd_loop
+	bgtu	a0, s2, gcd_loop
 	mv	s2, a0
 gcd_loop:			# s2 = k = min(i, j)
 	blt	s0, s1, gcd_skip_swap
@@ -34,7 +34,7 @@ gcd_loop:			# s2 = k = min(i, j)
 	xor	s1, s0, s1	# register swap s0 <> s1
 	xor	s0, s0, s1
 gcd_skip_swap:	
-	sub	s0, s0, s1	# v -= u
+	sub	s1, s1, s0	# v -= u
 	beqz	s1, gcd_done
 	
 	mv	a0, s1
