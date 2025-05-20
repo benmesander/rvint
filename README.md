@@ -34,7 +34,6 @@ These operations support 32-bit numbers on 32-bit architectures and
 - ASCII unsigned decimal to binary.
 - ASCII signed decimal to two's complement binary.
 - ASCII hexadecimal to binary.
-
 - binary to ASCII binary.
 - two's complement binary to ASCII signed decimal.
 - unsigned binary to unsigned ASCII decimal.

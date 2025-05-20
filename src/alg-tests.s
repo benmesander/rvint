@@ -47,7 +47,7 @@ sqrt_test:
 	PUSH	s3, 4
 	mv	s0, a0
 	mv	s1, a1
-	mv	s2, a2
+	mv	s2, a2	# expected result
 
 	call	header
 
@@ -63,7 +63,7 @@ sqrt_test:
 
 	mv	a0, s1
 	call	isqrt
-	mv 	s3, a0
+	mv 	s3, a0		# caculated result
 	call	to_decu
 	mv	a2, a1
 	mv	a1, a0

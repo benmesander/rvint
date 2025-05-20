@@ -5,6 +5,8 @@
 # compute the integer square root
 # a0 - input (unsigned)
 # a0 - output
+#
+# XXX: improve efficiency by removing the multiplication
 isqrt:
 	FRAME	5
 	PUSH	ra, 0
@@ -51,7 +53,7 @@ isqrt_bit_setting_loop:
 	mv	a0, s1
 	mv	a1, s1
 	call	nmul		# large_cand * large_cand
-	srl	t0, a0, s0	# t0 = n >> shift
+	srl	t0, s3, s0	# t0 = n >> shift
 	bgtu	a0, t0, isqrt_bit_setting_loop_end
 	mv	s2, s1		# result = large_cand
 	
