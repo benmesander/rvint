@@ -7,6 +7,13 @@
 .globl from_hex
 .globl from_bin
 .globl from_decu
+.globl from_dec
+
+.bss
+.globl iobuf
+.equ IOBUF_SIZE, 80 # one punch card worth (note nul terminator makes capacity 79)
+.equ IOBUF_CAPACITY, IOBUF_SIZE-1
+.comm iobuf, IOBUF_SIZE, 4
 
 .text
 
@@ -98,7 +105,7 @@ to_decu:
 	mv	s1, a0			# save original number
 
 	la	s0, iobuf
-	addi	s0, s0, 79		# IOBUF_SIZE-1
+	addi	s0, s0, IOBUF_CAPACITY
 	sb	zero, 0(s0)
 
 to_decu_loop:	
@@ -114,7 +121,7 @@ to_decu_loop:
 to_decu_retvals:
 	mv	a0, s0
 	la	t0, iobuf
-	addi	t0, t0, 79		# IOBUF_SIZE-1
+	addi	t0, t0, IOBUF_CAPACITY
 	sub	a1, t0, a0
 
 	POP	ra, 0
@@ -141,7 +148,7 @@ to_dec:
 	mv	s1, a0
 
 	la	s0, iobuf
-	addi	s0, s0, 78		# IOBUF_SIZE-1
+	addi	s0, s0, IOBUF_CAPACITY
 	sb	zero, 0(s0)
 
 	mv	t0, zero		# t0 will be a flag: 1 if original number was negative and non-zero
@@ -173,7 +180,7 @@ to_dec_loop:
 to_dec_retval:	
 	mv	a0, s0
 	la	t1, iobuf
-	addi	t1, t1, 79		# IOBUF_SIZE-1
+	addi	t1, t1, IOBUF_CAPACITY
 	sub	a1, t1, a0
 	POP s1, 2
 	POP s0, 1
@@ -238,7 +245,7 @@ from_bin_bit:
 
 from_bin_add_bit:
 	li	a2, 1		# we found a bit
-	slli	a1, a1, 1	# shift result left by 4 bits
+	slli	a1, a1, 1
 	or	a1, a1, t1	# add new bit
 	addi	a0, a0, 1
 	j	from_bin_bit
@@ -271,13 +278,47 @@ from_decu_add_digit:
 	slli	t4, a1, 3	# t4 = a1 * 8
 	add	a1, t3, t4	# a1 = a1 * 10
 	add	a1, a1, t1	# add in new digit
+	addi	a0, a0, 1
 	j	from_decu_digit
 
 from_decu_done:	
 	ret
 .size from_decu, .-from_decu
 
-.bss
-.globl iobuf
-.equ IOBUF_SIZE, 80 # one punch card worth
-.comm iobuf, IOBUF_SIZE, 4
+# input
+# a0 - pointer to number to convert from signed decimal
+# terminated w/non-decimal character
+# output
+# a0 - pointer (advanced to non-decimal char)
+# a1 - number
+# a2 - error check: 0 if no digits found, otherwise 1
+
+from_dec:
+	FRAME	1
+	PUSH	ra, 0
+
+	li	t5, 0	# sign bit (not used by from_decu)
+	li	t1, '-'
+	lb	t0, (a0)
+	bne	t0, t1, from_dec_handle_minus
+	li	t1, '+'
+	bne	t0, t1, from_dec_handle_plus
+	j	from_dec_convert
+
+from_dec_handle_minus:	
+	li	t5, 1
+from_dec_handle_plus:
+	addi	a0, a0, 1
+	
+from_dec_convert:
+	jal	from_decu
+	beq	t5, zero, from_dec_done
+	sub	a1, zero, a1
+
+from_dec_done:	
+	POP	ra, 0
+	EFRAME	1
+	ret
+
+.size from_dec, .-from_dec
+

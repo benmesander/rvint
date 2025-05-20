@@ -32,7 +32,7 @@ These operations support 32-bit numbers on 32-bit architectures and
 
 - ASCII binary to binary
 - ASCII unsigned decimal to binary
-- ASCII signed decimal to two's complement binary - not complete
+- ASCII signed decimal to two's complement binary
 - ASCII hexadecimal to binary
 
 - binary to ASCII binary 
