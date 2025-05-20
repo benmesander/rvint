@@ -123,6 +123,10 @@ test14:
 	li	a4, 0
 	call	mul32_test
 
+.if CPU_BITS == 64
+test15:	
+
+.endif
 	j	_end
 	
 # a1 - ptr to string to print
@@ -333,7 +337,7 @@ _end:
         li	a7, 93	# exit syscall
         ecall
 
-.if CPU_BITS==64
+.if CPU_BITS == 64
 # test # a0
 # compute a1 * a2
 # expected value a3:a4

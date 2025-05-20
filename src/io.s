@@ -243,7 +243,6 @@ from_bin_bit:
 	addi	t1, t0, -'0'
 	bgtu	t1, t2, from_bin_done
 
-from_bin_add_bit:
 	li	a2, 1		# we found a bit
 	slli	a1, a1, 1
 	or	a1, a1, t1	# add new bit
@@ -272,7 +271,6 @@ from_decu_digit:
 	addi	t1, t0, -'0'
 	bgtu	t1, t2, from_decu_done
 
-from_decu_add_digit:
 	li	a2, 1
 	slli	t3, a1, 1	# t3 = a1 * 2
 	slli	t4, a1, 3	# t4 = a1 * 8
@@ -300,9 +298,9 @@ from_dec:
 	li	t5, 0	# sign bit (not used by from_decu)
 	li	t1, '-'
 	lb	t0, (a0)
-	bne	t0, t1, from_dec_handle_minus
+	beq	t0, t1, from_dec_handle_minus
 	li	t1, '+'
-	bne	t0, t1, from_dec_handle_plus
+	beq	t0, t1, from_dec_handle_plus
 	j	from_dec_convert
 
 from_dec_handle_minus:	
