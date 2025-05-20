@@ -91,6 +91,38 @@ test11:
 #endif
 	call	mul32_test
 
+test12:
+	li	a0, 12
+	li	a1, 2
+	li	a2, -3
+	li	a3, -6
+.if CPU_BITS == 64
+	slli	a3, a3, 32
+	srli	a3, a3, 32
+.endif
+	li	a4, -1
+#if CPU_BITS == 64
+	slli	a4, a4, 32
+	srli	a4, a4, 32
+#endif
+	call	mul32_test
+	
+test13:
+	li	a0, 13
+	li	a1, -2
+	li	a2, -3
+	li	a3, 6
+	li	a4, 0
+	call	mul32_test
+
+test14:
+	li	a0, 14
+	li	a1, 2
+	li	a2, 3
+	li	a3, 6
+	li	a4, 0
+	call	mul32_test
+
 	j	_end
 	
 # a1 - ptr to string to print
