@@ -79,10 +79,17 @@ test11:
 	li	a0, 11
 	li	a1, -2
 	li	a2, 3
-	li	a3, -1
-	li	a4, -6
+	li	a3, -6
+.if CPU_BITS == 64
+	slli	a3, a3, 32
+	srli	a3, a3, 32
+.endif
+	li	a4, -1
+#if CPU_BITS == 64
+	slli	a4, a4, 32
+	srli	a4, a4, 32
+#endif
 	call	mul32_test
-
 
 	j	_end
 	
@@ -245,6 +252,7 @@ mul32_test:
 	mv	s0, a0		# save result
 	mv	s1, a1
 
+	mv	a0, a1
 	li	a1, 4
 	li	a2, 1
 	call	to_hex
@@ -256,7 +264,7 @@ mul32_test:
 	li	a2, 1
 	call	print
 
-	mv	a0, s1
+	mv	a0, s0
 	li	a1, 4
 	li	a2, 1
 	call	to_hex
