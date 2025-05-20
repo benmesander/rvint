@@ -5,7 +5,7 @@
 .globl to_dec
 .globl to_decu
 .globl from_hex
-
+.globl from_bin
 
 .text
 
@@ -190,38 +190,63 @@ to_dec_retval:
 # a1 - number
 # a2 - error check: 0 if no digits found, otherwise 1
 from_hex:
-        li      a1, 0
+	li	a1, 0
 	li	a2, 0
 	li	t2, 9
 	li	t3, 5
 from_hex_nibble:
-        lb      t0, (a0)	
-        addi    a0, a0, 1	
+	lb	t0, (a0)	
+	addi	a0, a0, 1	
 
-        # Handle 0-9
-	addi    t1, t0, -'0'
-        bleu    t1, t2, from_hex_add_digit
+	# Handle 0-9
+	addi	t1, t0, -'0'
+	bleu	t1, t2, from_hex_add_digit
 
-        # Handle a-f and A-F by converting to uppercase
+	# Handle a-f and A-F by converting to uppercase
 	andi	t0, t0, 0xDF	# clear bit 5 (cvt to upper)
-        addi    t1, t0, -'A'
+	addi	t1, t0, -'A'
 	bgtu	t1, t3, from_hex_done
 	addi	t1, t1, 10	# A-F -> 10-15
 
 from_hex_add_digit:
 	li	a2, 1		# we found a digit
-        slli    a1, a1, 4	# shift result left by 4 bits
-        add     a1, a1, t1	# add new nibble
-        j       from_hex_nibble
+	slli	a1, a1, 4	# shift result left by 4 bits
+	add	a1, a1, t1	# add new nibble
+	j	from_hex_nibble
 
 from_hex_done:
-        addi    a0, a0, -1     # Adjust pointer to point at non-hex char
-        ret	
-	
-
-
-	ret
+	addi	a0, a0, -1     # Adjust pointer to point at non-hex char
+	ret	
 .size from_hex, .-from_hex
+
+
+# input
+# a0 - pointer to number to convert from binary
+# terminated w/non-binary character
+# output
+# a0 - pointer (advanced to non-binary char)
+# a1 - number
+# a2 - error check: 0 if no digits found, otherwise 1
+from_bin:
+	li	a1, 0
+	li	a2, 0
+	li	t2, 1
+from_bin_bit:
+	lb	t0, (a0)	
+	addi	a0, a0, 1	
+	addi	t1, t0, -'0'
+	bgtu	t1, t2, from_bin_done
+
+from_bin_add_bit:
+	li	a2, 1		# we found a bit
+	slli	a1, a1, 1	# shift result left by 4 bits
+	or	a1, a1, t1	# add new bit
+	j	from_bin_bit
+
+from_bin_done:
+	addi	a0, a0, -1
+	ret	
+.size from_bin, .-from_bin
 
 
 .bss

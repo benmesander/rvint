@@ -30,7 +30,8 @@ provided for RV32I, RV64I, and similar instruction sets.
 These operations support 32-bit numbers on 32-bit architectures and
 64-bit numbers on 64-bit architectures.
 
-- ASCII binary to binary - not complete
+- ASCII binary to binary
+- ASCII unsigned decimal to binary - not complete
 - ASCII signed decimal to two's complement binary - not complete
 - ASCII hexadecimal to binary
 

@@ -75,6 +75,15 @@ test10:
 	li	a4, 0
 	call	mul32_test
 
+test11:
+	li	a0, 11
+	li	a1, -2
+	li	a2, 3
+	li	a3, -1
+	li	a4, -6
+	call	mul32_test
+
+
 	j	_end
 	
 # a1 - ptr to string to print
