@@ -51,7 +51,7 @@ sqrt_test:
 
 	call	header
 
-	mv	a0, s0
+	mv	a0, s1
 	call	to_decu
 	mv	a2, a1
 	mv	a1, a0
@@ -70,7 +70,7 @@ sqrt_test:
 	call	print
 
 	la	a1, space
-	li	a2, 3
+	li	a2, 1
 	call	print
 
 	sub	s2, s2, s3
