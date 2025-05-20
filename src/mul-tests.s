@@ -175,7 +175,7 @@ print_eqn:
 
 	mv	s0, a0
 	mv	s1, a1
-	li	a1, 4
+	li	a1, CPU_BYTES
 	li	a2, 1
 	call	to_hex
 	mv	a2, a1
@@ -185,7 +185,7 @@ print_eqn:
 	li	a2, 3
 	call	print
 	mv	a0, s1
-	li	a1, 4
+	li	a1, CPU_BYTES
 	li	a2, 1
 	call	to_hex
 	mv	a2, a1
@@ -225,7 +225,7 @@ nmul_test:
 	call	nmul
 	
 	mv	s0, a0		# print the result
-	li	a1, 4
+	li	a1, CPU_BYTES
 	li	a2, 1
 	call	to_hex
 	mv	a2, a1
@@ -254,7 +254,6 @@ nmul_test_done:
 
 # test # a0
 # compute a1 * a2
-# signed flag in a3 
 # expected value a3:a4
 mul32_test:
 	FRAME	5
@@ -263,10 +262,11 @@ mul32_test:
 	PUSH	s1, 2
 	PUSH	s2, 3
 	PUSH	s3, 4
+
 	mv	s0, a1
 	mv	s1, a2
 	mv	s2, a3
-	mv	s3, a3
+	mv	s3, a4
 
 	call	print_header	# print test number a0
 
@@ -280,12 +280,12 @@ mul32_test:
 	call	mul32
 	# a0 - low 32
 	# a1 - high 32
-	
 	mv	s0, a0		# save result
 	mv	s1, a1
 
+
 	mv	a0, a1
-	li	a1, 4
+	li	a1, CPU_BYTES
 	li	a2, 1
 	call	to_hex
 	mv	a2, a1
@@ -297,7 +297,7 @@ mul32_test:
 	call	print
 
 	mv	a0, s0
-	li	a1, 4
+	li	a1, CPU_BYTES
 	li	a2, 1
 	call	to_hex
 	mv	a2, a1
@@ -333,7 +333,37 @@ _end:
         li	a7, 93	# exit syscall
         ecall
 
+.if CPU_BITS==64
+# test # a0
+# compute a1 * a2
+# expected value a3:a4
+mul128_test:
+	FRAME	5
+	PUSH	ra, 0
+	PUSH	s0, 1
+	PUSH	s1, 2
+	PUSH	s2, 3
+	PUSH	s3, 4
+	mv	s0, a1
+	mv	s1, a2
+	mv	s2, a3
+	mv	s3, a4
 
+	call	print_header	# print test number a0
+
+	mv	a0, s0		# print the equation
+	mv	a1, s1
+	call	print_eqn
+	
+
+	POP	ra, 0
+	POP	s0, 1
+	POP	s1, 2
+	POP	s2, 3
+	POP	s3, 4
+	EFRAME	5
+	ret
+.endif
 
 
 test:	.asciz	"test "
