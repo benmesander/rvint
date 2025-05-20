@@ -18,12 +18,12 @@ provided for RV32I, RV64I, and similar instruction sets.
 
 ### On 32-bit processors:
 - 32-bit by 32-bit signed and unsigned multiplication with 32-bit result.
-- 32-bit by 32-bit signed and unsigned multiplication with 64-bit result.
+- 32-bit by 32-bit signed and unsigned multiplication with 64-bit result. - not complete
 
 ### on 64-bit processors:
 - 32-bit by 32-bit signed and unsigned multiplication with 64-bit result.
 - 64-bit by 64-bit signed and unsigned multiplication with 64-bit result.
-- 64-bit by 64-bit signed and unsigned multiplication with 128-bit result.
+- 64-bit by 64-bit signed and unsigned multiplication with 128-bit result. - not complete
 
 ## Base Conversions & I/O Operations
 
@@ -43,6 +43,16 @@ These operations support 32-bit numbers on 32-bit architectures and
 ## Square Root
 - 32-bit integer square root on 32-bit processors - not complete
 - 64-bit integer square root on 64-bit processors - not complete
+
+## Greatest Common Divisor
+- 32 bit GCD of two 32-bit numbers on 32-bit processors - not complete
+- 64 bit GCD of two 64-bit numbers on 64-bit processors - not complete
+
+## Bit Operations
+- Count leading zeroes in 32-bit number on 32-bit processors - not complete
+- Count leading zeroes in 64-bit number on 64-bit processors - not complete
+- Count trailing zeroes in 32-bit number on 32-bit processors - not complete
+- Count trailing zeroes in 64-bit number on 64-bit processors - not complete
 
 ## Building
 
