@@ -44,8 +44,8 @@ These operations support 32-bit numbers on 32-bit architectures and
 - 64-bit integer square root on 64-bit processors. - not complete
 
 ## Greatest Common Divisor
-- 32 bit GCD of two 32-bit numbers on 32-bit processors. - not complete
-- 64 bit GCD of two 64-bit numbers on 64-bit processors. - not complete
+- 32 bit GCD of two 32-bit numbers on 32-bit processors.
+- 64 bit GCD of two 64-bit numbers on 64-bit processors.
 
 ## Bit Operations
 - Count leading zeroes in 32-bit number on 32-bit processors. - not complete
