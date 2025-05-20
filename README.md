@@ -55,4 +55,6 @@ syscall 64 is write and 93 is exit.
 
 I use this emulator to run RV32I code:
 https://riscv-programming.org/ale/
+I'm running RV64 code on a scaleway elastic metal cloud instance:
+https://labs.scaleway.com/en/em-rv1/
 
