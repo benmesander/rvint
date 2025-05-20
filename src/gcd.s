@@ -1,7 +1,7 @@
 .include "config.s"
 .globl gcd
 
-# compute the gcd
+# compute the gcd of two unsigned numbers
 # input
 # a0 - first number (u)
 # a1 - second number (v)
@@ -25,11 +25,13 @@ gcd:
 	mv	s2, a0		# s2 = i
 	mv	a0, s1
 	call	bits_ctz	# a0 = j
+	srl	s0, s0, s2	# u >>= i
+	srl	s1, s1, a0	# v >>= j
 
 	bgtu	a0, s2, gcd_loop
 	mv	s2, a0
 gcd_loop:			# s2 = k = min(i, j)
-	blt	s0, s1, gcd_skip_swap
+	bltu	s0, s1, gcd_skip_swap
 	xor	s0, s0, s1
 	xor	s1, s0, s1	# register swap s0 <> s1
 	xor	s0, s0, s1
