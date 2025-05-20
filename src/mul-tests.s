@@ -67,6 +67,14 @@ test9:
 	li	a3, 0xffff0000
 	call	nmul_test
 
+test10:
+	li	a0, 10
+	li	a1, 0
+	li	a2, 0
+	li	a3, 0
+	li	a4, 0
+	call	mul32_test
+
 	j	_end
 	
 # a1 - ptr to string to print
@@ -195,6 +203,75 @@ nmul_test_done:
 	POP	s2, 3
 	EFRAME	4
 	ret
+
+# test # a0
+# compute a1 * a2
+# signed flag in a3 
+# expected value a3:a4
+mul32_test:
+	FRAME	5
+	PUSH	ra, 0
+	PUSH	s0, 1
+	PUSH	s1, 2
+	PUSH	s2, 3
+	PUSH	s3, 4
+	mv	s0, a1
+	mv	s1, a2
+	mv	s2, a3
+	mv	s3, a3
+
+	call	print_header	# print test number a0
+
+	mv	a0, s0		# print the equation
+	mv	a1, s1
+	call	print_eqn
+
+	mv	a0, s0		# compute the result
+	mv	a1, s1
+	mv	a2, s3
+	call	mul32
+	# a0 - low 32
+	# a1 - high 32
+	
+	mv	s0, a0		# save result
+	mv	s1, a1
+	li	a1, 4
+	li	a2, 1
+	call	to_hex
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+	la	a1, colon
+	li	a2, 1
+	call	print
+	mv	a0, s1
+	li	a1, 4
+	li	a2, 1
+	call	to_hex
+	la	a1, space
+	li	a2, 1
+	call	print
+
+	sub	a3, a3, s0
+	bnez	a3, mul32_test_fail
+	sub	a4, a4, s1
+	bnez	a4, mul32_test_fail
+
+	call	print_pass
+	j	mul32_test_done
+	
+mul32_test_fail:	
+	call	print_fail
+	
+mul32_test_done:
+	POP	ra, 0
+	POP	s0, 1
+	POP	s1, 2
+	POP	s2, 3
+	POP	s3, 4
+	EFRAME	5
+	ret
+
 _end:
         li	a0, 0	# exit code
         li	a7, 93	# exit syscall

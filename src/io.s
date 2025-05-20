@@ -184,7 +184,42 @@ to_dec_retval:
 
 # input
 # a0 - pointer to number to convert from hex
+# terminated w/non-hex character
+# output
+# a0 - pointer (advanced to non-hex char)
+# a1 - number
+# a2 - error check: 0 if no digits found, otherwise 1
 from_hex:
+        li      a1, 0
+	li	a2, 0
+	li	t2, 9
+	li	t3, 5
+from_hex_nibble:
+        lb      t0, (a0)	
+        addi    a0, a0, 1	
+
+        # Handle 0-9
+	addi    t1, t0, -'0'
+        bleu    t1, t2, from_hex_add_digit
+
+        # Handle a-f and A-F by converting to uppercase
+	andi	t0, t0, 0xDF	# clear bit 5 (cvt to upper)
+        addi    t1, t0, -'A'
+	bgtu	t1, t3, from_hex_done
+	addi	t1, t1, 10	# A-F -> 10-15
+
+from_hex_add_digit:
+	li	a2, 1		# we found a digit
+        slli    a1, a1, 4	# shift result left by 4 bits
+        add     a1, a1, t1	# add new nibble
+        j       from_hex_nibble
+
+from_hex_done:
+        addi    a0, a0, -1     # Adjust pointer to point at non-hex char
+        ret	
+	
+
+
 	ret
 .size from_hex, .-from_hex
 

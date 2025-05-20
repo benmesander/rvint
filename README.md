@@ -45,7 +45,7 @@ These operations support 32-bit numbers on 32-bit architectures and
 
 ## Building
 
-clang and make are assumed. I'm currently using clang 18.
+clang, lld, and make are assumed. I'm currently using clang 18.
 The TARGET, ARCH, and ABI should be edited in the Makefile,
 and the CPU_BITS constant should be set to match in config.s
 
