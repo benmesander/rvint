@@ -235,22 +235,29 @@ mul32_test:
 	
 	mv	s0, a0		# save result
 	mv	s1, a1
+
 	li	a1, 4
 	li	a2, 1
 	call	to_hex
 	mv	a2, a1
 	mv	a1, a0
 	call	print
+
 	la	a1, colon
 	li	a2, 1
 	call	print
+
 	mv	a0, s1
 	li	a1, 4
 	li	a2, 1
 	call	to_hex
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+
 	la	a1, space
 	li	a2, 1
-	call	print
+	call 	print
 
 	sub	a3, a3, s0
 	bnez	a3, mul32_test_fail
