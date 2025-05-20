@@ -86,14 +86,15 @@ bits_clz:
 	srli	a0, a0, 32
 .endif
 
+bits_clz_upper_16:	
 
 
-bits_clz_is_zero:
+#bits_clz_is_zero:
 	mv	a0, t2
 	ret
 
 bits_clz_is_zero:
-	li	a0, 32
+	li	a0, CPU_BITS
 	ret
 
 

@@ -40,18 +40,18 @@ These operations support 32-bit numbers on 32-bit architectures and
 - binary to ASCII hexadecimal.
 
 ## Square Root
-- 32-bit integer square root on 32-bit processors - not complete
-- 64-bit integer square root on 64-bit processors - not complete
+- 32-bit integer square root on 32-bit processors. - not complete
+- 64-bit integer square root on 64-bit processors. - not complete
 
 ## Greatest Common Divisor
-- 32 bit GCD of two 32-bit numbers on 32-bit processors - not complete
-- 64 bit GCD of two 64-bit numbers on 64-bit processors - not complete
+- 32 bit GCD of two 32-bit numbers on 32-bit processors. - not complete
+- 64 bit GCD of two 64-bit numbers on 64-bit processors. - not complete
 
 ## Bit Operations
-- Count leading zeroes in 32-bit number on 32-bit processors - not complete
-- Count leading zeroes in 64-bit number on 64-bit processors - not complete
-- Count trailing zeroes in 32-bit number on 32-bit processors - not complete
-- Count trailing zeroes in 64-bit number on 64-bit processors - not complete
+- Count leading zeroes in 32-bit number on 32-bit processors. - not complete
+- Count leading zeroes in 64-bit number on 64-bit processors. - not complete
+- Count trailing zeroes in 32-bit number on 32-bit processors.
+- Count trailing zeroes in 64-bit number on 64-bit processors.
 
 ## Building
 
