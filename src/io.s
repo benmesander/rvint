@@ -6,6 +6,7 @@
 .globl to_decu
 .globl from_hex
 .globl from_bin
+.globl from_decu
 
 .text
 
@@ -196,7 +197,6 @@ from_hex:
 	li	t3, 5
 from_hex_nibble:
 	lb	t0, (a0)	
-	addi	a0, a0, 1	
 
 	# Handle 0-9
 	addi	t1, t0, -'0'
@@ -212,10 +212,10 @@ from_hex_add_digit:
 	li	a2, 1		# we found a digit
 	slli	a1, a1, 4	# shift result left by 4 bits
 	add	a1, a1, t1	# add new nibble
+	addi	a0, a0, 1	
 	j	from_hex_nibble
 
 from_hex_done:
-	addi	a0, a0, -1     # Adjust pointer to point at non-hex char
 	ret	
 .size from_hex, .-from_hex
 
@@ -233,7 +233,6 @@ from_bin:
 	li	t2, 1
 from_bin_bit:
 	lb	t0, (a0)	
-	addi	a0, a0, 1	
 	addi	t1, t0, -'0'
 	bgtu	t1, t2, from_bin_done
 
@@ -241,13 +240,42 @@ from_bin_add_bit:
 	li	a2, 1		# we found a bit
 	slli	a1, a1, 1	# shift result left by 4 bits
 	or	a1, a1, t1	# add new bit
+	addi	a0, a0, 1
 	j	from_bin_bit
 
 from_bin_done:
-	addi	a0, a0, -1
 	ret	
 .size from_bin, .-from_bin
 
+# input
+# a0 - pointer to number to convert from unsigned decimal
+# terminated w/non-decimal character
+# output
+# a0 - pointer (advanced to non-decimal char)
+# a1 - number
+# a2 - error check: 0 if no digits found, otherwise 1
+
+from_decu:
+	li	a1, 0
+	li	a2, 0
+	li	t2, 9
+
+from_decu_digit:
+	lb	t0,(a0)
+	addi	t1, t0, -'0'
+	bgtu	t1, t2, from_decu_done
+
+from_decu_add_digit:
+	li	a2, 1
+	slli	t3, a1, 1	# t3 = a1 * 2
+	slli	t4, a1, 3	# t4 = a1 * 8
+	add	a1, t3, t4	# a1 = a1 * 10
+	add	a1, a1, t1	# add in new digit
+	j	from_decu_digit
+
+from_decu_done:	
+	ret
+.size from_decu, .-from_decu
 
 .bss
 .globl iobuf
