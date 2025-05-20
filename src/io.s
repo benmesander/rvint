@@ -33,8 +33,8 @@ to_hex:
 	li	t1, 0x7830	# '0x' in ascii, little-endian
 	sw	t1, 0(t0)
 	addi	t0, t0, 2
-	
-to_hex_loop:	
+
+to_hex_loop:
 	addi	a1, a1, -1
 	slli	t1, a1, 2
 	srl	t2, a0, t1
@@ -52,7 +52,7 @@ to_hex_digit:
 	ret
 
 .size to_hex, .-to_hex
-	
+
 # input
 # a0 - number to convert to ascii binary
 # a1 - number of bytes to convert (eg 1, 2, 4, 8)
@@ -81,7 +81,7 @@ to_bin_loop:
 	sb	t3, 0(t0)
 	addi	t0, t0, 1
 to_bin_no_space:
-	bnez 	a1, to_bin_loop
+	bnez	a1, to_bin_loop
 
 	sb	zero, 0(t0)
 	la	a0, iobuf
@@ -96,7 +96,7 @@ to_bin_no_space:
 # output
 # a0 - address of nul-terminated buffer with output
 # a1 - length of string
-to_decu:	
+to_decu:
 	FRAME	3
 	PUSH	ra, 0
 	PUSH	s0, 1
@@ -108,7 +108,7 @@ to_decu:
 	addi	s0, s0, IOBUF_CAPACITY
 	sb	zero, 0(s0)
 
-to_decu_loop:	
+to_decu_loop:
 	addi	s0, s0, -1
 	mv	a0, s1
 	li	a1, 10
@@ -155,7 +155,7 @@ to_dec:
 					# For MIN_INT, it will become negative.
 	bgez	s1, to_dec_abs_done	# If s1 >= 0, skip negation
 	li	t0, 1			# Set negative flag
-	sub	s1, zero, s1	
+	sub	s1, zero, s1
 to_dec_abs_done:
 	# s1 now holds the absolute value (or MIN_INT if original was MIN_INT, which is treated as 2^(N-1) unsigned)
 	# t0 holds 1 if a minus sign is needed, 0 otherwise.
@@ -163,7 +163,7 @@ to_dec_abs_done:
 to_dec_loop:
 	addi	s0, s0, -1
 	mv	a0, s1
-	li 	a1, 10
+	li	a1, 10
 	call	divremu			# Output: a0=quotient, a1=remainder
 	addi	a1, a1, '0'
 	sb	a1, 0(s0)
@@ -177,7 +177,7 @@ to_dec_loop:
 	li	t1, '-'
 	sb	t1, 0(s0)
 
-to_dec_retval:	
+to_dec_retval:
 	mv	a0, s0
 	la	t1, iobuf
 	addi	t1, t1, IOBUF_CAPACITY
@@ -203,7 +203,7 @@ from_hex:
 	li	t2, 9
 	li	t3, 5
 from_hex_nibble:
-	lb	t0, (a0)	
+	lb	t0, (a0)
 
 	# Handle 0-9
 	addi	t1, t0, -'0'
@@ -219,13 +219,12 @@ from_hex_add_digit:
 	li	a2, 1		# we found a digit
 	slli	a1, a1, 4	# shift result left by 4 bits
 	add	a1, a1, t1	# add new nibble
-	addi	a0, a0, 1	
+	addi	a0, a0, 1
 	j	from_hex_nibble
 
 from_hex_done:
-	ret	
+	ret
 .size from_hex, .-from_hex
-
 
 # input
 # a0 - pointer to number to convert from binary
@@ -239,7 +238,7 @@ from_bin:
 	li	a2, 0
 	li	t2, 1
 from_bin_bit:
-	lb	t0, (a0)	
+	lb	t0, (a0)
 	addi	t1, t0, -'0'
 	bgtu	t1, t2, from_bin_done
 
@@ -250,7 +249,7 @@ from_bin_bit:
 	j	from_bin_bit
 
 from_bin_done:
-	ret	
+	ret
 .size from_bin, .-from_bin
 
 # input
@@ -279,7 +278,7 @@ from_decu_digit:
 	addi	a0, a0, 1
 	j	from_decu_digit
 
-from_decu_done:	
+from_decu_done:
 	ret
 .size from_decu, .-from_decu
 
@@ -303,17 +302,17 @@ from_dec:
 	beq	t0, t1, from_dec_handle_plus
 	j	from_dec_convert
 
-from_dec_handle_minus:	
+from_dec_handle_minus:
 	li	t5, 1
 from_dec_handle_plus:
 	addi	a0, a0, 1
-	
+
 from_dec_convert:
 	jal	from_decu
 	beq	t5, zero, from_dec_done
 	sub	a1, zero, a1
 
-from_dec_done:	
+from_dec_done:
 	POP	ra, 0
 	EFRAME	1
 	ret

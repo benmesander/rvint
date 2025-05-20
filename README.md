@@ -30,15 +30,15 @@ provided for RV32I, RV64I, and similar instruction sets.
 These operations support 32-bit numbers on 32-bit architectures and
 64-bit numbers on 64-bit architectures.
 
-- ASCII binary to binary
-- ASCII unsigned decimal to binary
-- ASCII signed decimal to two's complement binary
-- ASCII hexadecimal to binary
+- ASCII binary to binary.
+- ASCII unsigned decimal to binary.
+- ASCII signed decimal to two's complement binary.
+- ASCII hexadecimal to binary.
 
-- binary to ASCII binary 
-- two's complement binary to ASCII signed decimal
-- unsigned binary to unsigned ASCII decimal
-- binary to ASCII hexadecimal
+- binary to ASCII binary.
+- two's complement binary to ASCII signed decimal.
+- unsigned binary to unsigned ASCII decimal.
+- binary to ASCII hexadecimal.
 
 ## Square Root
 - 32-bit integer square root on 32-bit processors - not complete
