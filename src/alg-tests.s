@@ -151,7 +151,11 @@ gcd_test:
 	li	a2, 3
 	call	print
 
-	mv	a0, s3
+	mv	a0, s1
+	mv	a1, s1
+	call	gcd
+	mv	s2, a0
+
 	call	to_decu
 	mv	a2, a1
 	mv	a1, a0
