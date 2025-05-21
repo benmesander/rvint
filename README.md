@@ -4,6 +4,9 @@ Integer-based mathematical subroutines which implement RISC-V M and B
 extension functionality on I, and Zmmul instruction sets. If there is
 interest, I could support other instruction sets such as E.
 
+![Screenshot of tests](rvint.png "Optional title text")
+
+
 ## Division
 
 ### On 32-bit processors
