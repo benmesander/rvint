@@ -74,14 +74,13 @@ lcm:
 	mv	s0, a0
 	mv	s1, a1
 
-	beqz	a0, lcm_check_a1
+	beqz	a0, lcm_check_a1	# check to see if both a0 and a1 are 0
+
 lcm_start:	
-	
 	jal	gcd		# gcd result in a0
 	mv	a1, a0		# divide a0 by gcd result
 	mv	a0, s0
 	call	divremu		# result in a0
-
 	mv	a1, s1		# multiply by a1
 	call	nmul		# result in a0
 
