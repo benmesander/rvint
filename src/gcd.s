@@ -96,3 +96,4 @@ lcm_check_a1:
 	bnez	a1, lcm_start
 	j	lcm_cleanup	# if a0, a1 both zero, return zero
 	
+.size lcm, .-lcm
