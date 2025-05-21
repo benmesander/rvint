@@ -76,7 +76,7 @@ bits_clz:
 .if CPU_BITS == 64
 	slli	t1, t1, 32	# 1's in upper 32 bits
 	and	t0, t1, a0
-	beqz	t0, bits_clz_upper_16
+	bnez	t0, bits_clz_upper_16
 	addi	t2, t2, 32	# add 32 zeroes
 	slli	a0, a0, 32	# move up value
 .endif
@@ -84,31 +84,35 @@ bits_clz:
 bits_clz_upper_16:	
 	slli	t1, t1, 16	# 1's in upper 16 bits
 	and	t0, t1, a0
-	beqz	t0, bits_clz_upper_8
+	bnez	t0, bits_clz_upper_8
 	addi	t2, t2, 16
 	slli	a0, a0, 16
 
 bits_clz_upper_8:
-	andi	t0, a0, 0xff
-	beqz	t0, bits_clz_upper_4
+	slli	t1, t1, 8
+	and	t0, t1, a0
+	bnez	t0, bits_clz_upper_4
 	addi	t2, t2, 8
 	slli	a0, a0, 8
 
 bits_clz_upper_4:
-	andi	t0, a0, 0xf
-	beqz	t0, bits_clz_upper_2
+	slli	t1, t1, 4
+	and	t0, t1, a0
+	bnez	t0, bits_clz_upper_2
 	addi	t2, t2, 4
 	slli	a0, a0, 4
 
 bits_clz_upper_2:
-	andi	t0, a0, 0x3
-	beqz	t0, bits_clz_upper_1
+	slli	t1, t1, 2
+	and	t0, t1, a0
+	bnez	t0, bits_clz_upper_1
 	addi	t2, t2, 2
 	slli	a0, a0, 2
 
 bits_clz_upper_1:
-	andi	t0, a0, 0x1
-	beqz	t0, bits_clz_done
+	slli	t1, t1, 1
+	and	t0, t1, a0
+	bnez	t0, bits_clz_done
 	addi	t2, t2, 1
 
 bits_clz_done:
