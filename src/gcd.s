@@ -1,5 +1,6 @@
 .include "config.s"
 .globl gcd
+.globl lcm
 
 # compute the gcd of two unsigned numbers
 # input
@@ -60,7 +61,40 @@ gcd_return_v:
 gcd_return_u:
 	j	gcd_cleanup
 
-
-
 .size	gcd, .-gcd
+	
+# compute the least common multiple of two unsigned numbers
+# input: a0, a1
+# output: a0	
+lcm:
+	FRAME	4
+	PUSH	ra, 0
+	PUSH	s0, 1
+	PUSH	s1, 2
+	PUSH	s2, 3
+	mv	s0, a0
+	mv	s1, a1
+
+	beqz	a0, lcm_check_a1
+lcm_start:	
+	
+	jal	gcd
+	mv	a1, a0
+	mv	a0, s0
+	call	divremu
+
+	mv	a1, s1
+	call	nmul
+
+lcm_cleanup:	
+	POP 	ra, 0
+	POP	s0, 1
+	POP	s1, 2
+	POP	s2, 3
+	EFRAME	1
+	ret
+
+lcm_check_a1:
+	bnez	a1, lcm_start
+	j	lcm_cleanup
 	
