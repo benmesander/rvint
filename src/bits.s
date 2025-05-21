@@ -81,7 +81,7 @@ bits_clz:
 	slli	a0, a0, 32	# move up value
 .endif
 
-bits_clz_upper_16:	
+bits_clz_upper_16:
 	slli	t1, t1, 16	# 1's in upper 16 bits
 	and	t0, t1, a0
 	bnez	t0, bits_clz_upper_8
@@ -122,6 +122,5 @@ bits_clz_done:
 bits_clz_is_zero:
 	li	a0, CPU_BITS
 	ret
-
 
 .size	bits_clz, .-bits_clz

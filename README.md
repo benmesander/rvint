@@ -1,11 +1,8 @@
 # rvint
 
-Integer-based mathematical subroutines which implement RISC-V M
+Integer-based mathematical subroutines which implement RISC-V M and B
 extension functionality on I, and Zmmul instruction sets. If there is
 interest, I could support other instruction sets such as E.
-
-Currently signed and unsigned 32 or 64 bit division routines are
-provided for RV32I, RV64I, and similar instruction sets.
 
 ## Division
 
@@ -40,8 +37,8 @@ These operations support 32-bit numbers on 32-bit architectures and
 - binary to ASCII hexadecimal.
 
 ## Square Root
-- 32-bit integer square root on 32-bit processors. - not complete
-- 64-bit integer square root on 64-bit processors. - not complete
+- 32-bit integer square root on 32-bit processors. - correct but not yet optimal
+- 64-bit integer square root on 64-bit processors. - correct but not yet optimal
 
 ## Greatest Common Divisor
 - 32-bit GCD of two unsigned 32-bit numbers on 32-bit processors.
@@ -52,8 +49,8 @@ These operations support 32-bit numbers on 32-bit architectures and
 - 64-bit LCM of two unsigned 64-bit numbers on 64-bit processors. - not complete
 
 ## Bit Operations
-- Count leading zeroes in 32-bit number on 32-bit processors. - not complete
-- Count leading zeroes in 64-bit number on 64-bit processors. - not complete
+- Count leading zeroes in 32-bit number on 32-bit processors.
+- Count leading zeroes in 64-bit number on 64-bit processors.
 - Count trailing zeroes in 32-bit number on 32-bit processors.
 - Count trailing zeroes in 64-bit number on 64-bit processors.
 
