@@ -5,13 +5,20 @@
 
 .text
 
+################################################################################
 # Unsigned integer division without using M extension
-# 64-bit on 64-bit CPUs, 32-bit on 32-bit CPUs
-# uses the restoring division algorithm
-# in: a0 = dividend
-# in: a1 = divisor
-# out: a0 = quotient
-# out: a1 = remainder
+# This division is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs
+# uses the restoring division algorithm.
+#
+# input registers:
+# a0 = dividend
+# a1 = divisor
+#
+# output registers:
+# a0 = quotient
+# a1 = remainder
+################################################################################
+
 divremu:
 	# check for division by zero, if so immediately return
 	beqz	a1, divremu_zero
@@ -47,14 +54,19 @@ divremu_zero:
 
 .size divremu, .-divremu
 
-# Signed Division - rounds towards zero
-# Input:
-#   a0: Dividend (N)
-#   a1: Divisor (D)
-# Output:
-#   a0: Quotient (Q)
-#   a1: Remainder (R)
-# Clobbers: t0, t1, t2, t3, t4, t5
+################################################################################
+# Signed integer division - rounds towards zero
+# This division is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs
+# uses the restoring division algorithm.
+#
+# input registers:
+# a0 = dividend (N)
+# a1 = divisor (D)
+#
+# output registers:
+# a0 = quotient (Q)
+# a1 = remainder (R)
+################################################################################
 
 divrem:
 	FRAME	1

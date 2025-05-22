@@ -2,19 +2,23 @@
 
 .globl isqrt
 
-# compute the integer square root of an unsigned number
-# a0 - input (n)
-# a0 - output (root)
+################################################################################
+# Compute the integer square root of an unsigned number - floor(sqrt(N)).
+# Algorithm: Non-restoring binary square root.
 #
-# Algorithm: Non-restoring binary square root (based on Hacker's Delight, Fig 11-2)
-# This version avoids multiplication/division in the main loop for efficiency
-# and is known to correctly compute floor(sqrt(N)).
+# input registers:
+# a0 = n
+# output registers:
+# a0 = root - isqrt(n)
+#
+################################################################################
+	
 isqrt:
-	FRAME	4		# Frame for ra, s0, s1, s2 (4 words * CPU_BITS/8 bytes)
-	PUSH	ra, 0		# Save return address
-	PUSH	s0, 1		# s0 will store 'place' (the bit/place value)
-	PUSH	s1, 2		# s1 will store 'root'
-	PUSH	s2, 3		# s2 will store 'remainder' (initially n_original)
+	FRAME	4
+	PUSH	ra, 0
+	PUSH	s0, 1
+	PUSH	s1, 2
+	PUSH	s2, 3
 
 # Register usage for main state variables:
 # s0: place (current bit value being tested, starts high, shifts right by 2)

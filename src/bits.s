@@ -2,11 +2,16 @@
 .globl bits_ctz
 .globl bits_clz
 
-# count trailing zeroes via binary search (use for processors with no B extension)
-# input
+################################################################################
+# Count the number of trailing zeroes in a number via binary search - O(log n)
+# (useful for processors with no B extension)
+#
+# input registers:
 # a0 number
-# output
-# a0 result
+#
+# output registers:
+# a0 result containing the number of trailing zeroes
+################################################################################
 
 bits_ctz:
 	beqz	a0, bits_ctz_is_zero
@@ -22,7 +27,7 @@ bits_ctz:
 .endif
 
 bits_ctz_lower_16:
-	li	t1, 0xffff
+	srli	t1, t1, 16
 	and	t0, a0, t1
 	bnez	t0, bits_ctz_lower_8
 	addi	t2, t2, 16	# lower 16 are zero, add to count
@@ -61,11 +66,16 @@ bits_ctz_is_zero:
 
 .size	bits_ctz, .-bits_ctz
 
-# count leading zeroes via binary search (use for processors with no B extension)
-# input
+################################################################################
+# Count the number of leading zeroes in a number via binary search - O(log n)
+# (use for processors with no B extension)
+#
+# input registers:
 # a0 number
-# output
-# a0 result
+#
+# output registers:
+# a0 result containing the number of leading zeroes in the input
+################################################################################
 
 bits_clz:
 	beqz	a0, bits_clz_is_zero

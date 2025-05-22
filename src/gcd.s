@@ -2,13 +2,17 @@
 .globl gcd
 .globl lcm
 
-# compute the gcd of two unsigned numbers
-# input
-# a0 - first number (u)
-# a1 - second number (v)
-# output
-# a0 result
-
+################################################################################
+# Compute the greatest common divisor (gcd) of two unsigned numbers.
+# 64 bit algorithm on 64-bit CPUs, 32-bit algorithm on 32-bit CPUs.
+#
+# input registers:
+# a0 = first number (u)
+# a1 = second number (v)
+#
+# output registers:
+# a0 = gcd(u, v)
+################################################################################
 gcd:
 	FRAME	4
 	PUSH	ra, 0
@@ -63,9 +67,19 @@ gcd_return_u:
 
 .size	gcd, .-gcd
 	
-# compute the least common multiple of two unsigned numbers
-# input: a0, a1
-# output: a0	
+################################################################################
+# Compute the least common multiple (lcm) of two unsigned numbers.
+# 64 bit algorithm on 64-bit CPUs, 32-bit algorithm on 32-bit CPUs.
+# This algorithm variant attempts to avoid numerical overflows, but it could
+# be improved to divide max(a0,a1) by the gcd before multiplying by the other.
+#
+# input registers:
+# a0 = u
+# a1 = v
+#
+# output registers:
+# a0 = lcm(u,v)
+################################################################################
 lcm:
 	FRAME	3
 	PUSH	ra, 0

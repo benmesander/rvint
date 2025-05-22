@@ -6,22 +6,21 @@
 
 .text
 
-# native word length multiplication via shift-and-add technique
+################################################################################
+# Native word length (64 on 64-bit processors, 32 on 32-bit processors)
+# multiplication via shift-and-add technique.
 #
 # - RV32I: 32x32 -> 32 bit result (signed or unsigned)
 # - RV64I: 64x64 -> 64 bit result (signed or unsigned)
 # Implemented using only RV32I / RV64I base instructions (No 'M' Extension).
 #
-# Calling convention:
-#   Inputs:
-#     a0: CPU_BITS-bit signed multiplicand
-#     a1: CPU_BITS-bit signed multiplier
+# input registers:
+# a0 = CPU_BITS-bit multiplicand
+# a1 = CPU_BITS-bit multiplier
 #
-#   Outputs:
-#     a0: CPU_BITS-bit signed product (lower bits)
-#
-#   CPU_BITS comes from config.s, it is either 32 or 64.
-#
+# output registers:
+# a0 = CPU_BITS-bit product (lower bits)
+################################################################################
 
 nmul:
 	# t0: current_multiplicand (starts with original a0, then shifts left)
@@ -49,13 +48,18 @@ nmul_skip:
 
 .size	nmul, .-nmul
 
-#
+################################################################################
 # Unified (RV64I and RV32I) Unsigned/Signed 32x32-bit to 64-bit multiply 
-# - No 'M' Extension. Uses only argument and temporary registers. No stack frame.
 #
-# Inputs: a0 (op1), a1 (op2), a2 (signed_flag: 0=unsigned, 1=signed)
-# Outputs: a0 (prod_low), a1 (prod_high)
+# input registers:
+# a0 = op1
+# a1 = op2
+# a2 = signed_flag: 0=unsigned, 1=signed
 #
+# output registers:
+# a0 = product low word
+# a1 = product high word
+################################################################################
 
 mul32:	
 	# Registers:
@@ -212,36 +216,18 @@ mul32_done:
 
 .if CPU_BITS == 64
 	
-# RV64I: 64x64-bit to 128-bit Multiplication (Signed/Unsigned, Software Implementation)
-# No 'M' Extension. Leaf function (no stack frame for ra or s-registers).
+################################################################################
+# 64x64-bit to 128-bit Multiplication (Signed/Unsigned) on 64-bit processors.
 #
-# Calling convention:
-#   Inputs:
-#     a0: 64-bit Operand 1 (multiplicand)
-#     a1: 64-bit Operand 2 (multiplier)
-#     a2: Signedness flag (0 for unsigned, non-zero for signed)
+# input registers:
+# a0 = 64-bit Operand 1 (multiplicand)
+# a1 = 64-bit Operand 2 (multiplier)
+# a2 = Signedness flag (0 for unsigned, non-zero for signed)
 #
-#   Outputs:
-#     a0: Lower 64 bits of the 128-bit product
-#     a1: Upper 64 bits of the 128-bit product
-#
-# Register Usage (all caller-saved or argument/return registers):
-#   Input Arguments:
-#     a0 (op1_in), a1 (op2_in), a2 (signed_flag_in)
-#
-#   Output Registers (accumulate product):
-#     a0 (P_L - Product Low)
-#     a1 (P_H - Product High)
-#
-#   Temporary Registers:
-#     t0: SM_L (Shifted Multiplicand Low) - starts as abs(op1_in)
-#     t1: SM_H (Shifted Multiplicand High) - starts as 0
-#     t2: MP (Multiplier, shifts right) - starts as abs(op2_in)
-#     t3: count (loop counter, 64 down to 0)
-#     t4: scratch / op1_is_negative_temp / carry for 128-bit add
-#     t5: scratch / op2_is_negative_temp / intermediate sum for 128-bit add
-#     t6: final_product_is_negative_flag (0 or 1)
-#
+# output registers:
+# a0 = Lower 64 bits of the 128-bit product
+# a1 = Upper 64 bits of the 128-bit product
+################################################################################
 
 m128:
 	# --- Argument Preparation & Sign Handling ---
