@@ -73,6 +73,7 @@ test10:
 	li	a2, 0
 	li	a3, 0
 	li	a4, 0
+	li	a5, 0
 	call	mul32_test
 
 test11:
@@ -85,10 +86,11 @@ test11:
 	srli	a3, a3, 32
 .endif
 	li	a4, -1
-#if CPU_BITS == 64
+.if CPU_BITS == 64
 	slli	a4, a4, 32
 	srli	a4, a4, 32
-#endif
+.endif
+	li	a5, 1
 	call	mul32_test
 
 test12:
@@ -101,10 +103,11 @@ test12:
 	srli	a3, a3, 32
 .endif
 	li	a4, -1
-#if CPU_BITS == 64
+.if CPU_BITS == 64
 	slli	a4, a4, 32
 	srli	a4, a4, 32
-#endif
+.endif
+	li	a5, 1
 	call	mul32_test
 	
 test13:
@@ -113,6 +116,7 @@ test13:
 	li	a2, -3
 	li	a3, 6
 	li	a4, 0
+	li	a5, 1
 	call	mul32_test
 
 test14:
@@ -121,6 +125,7 @@ test14:
 	li	a2, 3
 	li	a3, 6
 	li	a4, 0
+	li	a5, 0
 	call	mul32_test
 
 .if CPU_BITS == 64
@@ -284,18 +289,21 @@ nmul_test_done:
 # test # a0
 # compute a1 * a2
 # expected value a3:a4
+# signed flag: a5
 mul32_test:
-	FRAME	5
+	FRAME	6
 	PUSH	ra, 0
 	PUSH	s0, 1
 	PUSH	s1, 2
 	PUSH	s2, 3
 	PUSH	s3, 4
+	PUSH	s4, 5
 
 	mv	s0, a1
 	mv	s1, a2
 	mv	s2, a3
 	mv	s3, a4
+	mv	s4, a5
 
 	call	print_header	# print test number a0
 
@@ -305,7 +313,7 @@ mul32_test:
 
 	mv	a0, s0		# compute the result
 	mv	a1, s1
-	mv	a2, s3
+	mv	a2, s4
 	call	mul32
 	# a0 - low 32
 	# a1 - high 32
@@ -354,7 +362,8 @@ mul32_test_done:
 	POP	s1, 2
 	POP	s2, 3
 	POP	s3, 4
-	EFRAME	5
+	POP	s4, 5
+	EFRAME	6
 	ret
 
 _end:
