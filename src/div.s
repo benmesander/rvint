@@ -6,9 +6,12 @@
 .text
 
 ################################################################################
-# Unsigned integer division without using M extension
-# This division is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs
-# uses the restoring division algorithm.
+# routine: divremu
+#
+# Unsigned integer division without using M extension.
+# This division is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses the restoring division algorithm. It can be used to emulate
+# the RISC-V M extension div, rem, divw, and remw instructions.
 #
 # input registers:
 # a0 = dividend
@@ -55,9 +58,12 @@ divremu_zero:
 .size divremu, .-divremu
 
 ################################################################################
-# Signed integer division - rounds towards zero
-# This division is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs
-# uses the restoring division algorithm.
+# routine: divrem
+#
+# Signed integer division - rounds towards zero.
+# This division is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses the restoring division algorithm. It can be used to emulate
+# the RISC-V M extension div, rem, divw, and remw instructions.
 #
 # input registers:
 # a0 = dividend (N)

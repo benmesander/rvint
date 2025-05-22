@@ -75,8 +75,10 @@ syscall 64 is write and 93 is exit.
 
 ## API
 
+### Bit manipulation - bits.s:
+
+
 ```riscv
-bits.s:
 
 ################################################################################
 # routine: bits_ctz
@@ -87,10 +89,10 @@ bits.s:
 # 64-bit processors).
 #
 # input registers:
-# a0 number
+# a0 = number
 #
 # output registers:
-# a0 result containing the number of trailing zeroes
+# a0 = result containing the number of trailing zeroes
 ################################################################################
 
 ################################################################################
@@ -102,9 +104,47 @@ bits.s:
 # 64-bit processors).
 #
 # input registers:
-# a0 number
+# a0 = number
 #
 # output registers:
-# a0 result containing the number of leading zeroes in the input
+# a0 = result containing the number of leading zeroes in the input
+################################################################################
+```
+
+### Division - div.s:
+
+```riscv
+################################################################################
+# routine: divremu
+#
+# Unsigned integer division without using M extension.
+# This division is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses the restoring division algorithm. It can be used to emulate
+# the RISC-V M extension divu, remu, divuw, and remuw instructions.
+#
+# input registers:
+# a0 = dividend
+# a1 = divisor
+#
+# output registers:
+# a0 = quotient
+# a1 = remainder
+################################################################################
+
+################################################################################
+# routine: divrem
+#
+# Signed integer division - rounds towards zero.
+# This division is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses the restoring division algorithm. It can be used to emulate
+# the RISC-V M extension div, rem, divw, and remw instructions.
+#
+# input registers:
+# a0 = dividend (N)
+# a1 = divisor (D)
+#
+# output registers:
+# a0 = quotient (Q)
+# a1 = remainder (R)
 ################################################################################
 ```
