@@ -18,6 +18,8 @@
 .text
 
 ################################################################################
+# routine: to_hex
+#
 # Convert a value in a register to an ASCII hexadecimal string.
 #
 # input registers:
@@ -58,6 +60,8 @@ to_hex_digit:
 .size to_hex, .-to_hex
 
 ################################################################################
+# routine: to_bin
+#
 # Convert a value in a register to an ASCII binary string.
 #
 # input registers:
@@ -99,14 +103,16 @@ to_bin_no_space:
 .size to_bin, .-to_bin
 
 ################################################################################
+# routine: to_decu
+#
 # Convert a value in a register to an unsigned ASCII decimal string.
 #
 # input registers:
-# a0 - unsigned number to convert to ascii unsigned decimal
+# a0 = unsigned number to convert to ascii unsigned decimal
 #
 # output registers:
-# a0 - address of nul-terminated (\0) buffer with output
-# a1 - length of string
+# a0 = address of nul-terminated (\0) buffer with output
+# a1 = length of string
 ################################################################################
 to_decu:
 	FRAME	3
@@ -145,14 +151,16 @@ to_decu_retvals:
 .size to_decu, .-to_decu
 
 ################################################################################
+# routine: to_dec
+#
 # Convert a value in a register to a signed ASCII decimal string.
 #
 # input registers:
-# a0 - signed number to convert to ascii signed decimal
+# a0 = signed number to convert to ascii signed decimal
 #
 # output registers:
-# a0 - address of nul-terminated (\0) buffer with output
-# a1 - length of string
+# a0 = address of nul-terminated (\0) buffer with output
+# a1 = length of string
 ################################################################################
 
 to_dec:
@@ -207,6 +215,8 @@ to_dec_retval:
 .size to_dec, .-to_dec
 
 ################################################################################
+# routine: from_hex
+#
 # Read an ASCII hexidecimal string into a register. The parsing of the value
 # stops when we read the first non-hex character.
 #
@@ -249,6 +259,8 @@ from_hex_done:
 .size from_hex, .-from_hex
 
 ################################################################################
+# routine: from_bin
+#
 # Read an ASCII binary string into a register. The parsing of the value
 # stops when we read the first non-binary character.
 #
@@ -281,6 +293,8 @@ from_bin_done:
 .size from_bin, .-from_bin
 
 ################################################################################
+# routine: from_decu
+#
 # Read an ASCII unsigned decimal string into a register. The parsing of the value
 # stops when we read the first non-decimal character.
 #
@@ -316,6 +330,8 @@ from_decu_done:
 .size from_decu, .-from_decu
 
 ################################################################################
+# routine: from_dec
+#
 # Read an ASCII signed decimal string into a register. The parsing of the value
 # stops when we read the first non-decimal character.
 #

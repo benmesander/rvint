@@ -75,7 +75,7 @@ syscall 64 is write and 93 is exit.
 
 ## API
 
-### Bit manipulation - bits.s:
+### Bit manipulation - [bits.s](src/bits.s):
 
 
 ```riscv
@@ -111,7 +111,7 @@ syscall 64 is write and 93 is exit.
 ################################################################################
 ```
 
-### Division - div.s:
+### Division - [div.s](src/div.s):
 
 ```riscv
 ################################################################################
@@ -149,7 +149,7 @@ syscall 64 is write and 93 is exit.
 ################################################################################
 ```
 
-###Algorithms: gcd.s
+### Algorithms: [gcd.s](src/gcd.s)
 
 ```riscv
 ################################################################################
@@ -181,4 +181,125 @@ syscall 64 is write and 93 is exit.
 # output registers:
 # a0 = lcm(u,v)
 ################################################################################
+```
+
+### I/O and Base Conversion [io.s](src/io.s)
+
+```riscv
+################################################################################
+# routine: to_hex
+#
+# Convert a value in a register to an ASCII hexadecimal string.
+#
+# input registers:
+# a0 = number to convert to ascii hex
+# a1 = number of bytes to convert (eg, 1, 2, 4, 8)
+# a2 = 0 do not insert leading 0x, 1 insert leading 0x
+#
+# output registers:
+# a0 = address of nul (\0)-terminated buffer with output
+# a1 = length of string
+################################################################################
+
+################################################################################
+# routine: to_bin
+#
+# Convert a value in a register to an ASCII binary string.
+#
+# input registers:
+# a0 = number to convert to ascii binary
+# a1 = number of bytes to convert (eg 1, 2, 4, 8)
+# a2 = 0 do not insert spaces every 8 bits, 1 insert spaces every 8 bits
+#
+# output registers:
+# a0 = address of nul (\0)-terminated buffer with output
+# a1 = length of string
+################################################################################
+
+################################################################################
+# routine: to_decu
+#
+# Convert a value in a register to an unsigned ASCII decimal string.
+#
+# input registers:
+# a0 = unsigned number to convert to ascii unsigned decimal
+#
+# output registers:
+# a0 = address of nul-terminated (\0) buffer with output
+# a1 = length of string
+################################################################################
+
+################################################################################
+# routine: to_dec
+#
+# Convert a value in a register to a signed ASCII decimal string.
+#
+# input registers:
+# a0 = signed number to convert to ascii signed decimal
+#
+# output registers:
+# a0 = address of nul-terminated (\0) buffer with output
+# a1 = length of string
+################################################################################
+
+################################################################################
+# routine: from_hex
+#
+# Read an ASCII hexidecimal string into a register. The parsing of the value
+# stops when we read the first non-hex character.
+#
+# input registers:
+# a0 = pointer to number to convert from hex, terminated with non-hex char.
+#
+# output registers:
+# a0 = pointer (advanced to point to non-hex char)
+# a1 = number
+# a2 = error check: 0 if no digits found, otherwise 1
+################################################################################
+
+################################################################################
+# routine: from_bin
+#
+# Read an ASCII binary string into a register. The parsing of the value
+# stops when we read the first non-binary character.
+#
+# input registers:
+# a0 = pointer to number to convert from binary, terminated with non-binary char.
+#
+# output registers:
+# a0 = pointer (advanced to point to non-binary char)
+# a1 = number
+# a2 = error check: 0 if no digits found, otherwise 1
+################################################################################
+
+################################################################################
+# routine: from_decu
+#
+# Read an ASCII unsigned decimal string into a register. The parsing of the value
+# stops when we read the first non-decimal character.
+#
+# input registers:
+# a0 = pointer to number to convert from decimal, terminated with non-decimal char.
+#
+# output registers:
+# a0 = pointer (advanced to point to non-decimal char)
+# a1 = number
+# a2 = error check: 0 if no digits found, otherwise 1
+################################################################################
+
+################################################################################
+# routine: from_dec
+#
+# Read an ASCII signed decimal string into a register. The parsing of the value
+# stops when we read the first non-decimal character.
+#
+# input registers:
+# a0 = pointer to number to convert from decimal, terminated with non-decimal char.
+#
+# output registers:
+# a0 = pointer (advanced to point to non-decimal char)
+# a1 = number
+# a2 = error check: 0 if no digits found, otherwise 1
+################################################################################
+
 ```
