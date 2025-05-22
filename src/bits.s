@@ -12,10 +12,10 @@
 # 64-bit processors).
 #
 # input registers:
-# a0 number
+# a0 = number
 #
 # output registers:
-# a0 result containing the number of trailing zeroes
+# a0 = result containing the number of trailing zeroes
 ################################################################################
 
 bits_ctz:
@@ -80,10 +80,10 @@ bits_ctz_is_zero:
 # 64-bit processors).
 #
 # input registers:
-# a0 number
+# a0 = number
 #
 # output registers:
-# a0 result containing the number of leading zeroes in the input
+# a0 = result containing the number of leading zeroes in the input
 ################################################################################
 
 bits_clz:

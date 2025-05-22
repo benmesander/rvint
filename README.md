@@ -303,3 +303,77 @@ syscall 64 is write and 93 is exit.
 ################################################################################
 
 ```
+
+### Multiplication [mul.s](src/mul.s)
+
+```riscv
+################################################################################
+# routine: nmul
+#
+# Native word length (64 on 64-bit processors, 32 on 32-bit processors)
+# multiplication via shift-and-add technique.
+#
+# - RV32I: 32x32 -> 32 bit result (signed or unsigned)
+# - RV64I: 64x64 -> 64 bit result (signed or unsigned)
+# Implemented using only RV32I / RV64I base instructions (No 'M' Extension).
+# This provides the functionality of the M extension mul/mulu/mulw instructions
+#
+# input registers:
+# a0 = CPU_BITS-bit multiplicand
+# a1 = CPU_BITS-bit multiplier
+#
+# output registers:
+# a0 = CPU_BITS-bit product (lower bits)
+################################################################################
+
+################################################################################
+# routine: mul32
+#
+# Unified (RV64I and RV32I) Unsigned/Signed 32x32-bit to 64-bit multiply. This
+# provides the functionality of the M extension mul/mulh instructions
+#
+# input registers:
+# a0 = op1
+# a1 = op2
+# a2 = signed_flag: 0=unsigned, 1=signed
+#
+# output registers:
+# a0 = product low word
+# a1 = product high word
+################################################################################
+
+################################################################################
+# routine: m128
+#
+# 64x64-bit to 128-bit Multiplication (Signed/Unsigned) on 64-bit processors.
+# This provides the functionality of the mulhu/mulhsu instructions on RV64.
+#
+# input registers:
+# a0 = 64-bit Operand 1 (multiplicand)
+# a1 = 64-bit Operand 2 (multiplier)
+# a2 = Signedness flag (0 for unsigned, non-zero for signed)
+#
+# output registers:
+# a0 = Lower 64 bits of the 128-bit product
+# a1 = Upper 64 bits of the 128-bit product
+################################################################################
+```
+
+### Square Root [sqrt.s](src/sqrt.s)
+
+```riscv
+################################################################################
+# routine: isqrt
+#
+# Compute the integer square root of an unsigned number - floor(sqrt(N)).
+# Algorithm: Non-restoring binary square root. On 64-bit processors this is
+# a 64-bit algorithm, on 32-bit, it is 32-bits.
+#
+# input registers:
+# a0 = n
+# output registers:
+# a0 = root - isqrt(n)
+#
+################################################################################
+
+```

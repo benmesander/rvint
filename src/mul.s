@@ -7,12 +7,15 @@
 .text
 
 ################################################################################
+# routine: nmul
+#
 # Native word length (64 on 64-bit processors, 32 on 32-bit processors)
 # multiplication via shift-and-add technique.
 #
 # - RV32I: 32x32 -> 32 bit result (signed or unsigned)
 # - RV64I: 64x64 -> 64 bit result (signed or unsigned)
 # Implemented using only RV32I / RV64I base instructions (No 'M' Extension).
+# This provides the functionality of the M extension mul/mulu/mulw instructions
 #
 # input registers:
 # a0 = CPU_BITS-bit multiplicand
@@ -49,7 +52,10 @@ nmul_skip:
 .size	nmul, .-nmul
 
 ################################################################################
-# Unified (RV64I and RV32I) Unsigned/Signed 32x32-bit to 64-bit multiply 
+# routine: mul32
+#
+# Unified (RV64I and RV32I) Unsigned/Signed 32x32-bit to 64-bit multiply. This
+# provides the functionality of the M extension mul/mulh instructions
 #
 # input registers:
 # a0 = op1
@@ -217,7 +223,10 @@ mul32_done:
 .if CPU_BITS == 64
 	
 ################################################################################
+# routine: m128
+#
 # 64x64-bit to 128-bit Multiplication (Signed/Unsigned) on 64-bit processors.
+# This provides the functionality of the mulhu/mulhsu instructions on RV64.
 #
 # input registers:
 # a0 = 64-bit Operand 1 (multiplicand)

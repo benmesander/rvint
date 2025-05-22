@@ -5,8 +5,11 @@
 .text
 
 ################################################################################
+# routine: isqrt
+#
 # Compute the integer square root of an unsigned number - floor(sqrt(N)).
-# Algorithm: Non-restoring binary square root.
+# Algorithm: Non-restoring binary square root. On 64-bit processors this is
+# a 64-bit algorithm, on 32-bit, it is 32-bits.
 #
 # input registers:
 # a0 = n
