@@ -148,11 +148,11 @@ test16:
 	call	mul128_test
 
 test17:
-	li	a0, 16
+	li	a0, 17
 	li	a1, -1223
 	li	a2, -245
-	li	a3, 1
-	li	a4, -245
+	li	a3, 0
+	li	a4, 0x49273
 	li	a5, 0
 	call	mul128_test
 
@@ -403,7 +403,7 @@ mul128_test:
 	mv	s0, a0		# product lo
 	mv	s1, a1		# product hi
 
-	mv	a0, s0
+	mv	a0, s1
 	li	a1, 8
 	li	a2, 1
 	call	to_hex
@@ -416,7 +416,7 @@ mul128_test:
 	li	a2, 1
 	call	print
 	
-	mv	a0, s1
+	mv	a0, s0
 	li	a1, 8
 	li	a2, 1
 	call	to_hex
