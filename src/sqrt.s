@@ -6,76 +6,71 @@
 # a0 - input (n)
 # a0 - output (root)
 #
-# Algorithm: Digit-by-digit restoring binary square root.
-# This version avoids multiplication in the main loop for efficiency.
+# Algorithm: Non-restoring binary square root (based on Hacker's Delight, Fig 11-2)
+# This version avoids multiplication/division in the main loop for efficiency
+# and is known to correctly compute floor(sqrt(N)).
 isqrt:
 	FRAME	4		# Frame for ra, s0, s1, s2 (4 words * CPU_BITS/8 bytes)
 	PUSH	ra, 0		# Save return address
-	PUSH	s0, 1		# s0 will store shift_for_n
-	PUSH	s1, 2		# s1 will store root
-	PUSH 	s2, 3		# s2 will store n_original
-	# Register usage for main state variables:
-	# s0: shift_for_n (iterator, from CPU_BITS-2 down to -2 for loop termination)
-	# s1: root (result being built up)
-	# s2: n_original (the input number n)
-	#
-	# Temporary (caller-saved) registers used:
-	# t3: remainder_working
-	# t0: scratch_register (for bit pairs and trial_subtractor)
+	PUSH	s0, 1		# s0 will store 'place' (the bit/place value)
+	PUSH	s1, 2		# s1 will store 'root'
+	PUSH	s2, 3		# s2 will store 'remainder' (initially n_original)
 
-	mv	s2, a0		# s2 = n_original (copy input n)
+# Register usage for main state variables:
+# s0: place (current bit value being tested, starts high, shifts right by 2)
+# s1: root (result being built up)
+# s2: remainder (starts as n_original, gets reduced)
+#
+# Temporary (caller-saved) registers used:
+# t0: scratch, trial_value (root + place)
+# t1: scratch, (place << 1)
+
+	mv	s2, a0		# s2 = remainder = n_original (copy input n)
 	li	s1, 0		# s1 = root = 0
-	li	t3, 0		# t3 = remainder_working = 0
 
-	li	s0, CPU_BITS-2	# Initial shift_for_n for n[63:62] or n[31:30]
+	# Initialize 'place' (s0) to the highest power of 4 (1 << (CPU_BITS - 2))
+	# This corresponds to the (CPU_BITS/2 - 1)-th bit pair.
+	li	s0, 1
+.if CPU_BITS == 64
+	slli	s0, s0, 62	# place = 1 << 62
+.else  # CPU_BITS == 32
+	slli	s0, s0, 30	# place = 1 << 30
+.endif
 
-isqrt_digit_loop:
-	# Loop while shift_for_n (s0) >= 0.
-	# The loop terminates when s0 becomes -2 (after processing the n[1:0] pair).
-	bltz	s0, isqrt_done  
+# Adjust 'place' (s0) so that it's the largest power of 4 less than or equal to remainder (s2)
+isqrt_adjust_place_loop:
+	beqz	s0, isqrt_main_loop_entry # If place becomes 0, proceed (handles n=0,1)
+	bltu	s2, s0, isqrt_place_too_large # If remainder < place, then place is too large
+	j	isqrt_main_loop	# Place is okay or smaller
 
-	# remainder_working = (remainder_working << 2)
-	slli	t3, t3, 2
+isqrt_place_too_large:
+	srli	s0, s0, 2	# place >>= 2
+	j	isqrt_adjust_place_loop
 
-	# Extract the next two bits from n_original (s2) using shift_for_n (s0)
-	# current_pair_of_n_bits = (n_original >> shift_for_n) & 0x3
-	srl	t0, s2, s0	# t0 = n_original (s2) >> shift_for_n (s0)
-	andi	t0, t0, 0x3	# t0 = current pair of bits from n (n[s0+1 : s0])
-	
-	# Add current_pair_of_n_bits to remainder_working
-	# remainder_working |= current_pair_of_n_bits
-	or	t3, t3, t0      
+	# Main loop: while place (s0) > 0
+isqrt_main_loop:
+	beqz	s0, isqrt_done	# If place is 0, we are done
 
-	# Shift current_root (s1) left by 1 to make space for the bit being determined
-	slli	s1, s1, 1
-
-	# Form the trial_subtractor.
-	# If the new root bit were 1, the part of the root already formed (s1, now shifted)
-	# would be (root_so_far << 1). The trial_subtractor is (root_so_far << 1) | 1.
-	# Since s1 currently holds (root_so_far << 1), trial_subtractor is (s1 | 1).
-	ori	t0, s1, 1       # t0 = trial_subtractor
-
-	# if (remainder_working >= trial_subtractor)
-	bltu	t3, t0, isqrt_skip_subtraction # If remainder < trial_subtractor, skip
-	# Path where current root bit is 1:
-	sub	t3, t3, t0	# remainder_working = remainder_working - trial_subtractor
-	ori	s1, s1, 1	# Set current bit of root (s1) to 1
+	add	t0, s1, s0	# t0 = trial_value = root + place
+	bltu	s2, t0, isqrt_skip_subtraction # If remainder < trial_value, skip subtraction
+	# Path where remainder >= trial_value:
+	sub	s2, s2, t0	# remainder -= trial_value
+	slli	t1, s0, 1	# t1 = place << 1 (which is 2 * place)
+	add	s1, s1, t1	# root += (place << 1)
 isqrt_skip_subtraction:
-	# If remainder_working < trial_subtractor, the current bit of root remains 0.
-	# (s1 already reflects this due to the earlier "slli s1, s1, 1" and no "ori s1, s1, 1" on this path).
-
-	addi	s0, s0, -2	# Decrement shift_for_n to process the next lower pair of bits
-	j	isqrt_digit_loop
+	srli	s1, s1, 1	# root >>= 1
+	srli	s0, s0, 2	# place >>= 2
+	j	isqrt_main_loop
 
 isqrt_done:
 	mv	a0, s1		# Final result is in root (s1)
 
-isqrt_cleanup:			# Common cleanup path
+isqrt_cleanup: # Common cleanup path
 	POP	ra, 0
 	POP	s0, 1
 	POP	s1, 2
 	POP	s2, 3
-	EFRAME	4		# Match FRAME 4 (deallocate 4 words)
+	EFRAME 4
 	ret
 
 .size isqrt, .-isqrt
