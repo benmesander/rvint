@@ -6,8 +6,10 @@
 ################################################################################
 # routine: bits_ctz
 #
-# Count the number of trailing zeroes in a number via binary search - O(log n)
-# (useful for processors with no B extension)
+# Count the number of trailing zeroes in a number via binary search - O(log n).
+# This is useful for processors with no B extension. This routine provides the
+# functionality of the ctz instruction (on 32-bit processors) and ctzw (on
+# 64-bit processors).
 #
 # input registers:
 # a0 number
@@ -72,8 +74,10 @@ bits_ctz_is_zero:
 ################################################################################
 # routine: bits_clz
 #
-# Count the number of leading zeroes in a number via binary search - O(log n)
-# (use for processors with no B extension)
+# Count the number of leading zeroes in a number via binary search - O(log n).
+# This is useful for processors with no B extension. This routine provides the
+# functionality of the clz instruction (on 32-bit processors) and clzw (on
+# 64-bit processors).
 #
 # input registers:
 # a0 number

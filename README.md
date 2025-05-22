@@ -63,11 +63,48 @@ clang, lld, and make are assumed. I'm currently using clang 18.
 The TARGET, ARCH, and ABI should be edited in the Makefile,
 and the CPU_BITS constant should be set to match in config.s
 
+## Tests
+
 The test programs assume Linux syscalls are available. In particular
 syscall 64 is write and 93 is exit.
 
-I use this emulator to run RV32I code:
-https://riscv-programming.org/ale/
-I'm running RV64 code on a scaleway elastic metal cloud instance:
-https://labs.scaleway.com/en/em-rv1/
+## Running
 
+- I use this emulator to run RV32I code: https://riscv-programming.org/ale/
+- I'm running RV64 code on a scaleway elastic metal cloud instance: https://labs.scaleway.com/en/em-rv1/
+
+## API
+
+```riscv
+bits.s:
+
+################################################################################
+# routine: bits_ctz
+#
+# Count the number of trailing zeroes in a number via binary search - O(log n).
+# This is useful for processors with no B extension. This routine provides the
+# functionality of the ctz instruction (on 32-bit processors) and ctzw (on
+# 64-bit processors).
+#
+# input registers:
+# a0 number
+#
+# output registers:
+# a0 result containing the number of trailing zeroes
+################################################################################
+
+################################################################################
+# routine: bits_clz
+#
+# Count the number of leading zeroes in a number via binary search - O(log n).
+# This is useful for processors with no B extension. This routine provides the
+# functionality of the clz instruction (on 32-bit processors) and clzw (on
+# 64-bit processors).
+#
+# input registers:
+# a0 number
+#
+# output registers:
+# a0 result containing the number of leading zeroes in the input
+################################################################################
+```
