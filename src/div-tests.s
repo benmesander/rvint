@@ -1,3 +1,5 @@
+.text
+	
 	# runs on linux
 
 	# Basic Division (small numbers)

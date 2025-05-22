@@ -2,6 +2,8 @@
 
 .globl isqrt
 
+.text
+
 ################################################################################
 # Compute the integer square root of an unsigned number - floor(sqrt(N)).
 # Algorithm: Non-restoring binary square root.

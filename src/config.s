@@ -1,8 +1,17 @@
+################################################################################
+#
+# Set this appropriately for your processor
+#
+################################################################################
 .equ CPU_BITS,64		# set for 32-bit or 64-bit processor (ie, RV32I or RV64I)
 
 
 ################################################################################
-
+#
+# Macros and constants used in subroutines
+#
+################################################################################	
+	
 .equ CPU_BYTES,CPU_BITS/8	# bytes per word
 
 .macro PUSH reg_to_save, offset_val

@@ -17,14 +17,18 @@
 
 .text
 
-# input
-# a0 - number to convert to ascii hex
-# a1 - number of bytes to convert (eg, 1, 2, 4, 8)
-# a2 - 0 do not insert leading 0x, 1 insert leading 0x
+################################################################################
+# Convert a value in a register to an ASCII hexadecimal string.
 #
-# output
-# a0 - address of nul-terminated buffer with output
-# a1 - length of string
+# input registers:
+# a0 = number to convert to ascii hex
+# a1 = number of bytes to convert (eg, 1, 2, 4, 8)
+# a2 = 0 do not insert leading 0x, 1 insert leading 0x
+#
+# output registers:
+# a0 = address of nul (\0)-terminated buffer with output
+# a1 = length of string
+################################################################################
 to_hex:
 	la	t0, iobuf
 	li	t3, '9'
@@ -53,14 +57,18 @@ to_hex_digit:
 
 .size to_hex, .-to_hex
 
-# input
-# a0 - number to convert to ascii binary
-# a1 - number of bytes to convert (eg 1, 2, 4, 8)
-# a2 - 0 do not insert spaces every 8 bits, 1 insert spaces every 8 bits
+################################################################################
+# Convert a value in a register to an ASCII binary string.
 #
-# output
-# a0 - address of nul-terminated buffer with output
-# a1 - length of string
+# input registers:
+# a0 = number to convert to ascii binary
+# a1 = number of bytes to convert (eg 1, 2, 4, 8)
+# a2 = 0 do not insert spaces every 8 bits, 1 insert spaces every 8 bits
+#
+# output registers:
+# a0 = address of nul (\0)-terminated buffer with output
+# a1 = length of string
+################################################################################
 
 to_bin:
 	la	t0, iobuf
@@ -90,12 +98,16 @@ to_bin_no_space:
 
 .size to_bin, .-to_bin
 
-# input
-# a0 - unsigned number to convert to ascii decimal
+################################################################################
+# Convert a value in a register to an unsigned ASCII decimal string.
 #
-# output
-# a0 - address of nul-terminated buffer with output
+# input registers:
+# a0 - unsigned number to convert to ascii unsigned decimal
+#
+# output registers:
+# a0 - address of nul-terminated (\0) buffer with output
 # a1 - length of string
+################################################################################
 to_decu:
 	FRAME	3
 	PUSH	ra, 0
@@ -132,12 +144,16 @@ to_decu_retvals:
 
 .size to_decu, .-to_decu
 
-# input
-# a0 - SIGNED number to convert to ascii decimal
+################################################################################
+# Convert a value in a register to a signed ASCII decimal string.
 #
-# output
-# a0 - address of nul-terminated buffer with output (points into iobuf)
+# input registers:
+# a0 - signed number to convert to ascii signed decimal
+#
+# output registers:
+# a0 - address of nul-terminated (\0) buffer with output
 # a1 - length of string
+################################################################################
 
 to_dec:
 	FRAME	3
@@ -190,13 +206,19 @@ to_dec_retval:
 
 .size to_dec, .-to_dec
 
-# input
-# a0 - pointer to number to convert from hex
-# terminated w/non-hex character
-# output
-# a0 - pointer (advanced to non-hex char)
-# a1 - number
-# a2 - error check: 0 if no digits found, otherwise 1
+################################################################################
+# Read an ASCII hexidecimal string into a register. The parsing of the value
+# stops when we read the first non-hex character.
+#
+# input registers:
+# a0 = pointer to number to convert from hex, terminated with non-hex char.
+#
+# output registers:
+# a0 = pointer (advanced to point to non-hex char)
+# a1 = number
+# a2 = error check: 0 if no digits found, otherwise 1
+################################################################################
+	
 from_hex:
 	li	a1, 0
 	li	a2, 0
@@ -226,13 +248,19 @@ from_hex_done:
 	ret
 .size from_hex, .-from_hex
 
-# input
-# a0 - pointer to number to convert from binary
-# terminated w/non-binary character
-# output
-# a0 - pointer (advanced to non-binary char)
-# a1 - number
-# a2 - error check: 0 if no digits found, otherwise 1
+################################################################################
+# Read an ASCII binary string into a register. The parsing of the value
+# stops when we read the first non-binary character.
+#
+# input registers:
+# a0 = pointer to number to convert from binary, terminated with non-binary char.
+#
+# output registers:
+# a0 = pointer (advanced to point to non-binary char)
+# a1 = number
+# a2 = error check: 0 if no digits found, otherwise 1
+################################################################################
+
 from_bin:
 	li	a1, 0
 	li	a2, 0
@@ -252,13 +280,18 @@ from_bin_done:
 	ret
 .size from_bin, .-from_bin
 
-# input
-# a0 - pointer to number to convert from unsigned decimal
-# terminated w/non-decimal character
-# output
-# a0 - pointer (advanced to non-decimal char)
-# a1 - number
-# a2 - error check: 0 if no digits found, otherwise 1
+################################################################################
+# Read an ASCII unsigned decimal string into a register. The parsing of the value
+# stops when we read the first non-decimal character.
+#
+# input registers:
+# a0 = pointer to number to convert from decimal, terminated with non-decimal char.
+#
+# output registers:
+# a0 = pointer (advanced to point to non-decimal char)
+# a1 = number
+# a2 = error check: 0 if no digits found, otherwise 1
+################################################################################
 
 from_decu:
 	li	a1, 0
@@ -282,13 +315,18 @@ from_decu_done:
 	ret
 .size from_decu, .-from_decu
 
-# input
-# a0 - pointer to number to convert from signed decimal
-# terminated w/non-decimal character
-# output
-# a0 - pointer (advanced to non-decimal char)
-# a1 - number
-# a2 - error check: 0 if no digits found, otherwise 1
+################################################################################
+# Read an ASCII signed decimal string into a register. The parsing of the value
+# stops when we read the first non-decimal character.
+#
+# input registers:
+# a0 = pointer to number to convert from decimal, terminated with non-decimal char.
+#
+# output registers:
+# a0 = pointer (advanced to point to non-decimal char)
+# a1 = number
+# a2 = error check: 0 if no digits found, otherwise 1
+################################################################################
 
 from_dec:
 	FRAME	1

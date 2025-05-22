@@ -2,6 +2,8 @@
 .globl gcd
 .globl lcm
 
+.text
+
 ################################################################################
 # Compute the greatest common divisor (gcd) of two unsigned numbers.
 # 64 bit algorithm on 64-bit CPUs, 32-bit algorithm on 32-bit CPUs.

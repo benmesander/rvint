@@ -1,8 +1,11 @@
 .include "config.s"
 .globl bits_ctz
 .globl bits_clz
+.text
 
 ################################################################################
+# routine: bits_ctz
+#
 # Count the number of trailing zeroes in a number via binary search - O(log n)
 # (useful for processors with no B extension)
 #
@@ -67,6 +70,8 @@ bits_ctz_is_zero:
 .size	bits_ctz, .-bits_ctz
 
 ################################################################################
+# routine: bits_clz
+#
 # Count the number of leading zeroes in a number via binary search - O(log n)
 # (use for processors with no B extension)
 #
