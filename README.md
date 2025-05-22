@@ -4,6 +4,9 @@ Integer-based mathematical subroutines which implement RISC-V M and B
 extension functionality on I, and Zmmul instruction sets. If there is
 interest, I could support other instruction sets such as E.
 
+These routines are designed to be both concise and efficient, although
+where those two goals clash, I went with concise.
+
 ![Screenshot of tests](rvint.png "Screenshot of tests")
 
 
