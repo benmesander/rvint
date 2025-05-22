@@ -5,6 +5,8 @@
 .text
 
 ################################################################################
+# routine: gcd
+#
 # Compute the greatest common divisor (gcd) of two unsigned numbers.
 # 64 bit algorithm on 64-bit CPUs, 32-bit algorithm on 32-bit CPUs.
 #
@@ -70,6 +72,8 @@ gcd_return_u:
 .size	gcd, .-gcd
 	
 ################################################################################
+# routine: lcm
+#
 # Compute the least common multiple (lcm) of two unsigned numbers.
 # 64 bit algorithm on 64-bit CPUs, 32-bit algorithm on 32-bit CPUs.
 # This algorithm variant attempts to avoid numerical overflows, but it could
