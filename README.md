@@ -18,7 +18,7 @@ interest, I could support other instruction sets such as E.
 
 ### On 32-bit processors:
 - 32-bit by 32-bit signed and unsigned multiplication with 32-bit result.
-- 32-bit by 32-bit signed and unsigned multiplication with 64-bit result. - not complete
+- 32-bit by 32-bit signed and unsigned multiplication with 64-bit result.
 
 ### on 64-bit processors:
 - 32-bit by 32-bit signed and unsigned multiplication with 64-bit result.
