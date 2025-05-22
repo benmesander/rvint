@@ -4,7 +4,7 @@ Integer-based mathematical subroutines which implement RISC-V M and B
 extension functionality on I, and Zmmul instruction sets. If there is
 interest, I could support other instruction sets such as E.
 
-![Screenshot of tests](rvint.png "Optional title text")
+![Screenshot of tests](rvint.png "Screenshot of tests")
 
 
 ## Division
@@ -23,7 +23,7 @@ interest, I could support other instruction sets such as E.
 ### on 64-bit processors:
 - 32-bit by 32-bit signed and unsigned multiplication with 64-bit result.
 - 64-bit by 64-bit signed and unsigned multiplication with 64-bit result.
-- 64-bit by 64-bit signed and unsigned multiplication with 128-bit result. - not complete
+- 64-bit by 64-bit signed and unsigned multiplication with 128-bit result.
 
 ## Base Conversions & I/O Operations
 
