@@ -39,7 +39,7 @@ isqrt:
 
 # Adjust 'place' (s0) so that it's the largest power of 4 less than or equal to remainder (s2)
 isqrt_adjust_place_loop:
-	beqz	s0, isqrt_main_loop_entry # If place becomes 0, proceed (handles n=0,1)
+	beqz	s0, isqrt_main_loop # If place becomes 0, proceed (handles n=0,1)
 	bltu	s2, s0, isqrt_place_too_large # If remainder < place, then place is too large
 	j	isqrt_main_loop	# Place is okay or smaller
 

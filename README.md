@@ -40,8 +40,8 @@ These operations support 32-bit numbers on 32-bit architectures and
 - binary to ASCII hexadecimal.
 
 ## Square Root
-- 32-bit integer square root on 32-bit processors. - correct but not yet optimal
-- 64-bit integer square root on 64-bit processors. - correct but not yet optimal
+- 32-bit integer square root on 32-bit processors.
+- 64-bit integer square root on 64-bit processors.
 
 ## Greatest Common Divisor
 - 32-bit GCD of two unsigned 32-bit numbers on 32-bit processors.

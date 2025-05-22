@@ -125,10 +125,33 @@ test14:
 
 .if CPU_BITS == 64
 test15:	
+	li	a0, 15
+	li	a1, 0
+	li	a2, 0
+	li	a3, 0
+	li	a4, 0
+	li	a5, 0
+	call	mul128_test
 
+test16:
+	li	a0, 16
+	li	a1, -1
+	li	a2, -245
+	li	a3, 0
+	li	a4, 245
+	li	a5, 1
+	call	mul128_test
 
+test17:
+	li	a0, 16
+	li	a1, -1223
+	li	a2, -245
+	li	a3, 1
+	li	a4, -245
+	li	a5, 0
+	call	mul128_test
 
-	.endif
+.endif
 	j	_end
 	
 # a1 - ptr to string to print
@@ -344,16 +367,18 @@ _end:
 # compute a1 * a2
 # expected value a3:a4
 mul128_test:
-	FRAME	5
+	FRAME	6
 	PUSH	ra, 0
 	PUSH	s0, 1
 	PUSH	s1, 2
 	PUSH	s2, 3
 	PUSH	s3, 4
+	PUSH	s4, 5
 	mv	s0, a1
 	mv	s1, a2
 	mv	s2, a3
 	mv	s3, a4
+	mv	s4, a4
 
 	call	print_header	# print test number a0
 
@@ -362,12 +387,56 @@ mul128_test:
 	call	print_eqn
 	
 
+	mv	a0, s0
+	mv	a1, s1
+	mv	a2, s4
+	call	m128
+	mv	s0, a0		# product lo
+	mv	s1, a1		# product hi
+
+	mv	a0, s0
+	li	a1, 8
+	li	a2, 1
+	call	to_hex
+
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+
+	la	a1, colon
+	li	a2, 1
+	call	print
+	
+	mv	a0, s1
+	li	a1, 8
+	li	a2, 1
+	call	to_hex
+
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+	
+	la	a1, space
+	li	a2, 1
+	call	print
+
+	sub	a3, a3, s1
+	bnez	a3, mul_128_fail
+	sub	a4, a4, s0
+	bnez	a4, mul_128_fail
+
+	call	print_pass
+	j	mul_128_cleanup
+mul_128_fail:	
+	call	print_fail
+mul_128_cleanup:	
 	POP	ra, 0
 	POP	s0, 1
 	POP	s1, 2
 	POP	s2, 3
 	POP	s3, 4
-	EFRAME	5
+	POP	s4, 5
+	EFRAME	6
 	ret
 .endif
 
