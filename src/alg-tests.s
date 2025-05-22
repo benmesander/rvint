@@ -9,10 +9,12 @@ _start:
 	li	a2, 3
 	call	sqrt_test
 
+.if CPU_BITS == 64
 	li	a0, 1
 	li	a1, 92423004303
 	li	a2, 304011
 	call	sqrt_test
+.endif
 
 	li	a0, 2
 	li	a1, 40
