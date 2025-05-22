@@ -192,7 +192,7 @@ to_dec_loop:
 	addi	a1, a1, '0'
 	sb	a1, 0(s0)
 	mv	s1, a0
-	bnez s1, to_dec_loop
+	bnez	s1, to_dec_loop
 
 	# After loop, s0 points to the most significant digit.
 	# Now, if the number was negative (t0 == 1), prepend '-'
@@ -206,10 +206,10 @@ to_dec_retval:
 	la	t1, iobuf
 	addi	t1, t1, IOBUF_CAPACITY
 	sub	a1, t1, a0
-	POP s1, 2
-	POP s0, 1
-	POP ra, 0
-	EFRAME 3
+	POP	s1, 2
+	POP	s0, 1
+	POP	ra, 0
+	EFRAME	3
 	ret
 
 .size to_dec, .-to_dec
