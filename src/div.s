@@ -50,9 +50,8 @@ divremu_continue:
 	ret
 
 divremu_zero:
-	mv	t2, a0
+	mv	a1, a0
 	li	a0, -1
-	mv	a1, t2
 	ret
 
 .size divremu, .-divremu
