@@ -18,14 +18,12 @@
 ################################################################################
 	
 isqrt:
-# Register usage for main state variables:
+# Register usage
+# t0: scratch, trial_value (root + place)
+# t1: scratch, (place << 1)
 # t2: place (current bit value being tested, starts high, shifts right by 2)
 # t3: root (result being built up)
 # a0: remainder (starts as n_original, gets reduced)
-#
-# Temporary (caller-saved) registers used:
-# t0: scratch, trial_value (root + place)
-# t1: scratch, (place << 1)
 
 	li	t3, 0		# t3 = root = 0
 
