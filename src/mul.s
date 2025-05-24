@@ -29,23 +29,20 @@ nmul:
 	# t0: current_multiplicand (starts with original a0, then shifts left)
 	# a1: current_multiplier (starts with original a1, then shifts right, modified)
 	# a0: product (starts at 0, accumulates, becomes output)
-	# t1: loop_count
-	# t2: temporary for LSB check
+	# t1: temporary for LSB check
 
 	mv	t0, a0			# t0 = current_multiplicand (from input a0)
         # Input a1 (operand2) will be used directly as current_multiplier and be modified.
 	mv	a0, zero		# a0 = product = 0 (a0 will hold the result)
-	li	t1, CPU_BITS		# t1 = loop_count
 
 nmul_loop:
-	andi	t2, a1, 1		# t2 = LSB of current_multiplier (a1)
-	beqz	t2, nmul_skip		# LSB is 0, skip addition
+	andi	t1, a1, 1		# t2 = LSB of current_multiplier (a1)
+	beqz	t1, nmul_skip		# LSB is 0, skip addition
 	add	a0, a0, t0		# product (a0) += current_multiplicand (t0)
 nmul_skip:
 	srli	a1, a1, 1		# Shift current_multiplier (a1) right by 1 (logical)
 	slli	t0, t0, 1		# Shift current_multiplicand (t0) left by 1 (logical)
-	addi	t1, t1, -1
-	bnez	t1, nmul_loop
+	bnez	a1, nmul_loop		# exit loop when multiplier is 0
 
 	ret				# a0 contains result
 
@@ -124,7 +121,7 @@ mul32_unsigned_args:
 	# t0 is already sm_l
 	mv	t2, zero			# t2 (sm_h - shifted_multiplicand_high) = 0
 	# t1 is already mp
-	li	t4, 32				# t4 (count) = 32
+	li	t4, 32				# t4 (count) = 32 -- xxx: optimize away
 
 	# --- Core Unsigned Multiplication Loop (32 iterations for 32x32) ---
 mul32_loop:
@@ -276,11 +273,11 @@ m128_unsigned:
 	# t0 is already SM_L (Shifted Multiplicand Low)
 	mv	t1, zero			# t1 (SM_H - Shifted Multiplicand High) = 0
 	# t2 is already MP (Multiplier)
-	li	t3, 64				# t4 (count) = 64 iterations
+	li	t3, 64				# t4 (count) = 64 iterations - xxx optimize away ?
 
 	# --- Core Unsigned Multiplication Loop ---
 m128_loop:
-	beqz	t3, m128_end_loop		# If count is 0, exit loop
+	beqz	t3, m128_end_loop		# If count is 0, exit loop - xxx optimize away ?
 
 	# Check LSB of MP (Multiplier in t2)
 	andi	t4, t2, 1			# t4 = LSB of MP
@@ -306,8 +303,8 @@ m128_skip_add:
 	slli	t1, t1, 1			# SM_H <<= 1
 	or	t1, t1, t4			# SM_H |= carry_from_SM_L
 
-	addi	t3, t3, -1			# count--
-	bnez	t3, m128_loop			# Loop if count is not zero
+	addi	t3, t3, -1			# count--	xxx - optimize away
+	bnez	t3, m128_loop			# Loop if count is not zero - xxx optimize away
 
 m128_end_loop:	
 	# Unsigned 128-bit product is now in a1:a0 (P_H:P_L)
