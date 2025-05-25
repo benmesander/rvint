@@ -244,9 +244,9 @@ nmul_test:
 	PUSH	s0, 1
 	PUSH	s1, 2
 	PUSH	s2, 3
-	mv	s0, a1
-	mv	s1, a2
-	mv	s2, a3
+	mv	s0, a1		# multiplicand
+	mv	s1, a2		# multiplier
+	mv	s2, a3		# expected result
 
 	call	print_header	# print test number a0
 
@@ -269,7 +269,7 @@ nmul_test:
 	li	a2, 1
 	call	print
 
-	sub	a3, a3, s0
+	sub	a3, s2, s0
 	bnez	a3, nmul_test_fail
 
 	call	print_pass
