@@ -299,11 +299,11 @@ mul32_test:
 	PUSH	s3, 4
 	PUSH	s4, 5
 
-	mv	s0, a1
-	mv	s1, a2
-	mv	s2, a3
-	mv	s3, a4
-	mv	s4, a5
+	mv	s0, a1		# multiplier
+	mv	s1, a2		# multiplicand
+	mv	s2, a3		# expected value lo
+	mv	s3, a4		# expected value hi
+	mv	s4, a5		# signed flag
 
 	call	print_header	# print test number a0
 
@@ -345,9 +345,9 @@ mul32_test:
 	li	a2, 1
 	call 	print
 
-	sub	a3, a3, s0
+	sub	a3, s2, s0
 	bnez	a3, mul32_test_fail
-	sub	a4, a4, s1
+	sub	a4, s3, s1
 	bnez	a4, mul32_test_fail
 
 	call	print_pass
@@ -383,11 +383,11 @@ mul128_test:
 	PUSH	s2, 3
 	PUSH	s3, 4
 	PUSH	s4, 5
-	mv	s0, a1
-	mv	s1, a2
-	mv	s2, a3
-	mv	s3, a4
-	mv	s4, a4
+	mv	s0, a1		# multiplicand
+	mv	s1, a2		# multiplier
+	mv	s2, a3		# expected value lo
+	mv	s3, a4		# expected value high
+	mv	s4, a4		# signedness (0 unsigned, 1 signed)
 
 	call	print_header	# print test number a0
 
@@ -429,9 +429,9 @@ mul128_test:
 	li	a2, 1
 	call	print
 
-	sub	a3, a3, s1
+	sub	a3, s2, s1
 	bnez	a3, mul_128_fail
-	sub	a4, a4, s0
+	sub	a4, s3, s0
 	bnez	a4, mul_128_fail
 
 	call	print_pass
