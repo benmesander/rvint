@@ -26,22 +26,22 @@
 ################################################################################
 
 nmul:
-	# t0: current_multiplicand (starts with original a0, then shifts left)
-	# a1: current_multiplier (starts with original a1, then shifts right, modified)
 	# a0: product (starts at 0, accumulates, becomes output)
-	# t1: temporary for LSB check
+	# a1: current_multiplier (starts with original a1, then shifts right, modified)
+	# a2: current_multiplicand (starts with original a0, then shifts left)
+	# a3: temporary for LSB check
 
-	mv	t0, a0			# t0 = current_multiplicand (from input a0)
+	mv	a2, a0			# a2 = current_multiplicand (from input a0)
         # Input a1 (operand2) will be used directly as current_multiplier and be modified.
 	mv	a0, zero		# a0 = product = 0 (a0 will hold the result)
 
 nmul_loop:
-	andi	t1, a1, 1		# t2 = LSB of current_multiplier (a1)
-	beqz	t1, nmul_skip		# LSB is 0, skip addition
-	add	a0, a0, t0		# product (a0) += current_multiplicand (t0)
+	andi	a3, a1, 1		# t2 = LSB of current_multiplier (a1)
+	beqz	a3, nmul_skip		# LSB is 0, skip addition
+	add	a0, a0, a2		# product (a0) += current_multiplicand (a2)
 nmul_skip:
 	srli	a1, a1, 1		# Shift current_multiplier (a1) right by 1 (logical)
-	slli	t0, t0, 1		# Shift current_multiplicand (t0) left by 1 (logical)
+	slli	a2, a2, 1		# Shift current_multiplicand (a2) left by 1 (logical)
 	bnez	a1, nmul_loop		# exit loop when multiplier is 0
 
 	ret				# a0 contains result
