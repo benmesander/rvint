@@ -19,50 +19,50 @@
 	
 isqrt:
 # Register usage
-# t0: scratch, trial_value (root + place)
-# t1: scratch, (place << 1)
-# t2: place (current bit value being tested, starts high, shifts right by 2)
-# t3: root (result being built up)
+# a1: scratch, trial_value (root + place)
+# a2: scratch, (place << 1)
+# a3: place (current bit value being tested, starts high, shifts right by 2)
+# a4: root (result being built up)
 # a0: remainder (starts as n_original, gets reduced)
 
-	li	t3, 0		# t3 = root = 0
+	li	a4, 0		# a4 = root = 0
 
-	# Initialize 'place' (t2) to the highest power of 4 (1 << (CPU_BITS - 2))
+	# Initialize 'place' (a3) to the highest power of 4 (1 << (CPU_BITS - 2))
 	# This corresponds to the (CPU_BITS/2 - 1)-th bit pair.
-	li	t2, 1
+	li	a3, 1
 .if CPU_BITS == 64
-	slli	t2, t2, 62	# place = 1 << 62
+	slli	a3, a3, 62	# place = 1 << 62
 .else  # CPU_BITS == 32
-	slli	t2, t2, 30	# place = 1 << 30
+	slli	a3, a3, 30	# place = 1 << 30
 .endif
 
-# Adjust 'place' (t2) so that it's the largest power of 4 less than or equal to remainder (a0)
+# Adjust 'place' (a3) so that it's the largest power of 4 less than or equal to remainder (a0)
 isqrt_adjust_place_loop:
-	beqz	t2, isqrt_main_loop # If place becomes 0, proceed (handles n=0,1)
-	bltu	a0, t2, isqrt_place_too_large # If remainder < place, then place is too large
+	beqz	a3, isqrt_main_loop # If place becomes 0, proceed (handles n=0,1)
+	bltu	a0, a3, isqrt_place_too_large # If remainder < place, then place is too large
 	j	isqrt_main_loop	# Place is okay or smaller
 
 isqrt_place_too_large:
-	srli	t2, t2, 2	# place >>= 2
+	srli	a3, a3, 2	# place >>= 2
 	j	isqrt_adjust_place_loop
 
-	# Main loop: while place (t2) > 0
+	# Main loop: while place (a3) > 0
 isqrt_main_loop:
-	beqz	t2, isqrt_done	# If place is 0, we are done
+	beqz	a3, isqrt_done	# If place is 0, we are done
 
-	add	t0, t3, t2	# t0 = trial_value = root + place
-	bltu	a0, t0, isqrt_skip_subtraction # If remainder < trial_value, skip subtraction
+	add	a1, a4, a3	# a1 = trial_value = root + place
+	bltu	a0, a1, isqrt_skip_subtraction # If remainder < trial_value, skip subtraction
 	# Path where remainder >= trial_value:
-	sub	a0, a0, t0	# remainder -= trial_value
-	slli	t1, t2, 1	# t1 = place << 1 (which is 2 * place)
-	add	t3, t3, t1	# root += (place << 1)
+	sub	a0, a0, a1	# remainder -= trial_value
+	slli	a2, a3, 1	# a2 = place << 1 (which is 2 * place)
+	add	a4, a4, a2	# root += (place << 1)
 isqrt_skip_subtraction:
-	srli	t3, t3, 1	# root >>= 1
-	srli	t2, t2, 2	# place >>= 2
+	srli	a4, a4, 1	# root >>= 1
+	srli	a3, a3, 2	# place >>= 2
 	j	isqrt_main_loop
 
 isqrt_done:
-	mv	a0, t3		# Final result is in root (t3)
+	mv	a0, a4		# Final result is in root (a4)
 
 isqrt_cleanup:
 	ret
