@@ -32,29 +32,29 @@
 # a1 = length of string
 ################################################################################
 to_hex:
-	la	t0, iobuf
-	li	t3, '9'
+	la	a3, iobuf
+	li	a6, '9'
 	slli	a1, a1, 1	# count of nibbles
 	beqz	a2, to_hex_loop
-	li	t1, 0x7830	# '0x' in ascii, little-endian
-	sw	t1, 0(t0)
-	addi	t0, t0, 2
+	li	a4, 0x7830	# '0x' in ascii, little-endian
+	sw	a4, 0(a3)
+	addi	a3, a3, 2
 
 to_hex_loop:
 	addi	a1, a1, -1
-	slli	t1, a1, 2
-	srl	t2, a0, t1
-	andi	t2, t2, 0xf
-	addi	t2, t2, '0'	# numeral
-	ble	t2, t3, to_hex_digit
-	addi	t2, t2, 'a'-('0'+10) # too big for numeral, add offset to alpha
+	slli	a4, a1, 2
+	srl	a5, a0, a4
+	andi	a5, a5, 0xf
+	addi	a5, a5, '0'	# numeral
+	ble	a5, a6, to_hex_digit
+	addi	a5, a5, 'a'-('0'+10) # too big for numeral, add offset to alpha
 to_hex_digit:
-	sb	t2, 0(t0)
-	addi	t0, t0, 1
+	sb	a5, 0(a3)
+	addi	a3, a3, 1
 	bnez	a1, to_hex_loop
-	sb	zero, 0(t0)	# nul terminate
+	sb	zero, 0(a3)	# nul terminate
 	la	a0, iobuf
-	sub	a1, t0, a0
+	sub	a1, a3, a0
 	ret
 
 .size to_hex, .-to_hex
