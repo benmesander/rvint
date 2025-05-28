@@ -75,29 +75,29 @@ to_hex_digit:
 ################################################################################
 
 to_bin:
-	la	t0, iobuf
+	la	a4, iobuf
 	slli	a1, a1, 3	# count of bits (a1 * 8)
-	li	t3, ' '
+	li	a5, ' '
 
 to_bin_loop:
 	addi	a1, a1, -1
-	srl	t2, a0, a1
-	andi	t2, t2, 1
-	addi	t2, t2, '0'
-	sb	t2, 0(t0)
-	addi	t0, t0, 1
+	srl	a3, a0, a1
+	andi	a3, a3, 1
+	addi	a3, a3, '0'
+	sb	a3, 0(a4)
+	addi	a4, a4, 1
 	beqz	a2, to_bin_no_space
-	andi	t2, a1, 0x7
-	bnez	t2, to_bin_no_space
+	andi	a3, a1, 0x7
+	bnez	a3, to_bin_no_space
 	beqz	a1, to_bin_no_space	# no trailing space
-	sb	t3, 0(t0)
-	addi	t0, t0, 1
+	sb	a5, 0(a4)
+	addi	a4, a4, 1
 to_bin_no_space:
 	bnez	a1, to_bin_loop
 
-	sb	zero, 0(t0)
+	sb	zero, 0(a4)
 	la	a0, iobuf
-	sub	a1, t0, a0
+	sub	a1, a4, a0
 	ret
 
 .size to_bin, .-to_bin
