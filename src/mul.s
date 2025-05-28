@@ -26,26 +26,23 @@
 ################################################################################
 
 nmul:
-	# t0: current_multiplicand (starts with original a0, then shifts left)
-	# a1: current_multiplier (starts with original a1, then shifts right, modified)
 	# a0: product (starts at 0, accumulates, becomes output)
-	# t1: loop_count
-	# t2: temporary for LSB check
+	# a1: current_multiplier (starts with original a1, then shifts right, modified)
+	# a2: current_multiplicand (starts with original a0, then shifts left)
+	# a3: temporary for LSB check
 
-	mv	t0, a0			# t0 = current_multiplicand (from input a0)
+	mv	a2, a0			# a2 = current_multiplicand (from input a0)
         # Input a1 (operand2) will be used directly as current_multiplier and be modified.
 	mv	a0, zero		# a0 = product = 0 (a0 will hold the result)
-	li	t1, CPU_BITS		# t1 = loop_count
 
 nmul_loop:
-	andi	t2, a1, 1		# t2 = LSB of current_multiplier (a1)
-	beqz	t2, nmul_skip		# LSB is 0, skip addition
-	add	a0, a0, t0		# product (a0) += current_multiplicand (t0)
+	andi	a3, a1, 1		# t2 = LSB of current_multiplier (a1)
+	beqz	a3, nmul_skip		# LSB is 0, skip addition
+	add	a0, a0, a2		# product (a0) += current_multiplicand (a2)
 nmul_skip:
 	srli	a1, a1, 1		# Shift current_multiplier (a1) right by 1 (logical)
-	slli	t0, t0, 1		# Shift current_multiplicand (t0) left by 1 (logical)
-	addi	t1, t1, -1
-	bnez	t1, nmul_loop
+	slli	a2, a2, 1		# Shift current_multiplicand (a2) left by 1 (logical)
+	bnez	a1, nmul_loop		# exit loop when multiplier is 0
 
 	ret				# a0 contains result
 
@@ -124,7 +121,7 @@ mul32_unsigned_args:
 	# t0 is already sm_l
 	mv	t2, zero			# t2 (sm_h - shifted_multiplicand_high) = 0
 	# t1 is already mp
-	li	t4, 32				# t4 (count) = 32
+	li	t4, 32				# t4 (count) = 32 -- xxx: optimize away
 
 	# --- Core Unsigned Multiplication Loop (32 iterations for 32x32) ---
 mul32_loop:
@@ -241,92 +238,92 @@ mul32_done:
 m128:
 	# --- Argument Preparation & Sign Handling ---
 	# Move operands to temporary registers to free up a0, a1 for product accumulation.
-	mv	t0, a0				# t0 will hold |operand1| (initially operand1)
-	mv	t2, a1				# t2 will hold |operand2| (initially operand2)
-	mv	t6, zero			# t6 (final_product_is_negative_flag) = 0
+	mv	a4, a0				# a4 will hold |operand1| (initially operand1)
+	mv	a5, a1				# a5 will hold |operand2| (initially operand2)
+	mv	a7, zero			# a7 (final_product_is_negative_flag) = 0
 	beqz a2, m128_unsigned			# If a2 is 0, skip sign processing
 
 	# Signed multiplication path (a2 != 0)
-	# t4 will store if op1 was negative, t5 if op2 was negative
-	mv	t4, zero			# op1_is_negative_temp = 0
-	slt	t5, t0, zero			# Check if operand1 (in t0) is negative
-	beqz	t5, m128_op1_abs_done
-	mv	t4, t5				# op1_is_negative_temp = 1
-	sub	t0, zero, t0			# t0 = abs(operand1)
+	# a3 will store if op1 was negative, a6 if op2 was negative
+	mv	a3, zero			# op1_is_negative_temp = 0
+	slt	a6, a4, zero			# Check if operand1 (in a4) is negative
+	beqz	a6, m128_op1_abs_done
+	mv	a3, a6				# op1_is_negative_temp = 1
+	sub	a4, zero, a4			# a4 = abs(operand1)
 
 m128_op1_abs_done:
-	mv	t5, zero			# op2_is_negative_temp = 0
-	slt	t3, t2, zero			# Check if operand2 (in t2) is negative (use t3 as scratch)
-	beqz	t3, m128_op2_abs_done
-	mv	t5, t3				# op2_is_negative_temp = 1
-	sub	t2, zero, t2			# t2 = abs(operand2)
+	mv	a6, zero			# op2_is_negative_temp = 0
+	slt	t0, a5, zero			# Check if operand2 (in a5) is negative (use t0 as scratch)
+	beqz	t0, m128_op2_abs_done
+	mv	a6, t0				# op2_is_negative_temp = 1
+	sub	a5, zero, a5			# a5 = abs(operand2)
 
 m128_op2_abs_done:
-	xor	t6, t4, t5			# t6 (final_product_is_negative) = op1_is_neg ^ op2_is_neg
+	xor	a7, a3, a6			# a7 (final_product_is_negative) = op1_is_neg ^ op2_is_neg
 
 m128_unsigned:	
 	# At this point:
-	# t0 holds |operand1| (this will be SM_L initially)
-	# t2 holds |operand2| (this will be MP initially)
-	# t6 holds the final_product_is_negative_flag (0 if unsigned or if signed product is positive)
+	# a4 holds |operand1| (this will be SM_L initially)
+	# a5 holds |operand2| (this will be MP initially)
+	# a7 holds the final_product_is_negative_flag (0 if unsigned or if signed product is positive)
 
 	# --- Initialization for Core Unsigned 64x64 -> 128-bit Multiplication Loop ---
 	mv	a0, zero			# a0 (P_L - Product Low accumulator) = 0
 	mv	a1, zero			# a1 (P_H - Product High accumulator) = 0
-	# t0 is already SM_L (Shifted Multiplicand Low)
+	# a4 is already SM_L (Shifted Multiplicand Low)
 	mv	t1, zero			# t1 (SM_H - Shifted Multiplicand High) = 0
-	# t2 is already MP (Multiplier)
-	li	t3, 64				# t4 (count) = 64 iterations
+	# a5 is already MP (Multiplier)
+	li	t0, 64				# a3 (count) = 64 iterations - xxx optimize away ?
 
 	# --- Core Unsigned Multiplication Loop ---
 m128_loop:
-	beqz	t3, m128_end_loop		# If count is 0, exit loop
+	beqz	t0, m128_end_loop		# If count is 0, exit loop - xxx optimize away ?
 
-	# Check LSB of MP (Multiplier in t2)
-	andi	t4, t2, 1			# t4 = LSB of MP
-	beqz	t4, m128_skip_add		# If LSB is 0, skip adding SM to P
+	# Check LSB of MP (Multiplier in a5)
+	andi	a3, a5, 1			# a3 = LSB of MP
+	beqz	a3, m128_skip_add		# If LSB is 0, skip adding SM to P
 
-	# LSB is 1: Add 128-bit SM (t1:t0) to 128-bit P (a1:a0)
-	# P_L (a0) = P_L (a0) + SM_L (t0)
+	# LSB is 1: Add 128-bit SM (t1:a4) to 128-bit P (a1:a0)
+	# P_L (a0) = P_L (a0) + SM_L (a4)
 	# P_H (a1) = P_H (a1) + SM_H (t1) + carry_from_low_addition
-	add	t4, a0, t0			# t4 (temp_sum_low) = P_L + SM_L
-	sltu	t5, t4, a0			# t5 (carry_low) = (temp_sum_low < P_L_old) ? 1 : 0
-	mv	a0, t4				# Update P_L
+	add	a3, a0, a4			# a3 (temp_sum_low) = P_L + SM_L
+	sltu	a6, a3, a0			# a6 (carry_low) = (temp_sum_low < P_L_old) ? 1 : 0
+	mv	a0, a3				# Update P_L
 
 	add	a1, a1, t1			# P_H = P_H + SM_H
-	add	a1, a1, t5			# P_H = P_H + carry_low
+	add	a1, a1, a6			# P_H = P_H + carry_low
 
 m128_skip_add:	
-	# Right-shift 64-bit MP (Multiplier in t2) by 1 (logical)
-	srli	t2, t2, 1
+	# Right-shift 64-bit MP (Multiplier in a5) by 1 (logical)
+	srli	a5, a5, 1
 
-	# Left-shift 128-bit SM (Shifted Multiplicand in t1:t0) by 1 (logical)
-	srli	t4, t0, 63			# t4 = MSB of SM_L (this is the carry from SM_L to SM_H)
-	slli	t0, t0, 1			# SM_L <<= 1
+	# Left-shift 128-bit SM (Shifted Multiplicand in t1:a4) by 1 (logical)
+	srli	a3, a4, 63			# a3 = MSB of SM_L (this is the carry from SM_L to SM_H)
+	slli	a4, a4, 1			# SM_L <<= 1
 	slli	t1, t1, 1			# SM_H <<= 1
-	or	t1, t1, t4			# SM_H |= carry_from_SM_L
+	or	t1, t1, a3			# SM_H |= carry_from_SM_L
 
-	addi	t3, t3, -1			# count--
-	bnez	t3, m128_loop			# Loop if count is not zero
+	addi	t0, t0, -1			# count--	xxx - optimize away
+	bnez	t0, m128_loop			# Loop if count is not zero - xxx optimize away
 
 m128_end_loop:	
 	# Unsigned 128-bit product is now in a1:a0 (P_H:P_L)
-	# t6 holds final_product_is_negative_flag
+	# a7 holds final_product_is_negative_flag
 	# a2 holds original signed_flag_in
 
 	# --- Post-Processing: Negate 128-bit result if signed and negative ---
 	beqz	a2, m128_done			# If not signed_flag_in, skip negation
-	beqz	t6, m128_done			# If not final_product_is_negative_flag, skip
+	beqz	a7, m128_done			# If not final_product_is_negative_flag, skip
 
 	# Negate the 128-bit product in a1:a0 (2's complement)
 	xori	a0, a0, -1			# P_L = ~P_L
 	xori	a1, a1, -1			# P_H = ~P_H
 
 	addi	a0, a0, 1			# P_L = P_L + 1
-	seqz	t4, a0				# t4 = (P_L_new == 0) ? 1 : 0 (this is the carry to P_H)
+	seqz	a3, a0				# a3 = (P_L_new == 0) ? 1 : 0 (this is the carry to P_H)
         # This works because if P_L was 0xFF...FF before addi,
-        # it becomes 0 and sets t4 to 1.
-	add	a1, a1, t4			# P_H = P_H + carry
+        # it becomes 0 and sets a3 to 1.
+	add	a1, a1, a3			# P_H = P_H + carry
 
 m128_done:	
 	# Final 128-bit result is in a1:a0 (High:Low)

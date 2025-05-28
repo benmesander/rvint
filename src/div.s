@@ -22,37 +22,38 @@
 # a1 = remainder
 ################################################################################
 
+# uses a0-a5
+
 divremu:
 	# check for division by zero, if so immediately return
 	beqz	a1, divremu_zero
 
-	mv	t0, a0		# dividend
-	mv	t1, a1		# divisor
+	mv	a2, a0		# dividend
+	mv	a3, a1		# divisor
 	li	a0, 0		# quotient
 	li	a1, 0		# remainder
-	li	t3, 1		# set bit to the highest bit position
-	slli	t3, t3, CPU_BITS-1
+	li	a5, 1		# set bit to the highest bit position
+	slli	a5, a5, CPU_BITS-1
 
 divremu_loop:
 	slli	a1, a1, 1	# shift remainder left by 1
-	and	t2, t0, t3	# Isolate the highest bit of the dividend
-	snez	t2, t2
-	add	a1, a1, t2	# insert next dividend bit into remainder
+	and	a4, a2, a5	# Isolate the highest bit of the dividend
+	snez	a4, a4
+	add	a1, a1, a4	# insert next dividend bit into remainder
 
 	# Check if remainder is greater than or equal to divisor
-	bltu	a1, t1, divremu_continue
-	sub	a1, a1, t1	# subtract divisor from remainder
-	add	a0, a0, t3	# add bit to quotient
+	bltu	a1, a3, divremu_continue
+	sub	a1, a1, a3	# subtract divisor from remainder
+	add	a0, a0, a5	# add bit to quotient
 
 divremu_continue:
-	srli	t3, t3, 1	# shift the bit mask to the right
-	bnez	t3, divremu_loop
+	srli	a5, a5, 1	# shift the bit mask to the right
+	bnez	a5, divremu_loop
 	ret
 
 divremu_zero:
-	mv	t2, a0
+	mv	a1, a0
 	li	a0, -1
-	mv	a1, t2
 	ret
 
 .size divremu, .-divremu
@@ -73,6 +74,10 @@ divremu_zero:
 # a0 = quotient (Q)
 # a1 = remainder (R)
 ################################################################################
+
+# calls divremu, which uses a0-a5.
+# stash a0, a1 in t0, t1
+# this uses t0-t5 to avoid the s regs
 
 divrem:
 	FRAME	1

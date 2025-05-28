@@ -29,6 +29,18 @@ _start:
 	call	gcd_test
 
 
+	li	a0, 4
+	li	a1, 100
+	li	a2, 125
+	li	a3, 500
+	call	lcm_test
+
+	li	a0, 5
+	li	a1, 21
+	li	a2, 6
+	li	a3, 42
+	call	lcm_test
+
 	j	_end
 
 # test # a0
@@ -189,6 +201,78 @@ gcd_test_fail:
 	la	a1, fail
 	j	gcd_test_done
 	
+# input
+# a0 test #
+# a1 u
+# a2 v
+# a3 expected lcm
+lcm_test:
+
+	FRAME	5
+	PUSH	ra, 0
+	PUSH	s0, 1
+	PUSH	s1, 2
+	PUSH	s2, 3
+	PUSH	s3, 4
+	mv	s1, a1
+	mv	s2, a2
+	mv 	s3, a3
+
+	call	header
+
+	mv	a0, s1
+	call	to_decu
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+
+	la	a1, space
+	li	a2, 1
+	call	print
+
+	mv	a0, s2
+	call	to_decu
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+
+	la	a1, equals
+	li	a2, 3
+	call	print
+
+	mv	a0, s1
+	mv	a1, s2
+	call	lcm
+	mv	s2, a0
+
+	call	to_decu
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+
+	la	a1, space
+	li	a2, 1
+	call	print
+
+	sub	s2, s2, s3
+	bnez	s2, lcm_test_fail
+	la	a1, pass
+
+lcm_test_done:
+	li	a2, 5
+	call	print
+
+	POP	ra, 0
+	POP	s0, 1
+	POP	s1, 2
+	POP	s2, 3
+	POP	s3, 4
+	EFRAME	5
+	ret
+
+lcm_test_fail:
+	la	a1, fail
+	j	lcm_test_done
 
 	
 

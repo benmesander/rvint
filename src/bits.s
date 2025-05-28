@@ -20,49 +20,49 @@
 
 bits_ctz:
 	beqz	a0, bits_ctz_is_zero
-	mv	t2, zero	# result
+	mv	a3, zero	# result
 
 .if CPU_BITS == 64
-	li	t1, -1
-	srli	t1, t1, 32
-	and	t0, a0, t1
-	bnez	t0, bits_ctz_lower_16
-	addi	t2, t2, 32
+	li	a2, -1
+	srli	a2, a2, 32
+	and	a1, a0, a2
+	bnez	a1, bits_ctz_lower_16
+	addi	a3, a3, 32
 	srli	a0, a0, 32
 .endif
 
 bits_ctz_lower_16:
-	srli	t1, t1, 16
-	and	t0, a0, t1
-	bnez	t0, bits_ctz_lower_8
-	addi	t2, t2, 16	# lower 16 are zero, add to count
+	srli	a2, a2, 16
+	and	a1, a0, a2
+	bnez	a1, bits_ctz_lower_8
+	addi	a3, a3, 16	# lower 16 are zero, add to count
 	srli	a0, a0, 16
 
 bits_ctz_lower_8:
-	andi	t0, a0, 0xff
-	bnez	t0, bits_ctz_lower_4
-	addi	t2, t2, 8
+	andi	a1, a0, 0xff
+	bnez	a1, bits_ctz_lower_4
+	addi	a3, a3, 8
 	srli	a0, a0, 8
 
 bits_ctz_lower_4:
-	andi	t0, a0, 0xf
-	bnez	t0, bits_ctz_lower_2
-	addi	t2, t2, 4
+	andi	a1, a0, 0xf
+	bnez	a1, bits_ctz_lower_2
+	addi	a3, a3, 4
 	srli	a0, a0, 4
 
 bits_ctz_lower_2:
-	andi	t0, a0, 0x3
-	bnez	t0, bits_ctz_lower_1
-	addi	t2, t2, 2
+	andi	a1, a0, 0x3
+	bnez	a1, bits_ctz_lower_1
+	addi	a3, a3, 2
 	srli	a0, a0, 2
 
 bits_ctz_lower_1:
-	andi	t0, a0, 0x1
-	bnez	t0, bits_ctz_done
-	addi	t2, t2, 1
+	andi	a1, a0, 0x1
+	bnez	a1, bits_ctz_done
+	addi	a3, a3, 1
 
 bits_ctz_done:
-	mv	a0, t2
+	mv	a0, a3
 	ret
 
 bits_ctz_is_zero:
@@ -88,54 +88,54 @@ bits_ctz_is_zero:
 
 bits_clz:
 	beqz	a0, bits_clz_is_zero
-	mv	t2, zero	# t2 result accumulator
-	li	t1, -1		# t1 mask register
-				# t0 intermediate results
+	mv	a3, zero	# a3 result accumulator
+	li	a2, -1		# a2 mask register
+				# a1 intermediate results
 
 .if CPU_BITS == 64
-	slli	t1, t1, 32	# 1's in upper 32 bits
-	and	t0, t1, a0
-	bnez	t0, bits_clz_upper_16
-	addi	t2, t2, 32	# add 32 zeroes
+	slli	a2, a2, 32	# 1's in upper 32 bits
+	and	a1, a2, a0
+	bnez	a1, bits_clz_upper_16
+	addi	a3, a3, 32	# add 32 zeroes
 	slli	a0, a0, 32	# move up value
 .endif
 
 bits_clz_upper_16:
-	slli	t1, t1, 16	# 1's in upper 16 bits
-	and	t0, t1, a0
-	bnez	t0, bits_clz_upper_8
-	addi	t2, t2, 16
+	slli	a2, a2, 16	# 1's in upper 16 bits
+	and	a1, a2, a0
+	bnez	a1, bits_clz_upper_8
+	addi	a3, a3, 16
 	slli	a0, a0, 16
 
 bits_clz_upper_8:
-	slli	t1, t1, 8
-	and	t0, t1, a0
-	bnez	t0, bits_clz_upper_4
-	addi	t2, t2, 8
+	slli	a2, a2, 8
+	and	a1, a2, a0
+	bnez	a1, bits_clz_upper_4
+	addi	a3, a3, 8
 	slli	a0, a0, 8
 
 bits_clz_upper_4:
-	slli	t1, t1, 4
-	and	t0, t1, a0
-	bnez	t0, bits_clz_upper_2
-	addi	t2, t2, 4
+	slli	a2, a2, 4
+	and	a1, a2, a0
+	bnez	a1, bits_clz_upper_2
+	addi	a3, a3, 4
 	slli	a0, a0, 4
 
 bits_clz_upper_2:
-	slli	t1, t1, 2
-	and	t0, t1, a0
-	bnez	t0, bits_clz_upper_1
-	addi	t2, t2, 2
+	slli	a2, a2, 2
+	and	a1, a2, a0
+	bnez	a1, bits_clz_upper_1
+	addi	a3, a3, 2
 	slli	a0, a0, 2
 
 bits_clz_upper_1:
-	slli	t1, t1, 1
-	and	t0, t1, a0
-	bnez	t0, bits_clz_done
-	addi	t2, t2, 1
+	slli	a2, a2, 1
+	and	a1, a2, a0
+	bnez	a1, bits_clz_done
+	addi	a3, a3, 1
 
 bits_clz_done:
-	mv	a0, t2
+	mv	a0, a3
 	ret
 
 bits_clz_is_zero:

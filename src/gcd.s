@@ -76,8 +76,6 @@ gcd_return_u:
 #
 # Compute the least common multiple (lcm) of two unsigned numbers.
 # 64 bit algorithm on 64-bit CPUs, 32-bit algorithm on 32-bit CPUs.
-# This algorithm variant attempts to avoid numerical overflows, but it could
-# be improved to divide max(a0,a1) by the gcd before multiplying by the other.
 #
 # input registers:
 # a0 = u
@@ -91,12 +89,18 @@ lcm:
 	PUSH	ra, 0
 	PUSH	s0, 1
 	PUSH	s1, 2
-	mv	s0, a0
-	mv	s1, a1
 
 	beqz	a0, lcm_check_a1	# check to see if both a0 and a1 are 0
 
 lcm_start:	
+	bltu	a0, a1, lcm_skip_swap
+	xor	a0, a0, a1
+	xor	a1, a0, a1	# register swap a0 <> a1
+	xor	a0, a0, a1
+lcm_skip_swap:	
+	mv	s0, a0
+	mv	s1, a1
+
 	jal	gcd		# gcd result in a0
 	mv	a1, a0		# divide a0 by gcd result
 	mv	a0, s0
