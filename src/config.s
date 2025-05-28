@@ -14,6 +14,22 @@
 	
 .equ CPU_BYTES,CPU_BITS/8	# bytes per word
 
+# hash table stuff
+.equ KEYSIZE, CPU_BYTES
+.equ VALSIZE, CPU_BYTES
+.equ HASHENTRIES, 103	# prime
+
+.equ FLAGSOFFSET, 0
+.equ FLAGSIZE, 2
+.equ KEYOFFSET, FLAGSIZE
+.equ VALOFFSET, FLAGSIZE + KEYSIZE
+.equ ELEMENTLEN, FLAGSIZE + KEYSIZE + VALSIZE
+
+# bitmasks
+.equ FLAG_INUSE,	0x01
+.equ FLAG_TOMBSTONE,	0x02
+# end hash table stuff
+
 .macro PUSH reg_to_save, offset_val
 .if CPU_BITS == 64
 	sd \reg_to_save, \offset_val*CPU_BYTES(sp) # RV64I double word

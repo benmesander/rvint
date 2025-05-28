@@ -1,18 +1,8 @@
 .include "config.s"
 
-.equ KEYSIZE, CPU_BYTES
-.equ VALSIZE, CPU_BYTES
-.equ HASHENTRIES, 103	# prime
+.globl	hash_table
+.globl	hash_insert
 
-.equ FLAGSOFFSET, 0
-.equ FLAGSIZE, 2
-.equ KEYOFFSET, FLAGSIZE
-.equ VALOFFSET, FLAGSIZE + KEYSIZE
-.equ ELEMENTLEN, FLAGSIZE + KEYSIZE + VALSIZE
-
-# bitmasks
-.equ FLAG_INUSE,	0x01
-.equ FLAG_TOMBSTONE,	0x02
 
 .data
 .align 2
@@ -53,10 +43,10 @@ hash_insert_sum_key:
 	ori	a3, a3, FLAG_INUSE
 	sw	a3, FLAGSOFFSET(a4)
 .if CPU_BITS == 64
-	sd	a0, KEYOFFSET(a4)
+	sd	a0, KEYOFFSET(a4)	# xxx: wrong, store original value
 	sd	a1, VALOFFSET(a4)
 .else
-	sw	a0, KEYOFFSET(a4)
+	sw	a0, KEYOFFSET(a4)	# xxx: wrong, store original value
 	sw	a1, VALOFFSET(a4)
 .endif
 
