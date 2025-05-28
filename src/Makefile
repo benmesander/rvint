@@ -11,13 +11,15 @@ LD	:= ld.lld
 CFLAGS	:= --target=$(TARGET) -march=$(ARCH) -mabi=$(ABI)
 LDFLAGS	:=
 
-SRCS	:= div.s mul.s io.s div-tests.s mul-tests.s sqrt.s alg-tests.s gcd.s bits.s
+SRCS	:= div.s mul.s io.s div-tests.s mul-tests.s sqrt.s alg-tests.s gcd.s bits.s bcd.s hash.s
 OBJS	:= $(SRCS:.s=.o)
-EXES	:= div-tests.x mul-tests.x alg-tests.x
+EXES	:= div-tests.x mul-tests.x alg-tests.x #dat-tests.x bcd-tests.x
 
 DIV_TESTS_OBJS	:= div-tests.o div.o
 MUL_TESTS_OBJS	:= mul-tests.o mul.o io.o div.o
 ALG_TESTS_OBJS	:= alg-tests.o mul.o sqrt.o io.o div.o gcd.o bits.o
+BCD_TESTS_OBJS 	:= bcd-tests.o bcd.o
+#DAT_TESTS_OBJS	:= dat-tests.o hash.o div.o
 
 .PHONY:	all clean
 
@@ -32,6 +34,7 @@ io.o:	io.s config.s
 sqrt.o:	sqrt.s config.s
 gcd.o:	gcd.s config.s
 bits.o:	bits.s config.s
+bcd.o:	bcd.s config.s
 
 div-tests.x: $(DIV_TESTS_OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
