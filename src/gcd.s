@@ -41,9 +41,10 @@ gcd:
 	mv	s2, a0
 gcd_loop:			# s2 = k = min(i, j)
 	bltu	s0, s1, gcd_skip_swap
-	xor	s0, s0, s1
-	xor	s1, s0, s1	# register swap s0 <> s1
-	xor	s0, s0, s1
+	mv	a3, s1
+	mv	s1, s0		# register swap s0 <> s1
+	mv 	s0, a3
+
 gcd_skip_swap:	
 	sub	s1, s1, s0	# v -= u
 	beqz	s1, gcd_done
@@ -94,9 +95,11 @@ lcm:
 
 lcm_start:	
 	bltu	a0, a1, lcm_skip_swap
-	xor	a0, a0, a1
-	xor	a1, a0, a1	# register swap a0 <> a1
-	xor	a0, a0, a1
+
+	mv	a3, a0
+	mv	a0, a1		# register swap a0 <> a1
+	mv 	a1, a3
+
 lcm_skip_swap:	
 	mv	s0, a0
 	mv	s1, a1
