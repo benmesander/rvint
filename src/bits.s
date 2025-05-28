@@ -16,6 +16,9 @@
 #
 # output registers:
 # a0 = result containing the number of trailing zeroes
+#
+# clobbers:
+# a0-a3
 ################################################################################
 
 bits_ctz:

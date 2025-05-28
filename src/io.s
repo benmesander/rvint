@@ -138,9 +138,9 @@ to_decu_loop:
 
 to_decu_retvals:
 	mv	a0, s0
-	la	t0, iobuf
-	addi	t0, t0, IOBUF_CAPACITY
-	sub	a1, t0, a0
+	la	a2, iobuf
+	addi	a2, a2, IOBUF_CAPACITY
+	sub	a1, a2, a0
 
 	POP	ra, 0
 	POP	s0, 1
@@ -175,14 +175,14 @@ to_dec:
 	addi	s0, s0, IOBUF_CAPACITY
 	sb	zero, 0(s0)
 
-	mv	t0, zero		# t0 will be a flag: 1 if original number was negative and non-zero
+	mv	a2, zero		# a2 will be a flag: 1 if original number was negative and non-zero
 					# For MIN_INT, it will become negative.
 	bgez	s1, to_dec_abs_done	# If s1 >= 0, skip negation
-	li	t0, 1			# Set negative flag
+	li	a2, 1			# Set negative flag
 	sub	s1, zero, s1
 to_dec_abs_done:
 	# s1 now holds the absolute value (or MIN_INT if original was MIN_INT, which is treated as 2^(N-1) unsigned)
-	# t0 holds 1 if a minus sign is needed, 0 otherwise.
+	# a2 holds 1 if a minus sign is needed, 0 otherwise.
 
 to_dec_loop:
 	addi	s0, s0, -1
@@ -195,17 +195,17 @@ to_dec_loop:
 	bnez	s1, to_dec_loop
 
 	# After loop, s0 points to the most significant digit.
-	# Now, if the number was negative (t0 == 1), prepend '-'
-	beqz	t0, to_dec_retval
+	# Now, if the number was negative (a2 == 1), prepend '-'
+	beqz	a2, to_dec_retval
 	addi	s0, s0, -1
-	li	t1, '-'
-	sb	t1, 0(s0)
+	li	a2, '-'
+	sb	a2, 0(s0)
 
 to_dec_retval:
 	mv	a0, s0
-	la	t1, iobuf
-	addi	t1, t1, IOBUF_CAPACITY
-	sub	a1, t1, a0
+	la	a2, iobuf
+	addi	a2, a2, IOBUF_CAPACITY
+	sub	a1, a2, a0
 	POP	s1, 2
 	POP	s0, 1
 	POP	ra, 0
@@ -232,25 +232,25 @@ to_dec_retval:
 from_hex:
 	li	a1, 0
 	li	a2, 0
-	li	t2, 9
-	li	t3, 5
+	li	a5, 9
+	li	a6, 5
 from_hex_nibble:
-	lb	t0, (a0)
+	lb	a3, (a0)
 
 	# Handle 0-9
-	addi	t1, t0, -'0'
-	bleu	t1, t2, from_hex_add_digit
+	addi	a4, a3, -'0'
+	bleu	a4, a5, from_hex_add_digit
 
 	# Handle a-f and A-F by converting to uppercase
-	andi	t0, t0, 0xDF	# clear bit 5 (cvt to upper)
-	addi	t1, t0, -'A'
-	bgtu	t1, t3, from_hex_done
-	addi	t1, t1, 10	# A-F -> 10-15
+	andi	a3, a3, 0xDF	# clear bit 5 (cvt to upper)
+	addi	a4, a3, -'A'
+	bgtu	a4, a6, from_hex_done
+	addi	a4, a4, 10	# A-F -> 10-15
 
 from_hex_add_digit:
 	li	a2, 1		# we found a digit
 	slli	a1, a1, 4	# shift result left by 4 bits
-	add	a1, a1, t1	# add new nibble
+	add	a1, a1, a4	# add new nibble
 	addi	a0, a0, 1
 	j	from_hex_nibble
 
@@ -276,15 +276,15 @@ from_hex_done:
 from_bin:
 	li	a1, 0
 	li	a2, 0
-	li	t2, 1
+	li	a5, 1
 from_bin_bit:
-	lb	t0, (a0)
-	addi	t1, t0, -'0'
-	bgtu	t1, t2, from_bin_done
+	lb	a3, (a0)
+	addi	a4, a3, -'0'
+	bgtu	a4, a5, from_bin_done
 
 	li	a2, 1		# we found a bit
 	slli	a1, a1, 1
-	or	a1, a1, t1	# add new bit
+	or	a1, a1, a4	# add new bit
 	addi	a0, a0, 1
 	j	from_bin_bit
 
@@ -310,18 +310,18 @@ from_bin_done:
 from_decu:
 	li	a1, 0
 	li	a2, 0
-	li	t2, 9
+	li	a7, 9
 
 from_decu_digit:
-	lb	t0,(a0)
-	addi	t1, t0, -'0'
-	bgtu	t1, t2, from_decu_done
+	lb	a6,(a0)
+	addi	a5, a6, -'0'
+	bgtu	a5, a7, from_decu_done
 
 	li	a2, 1
-	slli	t3, a1, 1	# t3 = a1 * 2
-	slli	t4, a1, 3	# t4 = a1 * 8
-	add	a1, t3, t4	# a1 = a1 * 10
-	add	a1, a1, t1	# add in new digit
+	slli	a3, a1, 1	# a3 = a1 * 2
+	slli	a4, a1, 3	# a4 = a1 * 8
+	add	a1, a3, a4	# a1 = a1 * 10
+	add	a1, a1, a5	# add in new digit
 	addi	a0, a0, 1
 	j	from_decu_digit
 
@@ -348,22 +348,22 @@ from_dec:
 	FRAME	1
 	PUSH	ra, 0
 
-	li	t5, 0	# sign bit (not used by from_decu)
-	li	t1, '-'
-	lb	t0, (a0)
-	beq	t0, t1, from_dec_handle_minus
-	li	t1, '+'
-	beq	t0, t1, from_dec_handle_plus
+	li	a3, 0	# sign bit (not used by from_decu)
+	li	a4, '-'
+	lb	a2, (a0)
+	beq	a2, a4, from_dec_handle_minus
+	li	a4, '+'
+	beq	a2, a4, from_dec_handle_plus
 	j	from_dec_convert
 
 from_dec_handle_minus:
-	li	t5, 1
+	li	a3, 1
 from_dec_handle_plus:
 	addi	a0, a0, 1
 
 from_dec_convert:
 	jal	from_decu
-	beq	t5, zero, from_dec_done
+	beq	a3, zero, from_dec_done
 	sub	a1, zero, a1
 
 from_dec_done:
