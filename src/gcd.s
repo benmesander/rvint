@@ -30,16 +30,7 @@ gcd:
 	mv	s0, a0		# s0 = u
 	mv	s1, a1		# s1 = v
 
-	call	bits_ctz
-	mv	s2, a0		# s2 = i
-	mv	a0, s1
-	call	bits_ctz	# a0 = j
-	srl	s0, s0, s2	# u >>= i
-	srl	s1, s1, a0	# v >>= j
-
-	bgtu	a0, s2, gcd_loop
-	mv	s2, a0
-gcd_loop:			# s2 = k = min(i, j)
+gcd_loop:			
 	bltu	s0, s1, gcd_skip_swap
 	mv	a3, s1
 	mv	s1, s0		# register swap s0 <> s1
@@ -48,14 +39,10 @@ gcd_loop:			# s2 = k = min(i, j)
 gcd_skip_swap:	
 	sub	s1, s1, s0	# v -= u
 	beqz	s1, gcd_done
-	
-	mv	a0, s1
-	call	bits_ctz
-	srl	s1, s1, a0
 	j 	gcd_loop
 	
 gcd_done:
-	sll	a0, s0, s2	# result = u << k
+	mv	a0, s0		# result = u
 
 gcd_cleanup:	
 	POP	ra, 0
@@ -86,10 +73,12 @@ gcd_return_u:
 # a0 = lcm(u,v)
 ################################################################################
 lcm:
-	FRAME	3
+	FRAME	5
 	PUSH	ra, 0
 	PUSH	s0, 1
 	PUSH	s1, 2
+	PUSH	s2, 3
+	PUSH	s3, 4
 
 	beqz	a0, lcm_check_a1	# check to see if both a0 and a1 are 0
 
@@ -101,21 +90,28 @@ lcm_start:
 	mv 	a1, a3
 
 lcm_skip_swap:	
-	mv	s0, a0
-	mv	s1, a1
+	mv	s0, a0		# Save original a0
+	mv	s1, a1		# Save original a1
 
 	jal	gcd		# gcd result in a0
-	mv	a1, a0		# divide a0 by gcd result
-	mv	a0, s0
+	mv	s2, a0		# Save GCD result
+
+	mv	a0, s0		# Restore original a0
+	mv	a1, s2		# Use GCD result as divisor
 	call	divremu		# result in a0
-	mv	a1, s1		# multiply by a1
+	mv	s3, a0		# Save division result
+
+	mv	a0, s3		# Use division result
+	mv	a1, s1		# Use original a1
 	call	nmul		# result in a0
 
 lcm_cleanup:	
 	POP 	ra, 0
 	POP	s0, 1
 	POP	s1, 2
-	EFRAME	3
+	POP	s2, 3
+	POP	s3, 4
+	EFRAME	5
 	ret
 
 lcm_check_a1:

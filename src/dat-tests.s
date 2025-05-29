@@ -1,75 +1,168 @@
 .include "config.s"
-
+.text
 .globl _start
 _start:
+	la 	a1, header_str
+	li	a2, 27
+	call	print
+
+	jal	print_hash_table
 	j	end
 	
-
+################################################################################
+# routine: print_hash_table
+#
+# Print the hash table contents in the specified format.
+# For each entry with nonzero flags, prints:
+# <index>: <flags>:<key_ptr>(<string>):<value>
+#
+# Uses only rv32i/rv64i instructions.
+# No input/output registers.
+################################################################################
 print_hash_table:
-	la	a2, hash_table		# a2 - current element address
-	li	a0, 0			# a0 - element index in table
+	FRAME	6
+	PUSH	ra, 0
+	PUSH	s0, 1			# Entry counter
+	PUSH	s1, 2			# Current entry pointer
+	PUSH	s2, 3			# Save flags
+	PUSH	s3, 4			# Save key pointer
+	PUSH	s4, 5			# Save value
 
-print_hash_table_loop:	
-	lw	a1, FLAGSOFFSET(a2)	# a1 - scratch
-	mv	s1, a1			# save - a1->s1
-	andi	a3, a1, FLAG_INUSE	# a3 - scratch	XXX: SKIP ENTRY IF NOTINUSE
-	la	a1, space
-	bnez	a3, pht_notinuse
-	la	a1, inuse
-pht_notinuse:	
-	# XXX: Print element number, colon
-
-	mv	s2, a2			# save - a2->s2
-	mv	s0, a0			# save - a0->s0
-	li	a2, 1
+	# Print header
+	la	a1, header_str
+	li	a2, 27			# Length of header string
 	jal	print
 
-	andi	a3, s1, FLAG_TOMBSTONE
-	la	a1, space
-	bnez	a3, pht_notdeadyet
-	la	a1, tomb
-pht_notdeadyet:	
-	li	a2, 1
-	jal	print
+	# Initialize
+	li	s0, 0			# Entry counter = 0
+	la	s1, hash_table		# Current entry pointer = hash_table
 
-	la	a1, colon
-	li	a2, 1
-	jal	print
+print_hash_loop:
+	# Check if we've processed all entries
+	li	t0, HASHENTRIES
+	beq	s0, t0, print_hash_done
 
+	# Load flags
+	lw	s2, FLAGSOFFSET(s1)
+	beqz	s2, print_hash_next	# Skip if flags are zero
 
-.if CPU_BITS == 64
-	ld	a1, KEYOFFSET(a2)
-.else
-	lw	a1, KEYOFFSET(a2)
-.endif
-	# XXX: NULL
-	mv	a0, a1
-	jal	strlen
-	mv	a2, a0
-	jal	print
-
-	la	a1, colon
-	li	a2, 1
-	jal	print
-
-.if CPU_BITS == 64
-	ld	a1, KEYOFFSET(a2)
-.else
-	lw	a1, KEYOFFSET(a2)
-.endif
-	# XXX: NULL
-	mv	a0, a1
-	jal	strlen
-	mv	a2, a0
-	jal	print
-
-	
-	mv	a2, s2
+	# Print entry number
 	mv	a0, s0
-	addi	a2, a2, ELEMENTLEN
-	addi	a0, a0, 1
-	sltiu	a1, a0, HASHENTRIES
-	bnez	a1, print_hash_table_loop
+	PUSH	ra, -1
+	jal	to_decu			# Convert to decimal string
+	mv	a1, a0			# Move string pointer to a1 for print
+	mv	a2, a1			# Save length in a2
+	jal	print
+	POP	ra, -1
+	
+	# Print ": "
+	la	a1, colon_space
+	li	a2, 2
+	jal	print
+
+	# Print flags
+	andi	t0, s2, FLAG_TOMBSTONE
+	beqz	t0, print_no_t
+	la	a1, tomb
+	j	print_t_done
+print_no_t:
+	la	a1, space_char
+print_t_done:
+	li	a2, 1
+	jal	print
+
+	andi	t0, s2, FLAG_INUSE
+	beqz	t0, print_no_i
+	la	a1, inuse
+	j	print_i_done
+print_no_i:
+	la	a1, space_char
+print_i_done:
+	li	a2, 1
+	jal	print
+
+	# Print colon
+	la	a1, colon
+	li	a2, 1
+	jal	print
+
+	# Print key pointer in hex
+.if CPU_BITS == 64
+	ld	s3, KEYOFFSET(s1)
+	li	a1, 8			# 8 bytes for 64-bit
+.else
+	lw	s3, KEYOFFSET(s1)
+	li	a1, 4			# 4 bytes for 32-bit
+.endif
+	mv	a0, s3
+	li	a2, 1			# Include 0x prefix
+	PUSH	ra, -1
+	jal	to_hex			# Convert to hex string
+	mv	a1, a0			# Move string pointer to a1 for print
+	mv	a2, a1			# Save length in a2
+	jal	print
+	POP	ra, -1
+
+	# Print key string in parentheses
+	la	a1, open_paren
+	li	a2, 1
+	jal	print
+	mv	a1, s3			# Key string pointer
+	mv	a0, s3
+	PUSH	ra, -1
+	jal	strlen			# Get string length
+	mv	a2, a0			# Length for print
+	jal	print
+	POP	ra, -1
+	la	a1, close_paren
+	li	a2, 1
+	jal	print
+
+	# Print colon
+	la	a1, colon
+	li	a2, 1
+	jal	print
+
+	# Print value in hex
+.if CPU_BITS == 64
+	ld	s4, VALOFFSET(s1)
+	li	a1, 8			# 8 bytes for 64-bit
+.else
+	lw	s4, VALOFFSET(s1)
+	li	a1, 4			# 4 bytes for 32-bit
+.endif
+	mv	a0, s4
+	li	a2, 1			# Include 0x prefix
+	PUSH	ra, -1
+	jal	to_hex			# Convert to hex string
+	mv	a1, a0			# Move string pointer to a1 for print
+	mv	a2, a1			# Save length in a2
+	jal	print
+	POP	ra, -1
+
+	# Print newline
+	la	a1, nl
+	li	a2, 1
+	jal	print
+
+print_hash_next:
+	addi	s0, s0, 1		# Increment counter
+	addi	s1, s1, ELEMENTLEN	# Move to next entry
+	j	print_hash_loop
+
+print_hash_done:
+	# Print footer
+	la	a1, footer_str
+	li	a2, 25			# Length of footer string
+	jal	print
+
+	POP	ra, 0
+	POP	s0, 1
+	POP	s1, 2
+	POP	s2, 3
+	POP	s3, 4
+	POP	s4, 5
+	EFRAME	6
 	ret
 
 # in: a0 - ptr to string
@@ -94,13 +187,19 @@ print:
 	ecall
 	ret
 
-_end:
+end:
         li	a0, 0	# exit code
         li	a7, 93	# exit syscall
         ecall
 
-inuse:	.string	"I"
-tomb:	.string	"T"
-space:	.string "   "	# secretly 3 spaces, choose your own adventure
-nl:	.string	"\n"
-colon:	.string	":"
+.data
+header_str:	.string "--- start of hash table ---\n"
+footer_str:	.string "--- end of hash table ---\n"
+colon_space:	.string ": "
+inuse:		.string "I"
+tomb:		.string "T"
+space_char:	.string " "
+open_paren:	.string "("
+close_paren:	.string ")"
+nl:		.string "\n"
+colon:		.string ":"
