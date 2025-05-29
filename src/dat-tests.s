@@ -1,6 +1,7 @@
 .include "config.s"
 .text
-.globl _start
+.globl	_start
+.globl	print
 _start:
 	# test 0 - print empty table
 	la	a1, test
@@ -21,10 +22,18 @@ _start:
 	la	a1, bar
 	call	hash_insert
 
+#	la	a0, oink
+#	call	sum_key
+#	call	to_decu
+#	mv	a2, a1
+#	mv	a1, a0
+#	call	print
+
+
 	la	a1, test
 	li	a2, 5
 	jal	print
-	li	a0, 0
+	li	a0, 1
 	call	to_decu
 	mv	a2, a1
 	mv	a1, a0
@@ -49,8 +58,8 @@ _start:
 # No input/output registers.
 ################################################################################
 print_hash_table:
-FRAME	6
-PUSH	ra, 0
+	FRAME	6
+	PUSH	ra, 0
 PUSH	s0, 1			# Entry counter
 PUSH	s1, 2			# Current entry pointer
 PUSH	s2, 3			# Save flags
@@ -79,8 +88,8 @@ beqz	s2, print_hash_next	# Skip if flags are zero
 	mv	a0, s0
 	PUSH	ra, -1
 	jal	to_decu			# Convert to decimal string
-	mv	a1, a0			# Move string pointer to a1 for print
 	mv	a2, a1			# Save length in a2
+	mv	a1, a0			# Move string pointer to a1 for print
 	jal	print
 	POP	ra, -1
 	
@@ -127,8 +136,8 @@ print_i_done:
 	li	a2, 1			# Include 0x prefix
 	PUSH	ra, -1
 	jal	to_hex			# Convert to hex string
-	mv	a1, a0			# Move string pointer to a1 for print
 	mv	a2, a1			# Save length in a2
+	mv	a1, a0			# Move string pointer to a1 for print
 	jal	print
 	POP	ra, -1
 
@@ -164,8 +173,8 @@ print_i_done:
 	li	a2, 1			# Include 0x prefix
 	PUSH	ra, -1
 	jal	to_hex			# Convert to hex string
-	mv	a1, a0			# Move string pointer to a1 for print
 	mv	a2, a1			# Save length in a2
+	mv	a1, a0			# Move string pointer to a1 for print
 	jal	print
 	POP	ra, -1
 

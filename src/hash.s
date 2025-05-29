@@ -11,6 +11,8 @@
 .globl	hash_rehash
 .globl	hash_resize
 
+.globl	sum_key
+
 .data
 .align 2
 	
@@ -87,9 +89,13 @@ sum_key_done:
 # a0 = initial probe position (0 to HASHENTRIES-1)
 ################################################################################
 hash_h1:
+	FRAME	1
+	PUSH	ra, 0
 	li	a1, HASHENTRIES		# Divisor for divremu
 	jal	divremu			# a0=quotient, a1=remainder
 	mv	a0, a1			# Return remainder in a0
+	POP	ra, 0
+	EFRAME	1
 	ret
 
 ################################################################################
@@ -106,6 +112,8 @@ hash_h1:
 # a0 = probe step size (ELEMENTLEN to ELEMENTLEN*(HASHENTRIES-1))
 ################################################################################
 hash_h2:
+	FRAME	1
+	PUSH	ra, 0
 	li	a1, HASHENTRIES-1	# Divisor for divremu
 	jal	divremu		        # a0=quotient, a1=remainder
 	mv	a0, a1			# Move remainder to a0
@@ -116,6 +124,8 @@ hash_h2:
 	slli	t1, t0, 4		# t1 = value * 16
 	slli	t0, t0, 1		# t0 = value * 2
 	add	a0, t1, t0		# a0 = value * 18
+	POP	ra, 0
+	EFRAME	1
 	ret
 
 ################################################################################

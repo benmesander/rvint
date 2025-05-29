@@ -1,3 +1,4 @@
+.include "config.s"
 .text
 	
 	# runs on linux
@@ -318,12 +319,67 @@ test10:
 
 	la a1, pass
 	call result
-	j _end
+	j test11
 
 test10_fail:
 
 	la a1, fail
 	call result
+
+test11:
+
+	#11. hashtable test
+#Expected Result: Quotient = 4, Remainder = 21
+
+	la a1, test11s
+	li a2, 8
+	call title
+
+	li	a0, 433
+	li	a1, HASHENTRIES	# 103
+
+	jal     divremu         # Call divremu
+
+	# Check results
+	# a0 (quotient) should be 4
+	# a1 (remainder) should be 21
+	mv	s0, a0
+	mv	s1, a1
+	call	to_decu
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+	la	a1, space
+	li	a2, 1
+	call	print
+	mv	a0, s1
+	call	to_decu
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+	la	a1, space
+	li	a2, 1
+	call	print
+
+	mv	a0, s0
+	mv	a1, s1
+	addi a0, a0, -4
+	bnez a0, test11_fail
+	addi a1, a1, -21
+	bnez a1, test11_fail
+
+	la a1, pass
+	call result
+	j _end
+
+test11_fail:
+
+	la a1, fail
+	call result
+
+
+
+
 
 _end:
 	
@@ -331,6 +387,7 @@ _end:
         li a7, 93           # syscall exit
         ecall
 
+print:	
 title:
 	li a0, 1
 	li a7, 64
@@ -355,6 +412,7 @@ test7s: .asciz  "test7: "
 test8s: .asciz  "test8: "
 test9s: .asciz  "test9: "
 test10s: .asciz  "test10: "
+test11s: .asciz	"test11: "
 pass: .asciz "pass\n"
 fail: .asciz "fail\n"
-	
+space: .asciz " "
