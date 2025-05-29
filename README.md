@@ -60,6 +60,14 @@ These operations support 32-bit numbers on 32-bit architectures and
 - Count trailing zeroes in 32-bit number on 32-bit processors.
 - Count trailing zeroes in 64-bit number on 64-bit processors.
 
+## Hash Table
+- Double hashing collision resolution
+- Linear probing with tombstone deletion
+- Configurable table size and entry format
+- O(1) average case insert, retrieve, remove operations
+- Rehashing to optimize probe sequences
+- Iterator interface for traversing entries
+
 ## Building
 
 clang, lld, and make are assumed. I'm currently using clang 18.
@@ -377,3 +385,118 @@ syscall 64 is write and 93 is exit.
 ################################################################################
 
 ```
+
+### Hash Table [hash.s](src/hash.s)
+
+```riscv
+################################################################################
+# Hash Table Implementation
+#
+# A doubly-hashed open addressing hash table optimized for RISC-V.
+# Features:
+# - Configurable table size (default prime number 103)
+# - Double hashing for collision resolution
+# - Tombstone-based deletion for maintaining probe sequences
+# - In-place rehashing without extra memory allocation
+# - Support for both 32-bit and 64-bit architectures
+# - Optimized probe sequence using conditional subtraction
+# - No M-extension dependency (no hardware multiply/divide)
+#
+# Key functions:
+# - Insertion, retrieval, and removal of key-value pairs
+# - Iteration over entries
+# - Memory-efficient rehashing
+################################################################################
+
+################################################################################
+# routine: hash_insert
+#
+# Insert a key-value pair into the hash table using double hashing.
+# Probes until an empty slot or tombstone is found. Uses double hashing
+# for collision resolution with h1 for initial position and h2 for step size.
+#
+# The probing sequence is optimized to avoid expensive division operations:
+# 1. Initial position = h1(key) * ELEMENTLEN
+# 2. Step size = h2(key) (pre-scaled by ELEMENTLEN)
+# 3. Each probe: new_pos = current_pos + step_size
+# 4. Wrap using conditional subtraction since new_pos < 2 * table_size
+#
+# input registers:
+# a0 = pointer to key string
+# a1 = value to insert
+#
+# output registers:
+# a0 = value if successful, 0 if table is full
+################################################################################
+
+################################################################################
+# routine: hash_retrieve
+#
+# Retrieve a value from the hash table by key.
+# Uses double hashing to probe until key is found or empty slot is reached.
+# Handles both in-use and tombstone slots during probing.
+#
+# Uses the same optimized probing sequence as hash_insert.
+#
+# input registers:
+# a0 = pointer to key string to look up
+#
+# output registers:
+# a0 = value if found, 0 if not found
+################################################################################
+
+################################################################################
+# routine: hash_remove
+#
+# Remove an entry from the hash table by key.
+# Uses double hashing to find the entry, then marks it as a tombstone
+# rather than completely clearing it to maintain probe sequences.
+#
+# Uses the same optimized probing sequence as hash_insert.
+#
+# input registers:
+# a0 = pointer to key string to remove
+#
+# output registers:
+# a0 = value that was removed if found, 0 if not found
+################################################################################
+
+################################################################################
+# routine: hash_rehash
+#
+# Rebuild table to remove tombstones and optimize probe sequences.
+# Uses in-place algorithm to avoid extra memory allocation.
+#
+# Uses the same optimized probing sequence as hash_insert.
+#
+# input registers:
+# none
+#
+# output registers:
+# a0 = number of entries rehashed
+################################################################################
+```
+
+The hash table implementation provides an efficient key-value store optimized for RISC-V architectures. It uses double hashing for collision resolution, which provides better clustering properties than linear or quadratic probing. The implementation is designed to work efficiently in bare metal environments by avoiding dynamic memory allocation and expensive operations.
+
+Key features:
+- O(1) average case for insertions, retrievals and deletions
+- Configurable table size (default 103)
+- Support for both 32-bit and 64-bit architectures
+- Memory-efficient in-place rehashing
+- Maintains probe chain integrity using tombstone deletion
+- Provides iteration capability over entries
+- Optimized probe sequence without expensive division operations
+- No dependency on M-extension (hardware multiply/divide)
+
+The implementation uses two hash functions:
+1. h1(key) - Primary hash for initial probe position
+2. h2(key) - Secondary hash for probe step size (pre-scaled by ELEMENTLEN)
+
+The probing sequence is optimized to avoid expensive division operations:
+1. Initial position = h1(key) * ELEMENTLEN (using shift-and-add)
+2. Step size = h2(key) (pre-scaled by ELEMENTLEN)
+3. Each probe: new_pos = current_pos + step_size
+4. Wrap using conditional subtraction since new_pos < 2 * table_size
+
+Deletion is handled using tombstones to maintain probe sequences, with periodic rehashing available to reclaim space and optimize probe lengths. The rehashing algorithm is designed to work in-place without requiring additional memory allocation, making it suitable for bare metal environments.
