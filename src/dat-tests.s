@@ -2,11 +2,40 @@
 .text
 .globl _start
 _start:
-	la 	a1, header_str
-	li	a2, 27
-	call	print
-
+	# test 0 - print empty table
+	la	a1, test
+	li	a2, 5
+	jal	print
+	li	a0, 0
+	call	to_decu
+	mv	a2, a1
+	mv	a1, a0
+	jal	print
+	la	a1, nl
+	li	a2, 1
+	jal	print
 	jal	print_hash_table
+
+	# test 1 - insert a key/value
+	la	a0, oink
+	la	a1, bar
+	call	hash_insert
+
+	la	a1, test
+	li	a2, 5
+	jal	print
+	li	a0, 0
+	call	to_decu
+	mv	a2, a1
+	mv	a1, a0
+	jal	print
+	la	a1, nl
+	li	a2, 1
+	jal	print
+	jal	print_hash_table
+
+
+
 	j	end
 	
 ################################################################################
@@ -20,33 +49,33 @@ _start:
 # No input/output registers.
 ################################################################################
 print_hash_table:
-	FRAME	6
-	PUSH	ra, 0
-	PUSH	s0, 1			# Entry counter
-	PUSH	s1, 2			# Current entry pointer
-	PUSH	s2, 3			# Save flags
-	PUSH	s3, 4			# Save key pointer
-	PUSH	s4, 5			# Save value
+FRAME	6
+PUSH	ra, 0
+PUSH	s0, 1			# Entry counter
+PUSH	s1, 2			# Current entry pointer
+PUSH	s2, 3			# Save flags
+PUSH	s3, 4			# Save key pointer
+PUSH	s4, 5			# Save value
 
-	# Print header
-	la	a1, header_str
-	li	a2, 27			# Length of header string
-	jal	print
+# Print header
+la	a1, header_str
+li	a2, 28			# Length of header string
+jal	print
 
-	# Initialize
-	li	s0, 0			# Entry counter = 0
-	la	s1, hash_table		# Current entry pointer = hash_table
+# Initialize
+li	s0, 0			# Entry counter = 0
+la	s1, hash_table		# Current entry pointer = hash_table
 
 print_hash_loop:
-	# Check if we've processed all entries
-	li	t0, HASHENTRIES
-	beq	s0, t0, print_hash_done
+# Check if we've processed all entries
+li	t0, HASHENTRIES
+beq	s0, t0, print_hash_done
 
-	# Load flags
-	lw	s2, FLAGSOFFSET(s1)
-	beqz	s2, print_hash_next	# Skip if flags are zero
+# Load flags
+lw	s2, FLAGSOFFSET(s1)
+beqz	s2, print_hash_next	# Skip if flags are zero
 
-	# Print entry number
+# Print entry number
 	mv	a0, s0
 	PUSH	ra, -1
 	jal	to_decu			# Convert to decimal string
@@ -153,7 +182,7 @@ print_hash_next:
 print_hash_done:
 	# Print footer
 	la	a1, footer_str
-	li	a2, 25			# Length of footer string
+	li	a2, 26			# Length of footer string
 	jal	print
 
 	POP	ra, 0
@@ -203,3 +232,9 @@ open_paren:	.string "("
 close_paren:	.string ")"
 nl:		.string "\n"
 colon:		.string ":"
+test:		.string "test "
+oink:		.string "oink"
+knio:		.string "knio"
+inko:		.string "inko"
+foo:		.string "foo"
+bar:		.string "bar"
