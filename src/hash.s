@@ -116,14 +116,12 @@ hash_h2:
 	PUSH	ra, 0
 	li	a1, HASHENTRIES-1	# Divisor for divremu
 	jal	divremu		        # a0=quotient, a1=remainder
-	mv	a0, a1			# Move remainder to a0
-	addi	a0, a0, 1		# Add 1 to the remainder
+	addi	a1, a1, 1		# Add 1 to the remainder
 
 	# Scale step by ELEMENTLEN (18)
-	mv	t0, a0			# t0 = original value
-	slli	t1, t0, 4		# t1 = value * 16
-	slli	t0, t0, 1		# t0 = value * 2
-	add	a0, t1, t0		# a0 = value * 18
+	slli	a0, a1, 4		# a0 = value * 16
+	slli	a1, a1, 1		# a1 = value * 2
+	add	a0, a1, a0		# a0 = value * 18
 	POP	ra, 0
 	EFRAME	1
 	ret
@@ -152,11 +150,10 @@ hash_h2:
 # a0 = value if successful, 0 if table is full
 ################################################################################
 hash_insert:
-	FRAME	4
+	FRAME	3
 	PUSH	ra, 0
 	PUSH	s0, 1			# Save value in s0 
 	PUSH	s1, 2			# Save key ptr in s1 
-	PUSH	a5, 3			# Save key sum in a5 
 
 	mv	s1, a0			# Save key pointer
 	mv	s0, a1			# Save value
@@ -240,8 +237,7 @@ hash_insert_ret:
 	POP	ra, 0
 	POP	s0, 1
 	POP	s1, 2
-	POP	a5, 3
-	EFRAME	4
+	EFRAME	3
 	ret
 
 ################################################################################

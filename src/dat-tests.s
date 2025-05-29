@@ -43,7 +43,50 @@ _start:
 	jal	print
 	jal	print_hash_table
 
+	# test 2 - insert a 2nd key/value and a collision key/value
 
+	la	a0, foo
+	la	a1, bar
+	call	hash_insert
+	
+	la	a0, knio
+	la	a1, foo
+	call	hash_insert
+
+	la	a1, test
+	li	a2, 5
+	jal	print
+	li	a0, 2
+	call	to_decu
+	mv	a2, a1
+	mv	a1, a0
+	jal	print
+	la	a1, nl
+	li	a2, 1
+	jal	print
+	jal	print_hash_table
+
+	# test 3 - insert a 3rd collision, delete 2nd one
+
+	la	a0, inko
+	la	a1, foo
+	call	hash_insert
+
+#	la	a0, knio
+#	call	hash_remove
+
+	la	a1, test
+	li	a2, 5
+	jal	print
+	li	a0, 3
+	call	to_decu
+	mv	a2, a1
+	mv	a1, a0
+	jal	print
+	la	a1, nl
+	li	a2, 1
+	jal	print
+	jal	print_hash_table
 
 	j	end
 	
@@ -60,8 +103,8 @@ _start:
 print_hash_table:
 	FRAME	6
 	PUSH	ra, 0
-PUSH	s0, 1			# Entry counter
-PUSH	s1, 2			# Current entry pointer
+	PUSH	s0, 1			# Entry counter
+	PUSH	s1, 2			# Current entry pointer
 PUSH	s2, 3			# Save flags
 PUSH	s3, 4			# Save key pointer
 PUSH	s4, 5			# Save value
