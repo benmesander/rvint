@@ -144,9 +144,9 @@ hash_h2:
 hash_insert:
 	FRAME	4
 	PUSH	ra, 0
-	PUSH	s0, 1			# Save value in s0 (x8)
-	PUSH	s1, 2			# Save key ptr in s1 (x9)
-	PUSH	a5, 3			# Save key sum in a5 (x15)
+	PUSH	s0, 1			# Save value in s0 
+	PUSH	s1, 2			# Save key ptr in s1 
+	PUSH	a5, 3			# Save key sum in a5 
 
 	mv	s1, a0			# Save key pointer
 	mv	s0, a1			# Save value
@@ -256,9 +256,9 @@ hash_insert_ret:
 hash_retrieve:
 	FRAME	4
 	PUSH	ra, 0
-	PUSH	s0, 1			# Current offset in s0 (x8)
-	PUSH	s1, 2			# Key ptr in s1 (x9)
-	PUSH	a5, 3			# Key sum in a5 (x15)
+	PUSH	s0, 1			# Current offset in s0 
+	PUSH	s1, 2			# Key ptr in s1 
+	PUSH	a5, 3			# Key sum in a5 
 
 	mv	s1, a0			# Save key pointer
 	jal	sum_key			# Get key sum
@@ -426,9 +426,9 @@ size_done:
 hash_remove:
 	FRAME	4
 	PUSH	ra, 0
-	PUSH	s0, 1			# Current offset in s0 (x8)
-	PUSH	s1, 2			# Key ptr in s1 (x9)
-	PUSH	a5, 3			# Key sum in a5 (x15)
+	PUSH	s0, 1			# Current offset in s0 
+	PUSH	s1, 2			# Key ptr in s1 
+	PUSH	a5, 3			# Key sum in a5 
 
 	mv	s1, a0			# Save key pointer
 	jal	sum_key			# Get key sum
@@ -533,11 +533,11 @@ hash_remove_ret:
 hash_rehash:
 	FRAME	6
 	PUSH	ra, 0
-	PUSH	s0, 1			# Current offset in s0 (x8)
-	PUSH	s1, 2			# Table base in s1 (x9)
-	PUSH	a4, 3			# Key sum in a4 (x14)
-	PUSH	a5, 4			# Count in a5 (x15)
-	PUSH	s2, 5			# Save original value (Fix for BUG #D)
+	PUSH	s0, 1			# Current offset in s0 
+	PUSH	s1, 2			# Table base in s1 
+	PUSH	a4, 3			# Key sum in a4 
+	PUSH	a5, 4			# Count in a5 
+	PUSH	s2, 5			# Save original value
 
 	la	s1, hash_table
 	li	s0, 0			# Current offset
@@ -554,10 +554,9 @@ scan_loop:
 
 .if CPU_BITS == 64
 	ld	a0, KEYOFFSET(a2)
-	ld	s2, VALOFFSET(a2)	# Save original value in s2 (Fix for BUG #D)
-.else
+	ld	s2, VALOFFSET(a2)	# Save original value in s2 
 	lw	a0, KEYOFFSET(a2)
-	lw	s2, VALOFFSET(a2)	# Save original value in s2 (Fix for BUG #D)
+	lw	s2, VALOFFSET(a2)	# Save original value in s2 
 .endif
 	mv	a3, a0			# Save key pointer
 	jal	sum_key
@@ -598,10 +597,10 @@ try_insert:
 	sw	t0, FLAGSOFFSET(a1)
 .if CPU_BITS == 64
 	sd	a3, KEYOFFSET(a1)
-	sd	s2, VALOFFSET(a1)	# Use saved value from s2 (Fix for BUG #D)
+	sd	s2, VALOFFSET(a1)	# Use saved value from s2 
 .else
 	sw	a3, KEYOFFSET(a1)
-	sw	s2, VALOFFSET(a1)	# Use saved value from s2 (Fix for BUG #D)
+	sw	s2, VALOFFSET(a1)	# Use saved value from s2 
 .endif
 	addi	a5, a5, 1
 	j	scan_next
