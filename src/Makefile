@@ -19,7 +19,7 @@ DIV_TESTS_OBJS	:= div-tests.o div.o
 MUL_TESTS_OBJS	:= mul-tests.o mul.o io.o div.o
 ALG_TESTS_OBJS	:= alg-tests.o mul.o sqrt.o io.o div.o gcd.o bits.o
 BCD_TESTS_OBJS 	:= bcd-tests.o bcd.o
-DAT_TESTS_OBJS	:= dat-tests.o hash.o div.o
+DAT_TESTS_OBJS	:= dat-tests.o hash.o div.o io.o
 
 .PHONY:	all clean
 
