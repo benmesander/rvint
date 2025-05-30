@@ -19,11 +19,13 @@
 .equ VALSIZE, CPU_BYTES
 .equ HASHENTRIES, 103	# prime
 
-.equ FLAGSOFFSET, 0
-.equ FLAGSIZE, 2
-.equ KEYOFFSET, FLAGSIZE
-.equ VALOFFSET, FLAGSIZE + KEYSIZE
-.equ ELEMENTLEN, FLAGSIZE + KEYSIZE + VALSIZE
+.equ _ACTUAL_FLAG_DATA_SIZE, 2      // Actual size of flag data (for documentation)
+.equ FLAGS_STORAGE_SIZE, CPU_BYTES  // Flags stored in a CPU_BYTES slot for alignment
+
+.equ FLAGSOFFSET, 0                 // Flags at the start of the element
+.equ KEYOFFSET, FLAGS_STORAGE_SIZE    // Key starts after allocated space for flags
+.equ VALOFFSET, FLAGS_STORAGE_SIZE + KEYSIZE // Value starts after flags and key
+.equ ELEMENTLEN, FLAGS_STORAGE_SIZE + KEYSIZE + VALSIZE // Total element length, ensures alignment
 
 # bitmasks
 .equ FLAG_INUSE,	0x01
