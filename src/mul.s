@@ -273,11 +273,11 @@ m128_unsigned:
 	# a4 is already SM_L (Shifted Multiplicand Low)
 	mv	t1, zero			# t1 (SM_H - Shifted Multiplicand High) = 0
 	# a5 is already MP (Multiplier)
-	li	t0, 64				# a3 (count) = 64 iterations - xxx optimize away ?
 
 	# --- Core Unsigned Multiplication Loop ---
 m128_loop:
-	beqz	t0, m128_end_loop		# If count is 0, exit loop - xxx optimize away ?
+	or	t0, t1, a4			# t0 temp for loop termination check
+	beqz	t0, m128_end_loop		# If shifted multiplicand is 0, end loop
 
 	# Check LSB of MP (Multiplier in a5)
 	andi	a3, a5, 1			# a3 = LSB of MP
@@ -303,8 +303,8 @@ m128_skip_add:
 	slli	t1, t1, 1			# SM_H <<= 1
 	or	t1, t1, a3			# SM_H |= carry_from_SM_L
 
-	addi	t0, t0, -1			# count--	xxx - optimize away
-	bnez	t0, m128_loop			# Loop if count is not zero - xxx optimize away
+	or	t0, t1, a4			# If shifted multiplicand is 0, end loop
+	bnez	t0, m128_loop
 
 m128_end_loop:	
 	# Unsigned 128-bit product is now in a1:a0 (P_H:P_L)
