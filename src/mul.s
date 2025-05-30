@@ -73,8 +73,7 @@ mul32:
 	# t1: mp (shifting multiplier) - starts as abs_op2
 	# t2: sm_h (shifted multiplicand high)
 	# t3: op1_is_negative_temp, op2_is_negative_temp, scratch
-	# t4: count
-	# t5: scratch (LSB, sums, carries)
+	# t5: scratch (LSB, sums, carries, done)
 	# t6: final_sign_is_negative
 
 	# --- Argument and Sign Processing ---
@@ -121,11 +120,11 @@ mul32_unsigned_args:
 	# t0 is already sm_l
 	mv	t2, zero			# t2 (sm_h - shifted_multiplicand_high) = 0
 	# t1 is already mp
-	li	t4, 32				# t4 (count) = 32 -- xxx: optimize away
 
 	# --- Core Unsigned Multiplication Loop (32 iterations for 32x32) ---
 mul32_loop:
-	beqz	t4, mul32_end_loop
+	or	t5, t0, t2			# if shifted multiplicand == 0, done
+	beqz	t5, mul32_end_loop
 
 	andi	t5, t1, 1			# t5 = LSB of mp (t1)
 	beqz	t5, mul32_skip
@@ -173,8 +172,8 @@ mul32_skip:
 	srli	t2, t3, 32
 .endif
 
-	addi	t4, t4, -1			# count--
-	bnez	t4, mul32_loop
+	or	t5, t0, t2			# if shifted multiplicand == 0, done
+	bnez	t5, mul32_loop
 
 mul32_end_loop:	
 	# Product is now in a1:a0 (ph:pl)
