@@ -69,144 +69,144 @@ mul32:
 	# a0: op1_in -> abs_op1_for_mult -> pl_accumulator -> prod_low_out
 	# a1: op2_in -> abs_op2_for_mult (temporarily) -> ph_accumulator -> prod_high_out
 	# a2: signed_flag_in
-	# t0: sm_l (shifted multiplicand low) - starts as abs_op1
-	# t1: mp (shifting multiplier) - starts as abs_op2
-	# t2: sm_h (shifted multiplicand high)
-	# t3: op1_is_negative_temp, op2_is_negative_temp, scratch
-	# t5: scratch (LSB, sums, carries, done)
-	# t6: final_sign_is_negative
+	# a5: sm_l (shifted multiplicand low) - starts as abs_op1
+	# a6: mp (shifting multiplier) - starts as abs_op2
+	# a7: sm_h (shifted multiplicand high)
+	# a4: op1_is_negative_temp, op2_is_negative_temp, scratch
+	# a3: scratch (LSB, sums, carries, done)
+	# t0: final_sign_is_negative
 
 	# --- Argument and Sign Processing ---
-	mv	t0, a0				# t0 = op1
-	mv	t1, a1				# t1 = op2
-	mv	t6, zero			# t6 (final_sign_is_negative) = 0
+	mv	a5, a0				# a5 = op1
+	mv	a6, a1				# a6 = op2
+	mv	t0, zero			# t0 (final_sign_is_negative) = 0
 
 	beqz	a2, mul32_unsigned_args # If unsigned_flag (a2==0), skip sign handling
 
 	# Signed path (a2 != 0)
-	mv	t3, zero			# t3 will hold op1_is_negative
-	slt	t5, t0, zero			# t5 = (op1 < 0)
-	beqz	t5, mul32_op1_abs_done
-	mv	t3, t5				# op1_is_negative = 1
-	sub	t0, zero, t0			# t0 = abs(op1)
+	mv	a4, zero			# a4 will hold op1_is_negative
+	slt	a3, a5, zero			# a3 = (op1 < 0)
+	beqz	a3, mul32_op1_abs_done
+	mv	a4, a3				# op1_is_negative = 1
+	sub	a5, zero, a5			# a5 = abs(op1)
 .if CPU_BITS == 64
-	slli	t0, t0, 32			# zero top 32 bits of t0
-	srli	t0, t0, 32
+	slli	a5, a5, 32			# zero top 32 bits of a5
+	srli	a5, a5, 32
 .endif
 
 mul32_op1_abs_done:
-	# t5 is free now, use for op2_is_negative
-	mv	t5, zero
-	slt	t2, t1, zero			# t2 used as temp for (op2 < 0)
-	beqz	t2, mul32_op2_abs_done
-	mv	t5, t2				# op2_is_negative = 1
-	sub	t1, zero, t1			# t1 = abs(op2)
+	# a3 is free now, use for op2_is_negative
+	mv	a3, zero
+	slt	a7, a6, zero			# a7 used as temp for (op2 < 0)
+	beqz	a7, mul32_op2_abs_done
+	mv	a3, a7				# op2_is_negative = 1
+	sub	a6, zero, a6			# a6 = abs(op2)
 .if CPU_BITS == 64
-	slli 	t1, t1, 32			# zero top 32 bits of t1
-	srli 	t1, t1, 32
+	slli 	a6, a6, 32			# zero top 32 bits of a6
+	srli 	a6, a6, 32
 .endif
 mul32_op2_abs_done:
-	xor	t6, t3, t5			# t6 (final_sign_is_negative) = op1_is_neg ^ op2_is_neg
+	xor	t0, a4, a3			# t0 (final_sign_is_negative) = op1_is_neg ^ op2_is_neg
 
 mul32_unsigned_args:
 	# Inputs for core loop:
-	# t0 holds abs_multiplicand (becomes initial sm_l)
-	# t1 holds abs_multiplier (becomes initial mp)
-	# t6 holds final_sign_is_negative
+	# a5 holds abs_multiplicand (becomes initial sm_l)
+	# a6 holds abs_multiplier (becomes initial mp)
+	# t0 holds final_sign_is_negative
 
 	# --- Initialization for Core Unsigned Multiplication Loop ---
 	mv	a0, zero			# a0 (pl - product_low_accumulator) = 0
 	mv	a1, zero			# a1 (ph - product_high_accumulator) = 0
-	# t0 is already sm_l
-	mv	t2, zero			# t2 (sm_h - shifted_multiplicand_high) = 0
-	# t1 is already mp
+	# a5 is already sm_l
+	mv	a7, zero			# a7 (sm_h - shifted_multiplicand_high) = 0
+	# a6 is already mp
 
 	# --- Core Unsigned Multiplication Loop (32 iterations for 32x32) ---
 mul32_loop:
-	or	t5, t0, t2			# if shifted multiplicand == 0, done
-	beqz	t5, mul32_end_loop
+	or	a3, a5, a7			# if shifted multiplicand == 0, done
+	beqz	a3, mul32_end_loop
 
-	andi	t5, t1, 1			# t5 = LSB of mp (t1)
-	beqz	t5, mul32_skip
+	andi	a3, a6, 1			# a3 = LSB of mp (a6)
+	beqz	a3, mul32_skip
 
-	# Add shifted_multiplicand (t2:t0 which is sm_h:sm_l) to product (a1:a0 which is ph:pl)
+	# Add shifted_multiplicand (a7:a5 which is sm_h:sm_l) to product (a1:a0 which is ph:pl)
 .if CPU_BITS == 32
-	add	t5, a0, t0			# t5 = pl + sm_l
-	sltu	t3, t5, a0			# t3 = carry_low = (pl_new < pl_old)
-	mv	a0, t5				# pl = sum_low
+	add	a3, a0, a5			# a3 = pl + sm_l
+	sltu	a4, a3, a0			# a4 = carry_low = (pl_new < pl_old)
+	mv	a0, a3				# pl = sum_low
 
-	add	t5, a1, t2			# t5 = ph + sm_h
-	add	a1, t5, t3			# ph = ph + sm_h + carry_low
+	add	a3, a1, a7			# a3 = ph + sm_h
+	add	a1, a3, a4			# ph = ph + sm_h + carry_low
 .else // CPU_BITS == 64
-	add	t5, a0, t0			# t5_64 = pl_zx32 + sm_l_zx32
-	srli	t3, t5, 32			# t3 = carry_low (0 or 1, from bit 32 of sum)
-	slli	a0, t5, 32			# Zero-extend new pl (a0)
+	add	a3, a0, a5			# a3_64 = pl_zx32 + sm_l_zx32
+	srli	a4, a3, 32			# a4 = carry_low (0 or 1, from bit 32 of sum)
+	slli	a0, a3, 32			# Zero-extend new pl (a0)
 	srli	a0, a0, 32
 
-	add	t5, a1, t2
-	add	t5, t5, t3			# t5_64 = ph_zx32 + sm_h_zx32 + carry_low
-	slli	a1, t5, 32			# Zero-extend new ph (a1)
+	add	a3, a1, a7
+	add	a3, a3, a4			# a3_64 = ph_zx32 + sm_h_zx32 + carry_low
+	slli	a1, a3, 32			# Zero-extend new ph (a1)
 	srli	a1, a1, 32
 .endif
 
 mul32_skip:	
-	# Right-shift multiplier (t1 which is mp) by 1
-	srli	t1, t1, 1
+	# Right-shift multiplier (a6 which is mp) by 1
+	srli	a6, a6, 1
 
-	# Left-shift 64-bit shifted_multiplicand (t2:t0 which is sm_h:sm_l) by 1
+	# Left-shift 64-bit shifted_multiplicand (a7:a5 which is sm_h:sm_l) by 1
 .if CPU_BITS == 32
-	srli	t5, t0, 31			# t5 = MSB of sm_l (t0[31]) -> carry to sm_h
-	slli	t0, t0, 1			# sm_l = sm_l << 1
-	slli	t2, t2, 1			# sm_h = sm_h << 1
-	or	t2, t2, t5			# sm_h = sm_h | carry_from_sm_l
+	srli	a3, a5, 31			# a3 = MSB of sm_l (a5[31]) -> carry to sm_h
+	slli	a5, a5, 1			# sm_l = sm_l << 1
+	slli	a7, a7, 1			# sm_h = sm_h << 1
+	or	a7, a7, a3			# sm_h = sm_h | carry_from_sm_l
 .else // CPU_BITS == 64
-	srli	t5, t0, 31			# t5 gets t0[31] (value is 0 or 1)
+	srli	a3, a5, 31			# a3 gets a5[31] (value is 0 or 1)
 
-	slli	t0, t0, 1
-	slli	t3, t0, 32			# Temp t3 for zero-extending t0
-	srli	t0, t3, 32
+	slli	a5, a5, 1
+	slli	a4, a5, 32			# Temp a4 for zero-extending a5
+	srli	a5, a4, 32
 
-	slli	t2, t2, 1
-	or	t2, t2, t5
-	slli	t3, t2, 32			# Temp t3 for zero-extending t2
-	srli	t2, t3, 32
+	slli	a7, a7, 1
+	or	a7, a7, a3
+	slli	a4, a7, 32			# Temp a4 for zero-extending a7
+	srli	a7, a4, 32
 .endif
 
-	or	t5, t0, t2			# if shifted multiplicand == 0, done
-	bnez	t5, mul32_loop
+	or	a3, a5, a7			# if shifted multiplicand == 0, done
+	bnez	a3, mul32_loop
 
 mul32_end_loop:	
 	# Product is now in a1:a0 (ph:pl)
-	# t6 holds final_sign_is_negative
+	# t0 holds final_sign_is_negative
 	# a2 holds original signed_flag
 
 	# --- Post-Processing: Negate result if signed and negative ---
 	beqz 	a2, mul32_done			# If not signed_flag
-	beqz 	t6, mul32_done			# If not final_sign_is_negative
+	beqz 	t0, mul32_done			# If not final_sign_is_negative
 
 	# Negate 64-bit product a1:a0 (ph:pl)
 .if CPU_BITS == 32
 	xori	a0, a0, -1			# pl = ~pl
 	xori	a1, a1, -1			# ph = ~ph
 	addi	a0, a0, 1			# pl = pl + 1
-	seqz	t5, a0				# If pl is now 0, original ~pl was 0xFFFFFFFF (so carry)
-	add	a1, a1, t5			# ph = ph + carry
+	seqz	a3, a0				# If pl is now 0, original ~pl was 0xFFFFFFFF (so carry)
+	add	a1, a1, a3			# ph = ph + carry
 .else // CPU_BITS == 64
-	# Create mask 0x00000000FFFFFFFF in t5
-	li	t3, 1
-	slli	t3, t3, 32			# t3 = 0x100000000
-	addi	t5, t3, -1			# t5 = 0x00000000FFFFFFFF (mask)
+	# Create mask 0x00000000FFFFFFFF in a3
+	li	a4, 1
+	slli	a4, a4, 32			# a4 = 0x100000000
+	addi	a3, a4, -1			# a3 = 0x00000000FFFFFFFF (mask)
 
-	xor	a0, a0, t5			# a0 = ~pl[31:0], remains zx32
-	xor	a1, a1, t5			# a1 = ~ph[31:0], remains zx32
+	xor	a0, a0, a3			# a0 = ~pl[31:0], remains zx32
+	xor	a1, a1, a3			# a1 = ~ph[31:0], remains zx32
 
-	add	t3, a0, 1			# t3_64 = pl_zx32_inverted + 1
-	srli	t5, t3, 32			# t5 = carry from bit 31 of (a0_inv+1)
-	slli	a0, t3, 32			# Zero-extend the new a0 ( (a0_inv+1)[31:0] )
+	add	a4, a0, 1			# a4_64 = pl_zx32_inverted + 1
+	srli	a3, a4, 32			# a3 = carry from bit 31 of (a0_inv+1)
+	slli	a0, a4, 32			# Zero-extend the new a0 ( (a0_inv+1)[31:0] )
 	srli	a0, a0, 32
 
-	add	t3, a1, t5			# t3_64 = ph_zx32_inverted + carry
-	slli	a1, t3, 32			# Zero-extend the new a1
+	add	a4, a1, a3			# a4_64 = ph_zx32_inverted + carry
+	slli	a1, a4, 32			# Zero-extend the new a1
 	srli	a1, a1, 32
 .endif
 
