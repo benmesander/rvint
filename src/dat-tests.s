@@ -129,13 +129,11 @@ beqz	s2, print_hash_next	# Skip if flags are zero
 
 # Print entry number
 	mv	a0, s0
-	PUSH	ra, -1
 	jal	to_decu			# Convert to decimal string
 	mv	a2, a1			# Save length in a2
 	mv	a1, a0			# Move string pointer to a1 for print
 	jal	print
-	POP	ra, -1
-	
+
 	# Print ": "
 	la	a1, colon_space
 	li	a2, 2
@@ -177,12 +175,10 @@ print_i_done:
 .endif
 	mv	a0, s3
 	li	a2, 1			# Include 0x prefix
-	PUSH	ra, -1
 	jal	to_hex			# Convert to hex string
 	mv	a2, a1			# Save length in a2
 	mv	a1, a0			# Move string pointer to a1 for print
 	jal	print
-	POP	ra, -1
 
 	# Print key string in parentheses
 	la	a1, open_paren
@@ -190,11 +186,9 @@ print_i_done:
 	jal	print
 	mv	a1, s3			# Key string pointer
 	mv	a0, s3
-	PUSH	ra, -1
 	jal	strlen			# Get string length
 	mv	a2, a0			# Length for print
 	jal	print
-	POP	ra, -1
 	la	a1, close_paren
 	li	a2, 1
 	jal	print
@@ -214,12 +208,10 @@ print_i_done:
 .endif
 	mv	a0, s4
 	li	a2, 1			# Include 0x prefix
-	PUSH	ra, -1
 	jal	to_hex			# Convert to hex string
 	mv	a2, a1			# Save length in a2
 	mv	a1, a0			# Move string pointer to a1 for print
 	jal	print
-	POP	ra, -1
 
 	# Print newline
 	la	a1, nl
