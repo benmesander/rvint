@@ -1,6 +1,6 @@
 .include "config.s"
-.globl bits_ctz
-.globl bits_clz
+.globl	bits_ctz
+.globl	bits_clz
 .text
 
 ################################################################################
@@ -82,6 +82,8 @@ bits_ctz_is_zero:
 # functionality of the clz instruction (on 32-bit processors) and clzw (on
 # 64-bit processors).
 #
+# Algorithm from figure 5.11 Hackers Delight, 2nd ed.
+#
 # input registers:
 # a0 = number
 #
@@ -90,59 +92,63 @@ bits_ctz_is_zero:
 ################################################################################
 
 bits_clz:
-	beqz	a0, bits_clz_is_zero
-	mv	a3, zero	# a3 result accumulator
-	li	a2, -1		# a2 mask register
-				# a1 intermediate results
+	beqz	a0, bits_clz_is_zero	# a0 = x
+	li	a3, 1		# a3 = n (accumulator)
 
-.if CPU_BITS == 64
-	slli	a2, a2, 32	# 1's in upper 32 bits
-	and	a1, a2, a0
-	bnez	a1, bits_clz_upper_16
-	addi	a3, a3, 32	# add 32 zeroes
-	slli	a0, a0, 32	# move up value
-.endif
-
-bits_clz_upper_16:
-	slli	a2, a2, 16	# 1's in upper 16 bits
-	and	a1, a2, a0
-	bnez	a1, bits_clz_upper_8
+.if CPU_BITS == 32
+	srli	a2, a0, 16	# a2 = x >> 16
+	bnez	a2, bits_clz_1
 	addi	a3, a3, 16
 	slli	a0, a0, 16
-
-bits_clz_upper_8:
-	slli	a2, a2, 8
-	and	a1, a2, a0
-	bnez	a1, bits_clz_upper_4
+bits_clz_1:	
+	srli	a2, a0, 24
+	bnez	a2, bits_clz_2
 	addi	a3, a3, 8
 	slli	a0, a0, 8
-
-bits_clz_upper_4:
-	slli	a2, a2, 4
-	and	a1, a2, a0
-	bnez	a1, bits_clz_upper_2
+bits_clz_2:
+	srli	a2, a0, 28
+	bnez	a2, bits_clz_3
 	addi	a3, a3, 4
 	slli	a0, a0, 4
-
-bits_clz_upper_2:
-	slli	a2, a2, 2
-	and	a1, a2, a0
-	bnez	a1, bits_clz_upper_1
+bits_clz_3:
+	srli	a2, a0, 30
+	bnez	a2, bits_clz_4
 	addi	a3, a3, 2
 	slli	a0, a0, 2
-
-bits_clz_upper_1:
-	slli	a2, a2, 1
-	and	a1, a2, a0
-	bnez	a1, bits_clz_done
-	addi	a3, a3, 1
-
-bits_clz_done:
-	mv	a0, a3
+bits_clz_4:
+	srli	a2, a0, 31
+.else # CPU_BITS == 64
+	srli	a2, a0, 32
+	bnez	a2, bits_clz_1
+	addi	a3, a3, 32
+	slli	a0, a0, 32
+bits_clz_1:
+	srli	a2, a0, 48
+	bnez	a2, bits_clz_2
+	addi	a3, a3, 16
+	slli	a0, a0, 16
+bits_clz_2:
+	srli	a2, a0, 56
+	bnez	a2, bits_clz_3
+	addi	a3, a3, 8
+	slli	a0, a0, 8
+bits_clz_3:	
+	srli	a2, a0, 60
+	bnez	a2, bits_clz_4
+	addi	a3, a3, 4
+	slli	a0, a0, 4
+bits_clz_4:
+	srli	a2, a0, 62
+	bnez	a2, bits_clz_5
+	addi	a3, a3, 2
+	slli	a0, a0, 2
+bits_clz_5:
+	srli	a2, a0, 63
+.endif # CPU_BITS == 32
+	sub	a0, a3, a2
 	ret
-
 bits_clz_is_zero:
 	li	a0, CPU_BITS
 	ret
 
-.size	bits_clz, .-bits_clz
+.size bits_clz, .-bits_clz

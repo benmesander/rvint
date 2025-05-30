@@ -1,11 +1,11 @@
 # edit config.s to match target
-TARGET	?=riscv64
-ARCH	?=rv64gc
-ABI	?=lp64
+#TARGET	?=riscv64
+#ARCH	?=rv64gc
+#ABI	?=lp64
 
-#TARGET	?=riscv32
-#ARCH	?=rv32gc
-#ABI	?=ilp32d
+TARGET	?=riscv32
+ARCH	?=rv32gc
+ABI	?=ilp32d
 CC	:= clang
 LD	:= ld.lld
 CFLAGS	:= --target=$(TARGET) -march=$(ARCH) -mabi=$(ABI)

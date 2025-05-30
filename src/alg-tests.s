@@ -41,6 +41,18 @@ _start:
 	li	a3, 42
 	call	lcm_test
 
+	li	a0, 6
+	li	a1, 0b00010001000100010001000100010001
+	li	a2, 3
+	jal	clz_test
+
+	li	a0, 7
+	li	a1, 0b00000000000000000001000100010001
+	li	a2, 19
+	jal	clz_test
+
+
+
 	j	_end
 
 # test # a0
@@ -274,7 +286,62 @@ lcm_test_fail:
 	la	a1, fail
 	j	lcm_test_done
 
+# input a0 test #
+# a1 number
+# a2 leading zeroes	
+clz_test:
+	FRAME	3
+	PUSH	ra, 0
+	PUSH	s0, 1
+	PUSH	s1, 2
 	
+	mv	s0, a1
+	mv	s1, a2
+	
+	jal	header
+
+	mv	a0, s0
+	li	a1, CPU_BYTES
+	li	a2, 1
+	jal	to_bin
+	mv	a2, a1
+	mv 	a1, a0
+	jal	print
+	la	a1, space
+	li	a2, 1
+	jal	print
+
+	mv	a0, s0
+	jal	bits_clz
+
+	mv	s0, a0
+	jal	to_decu
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+	la	a1, space
+	li	a2, 1
+	call	print
+
+
+	sub	a0, s0, s1
+	bnez	a0, clz_test_fail
+	la	a1, pass
+	
+clz_test_done:	
+	li	a2, 5
+	jal	print
+
+	POP	s1, 2
+	POP	s0, 1
+	POP	ra, 0
+	EFRAME 1
+	ret
+
+clz_test_fail:
+	la	a1, fail
+	j	clz_test_done
+
 
 # a1 - ptr to string to print
 # a2 - # bytes to print
