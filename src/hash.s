@@ -164,11 +164,12 @@ hash_h2:
 # a0 = value if successful, 0 if table is full or key is null
 ################################################################################
 hash_insert:
-	FRAME	4				# s0=value, s1=key_ptr, s2=key_sum, ra
+	FRAME	5				# s0=value, s1=key_ptr, s2=key_sum, s3=curr_offset, ra
 	PUSH	ra, 0
 	PUSH	s0, 1			# Save value in s0 
 	PUSH	s1, 2			# Save key ptr in s1 
 	PUSH	s2, 3			# To save key_sum from sum_key
+	PUSH	s3, 4			# To save current offset during probing
 
 	mv	s1, a0			# Save key pointer (s1 = original a0)
 	mv	s0, a1			# Save value (s0 = original a1)
@@ -221,7 +222,7 @@ hash_insert:
 	j	hash_insert_ret
 
 hash_insert_probe_init_offset:
-	mv	a2, t0			# Initialize current_offset (a2) with initial_scaled_byte_offset (from t0)
+	mv	s3, t0			# Initialize current_offset (s3) with initial_scaled_byte_offset (from t0)
 
 # Start probing sequence
 hash_insert_probe:
@@ -232,19 +233,19 @@ hash_insert_probe:
 
 	la	a4, hash_table		# Base address of hash_table in a4
 	li	a5, HASHENTRIES		# Initialize probe_counter in a5
-	li	t1, (ELEMENTLEN * HASHENTRIES)  # Total table size in bytes, for wrap-around, in t1
+	li	t1, (ELEMENTLEN * HASHENTRIES)  # Total table size in bytes
 
 insert_probe_loop:
 	beqz	a5, hash_insert_full	# If probe_counter (a5) is 0, table is full
 
-	add	a2, a2, a3		# current_offset (a2) += step_size (a3)
+	add	s3, s3, a3		# current_offset (s3) += step_size (a3)
 	
 	# Wrap offset if needed using conditional subtraction
-	blt	a2, t1, insert_probe_check  # If current_offset < table_size_bytes, skip wrap
-	sub	a2, a2, t1		# Wrap current_offset to start of table
+	blt	s3, t1, insert_probe_check  # If current_offset < table_size_bytes, skip wrap
+	sub	s3, s3, t1		# Wrap current_offset to start of table
 
 insert_probe_check:
-	add	a1, a4, a2		# entry_ptr (a1) = base (a4) + current_offset (a2)
+	add	a1, a4, s3		# entry_ptr (a1) = base (a4) + current_offset (s3)
 	lw	a0, FLAGSOFFSET(a1)	# a0 = flags of this new slot
 	andi	a0, a0, FLAG_INUSE
 	beqz	a0, insert_probe_found	# If slot not in use, found a place
@@ -271,11 +272,12 @@ hash_insert_full:
 
 # Common return path
 hash_insert_ret:
+	POP	s3, 4			# Restore s3 (current offset)
 	POP	s2, 3			# Restore s2 (key_sum)
 	POP	s1, 2			# Restore s1 (original key_ptr)
 	POP	s0, 1			# Restore s0 (original value)
 	POP	ra, 0
-	EFRAME	4
+	EFRAME	5
 	ret
 
 hash_insert_null_key_fail:
@@ -744,7 +746,7 @@ rehash_try_insert_continue:
 	# ... if slot busy ...
 	# try_next: mv a0, a4 (a4 was key_sum from PUSH a4,3) ; jal hash_h2 (a0 gets step)
 	# add a2, a2, a0 (a2 updated with step)
-	# addi a0, a0, -1 (THIS IS WRONG - a0 is step, not counter anymore)
+	# addi a0, a0, -1 (THIS IS WRONG - a0 is step!)
 	# The probe counter (originally in a0) was clobbered by hash_h2's return value.
 	# We need to preserve the probe counter across the hash_h2 call.
 	# Let's use t3 for the HASHENTRIES counter in this inner loop.
@@ -759,31 +761,6 @@ rehash_try_insert_continue:
 	# The `li a0, HASHENTRIES` should be `li t3, HASHENTRIES`.
 	# This was fixed in the live edit for hash_insert_probe_loop and hash_remove_probe_loop.
 	# Re-applying similar fix here for rehash's inner loop.
-	# The initial `li a0, HASHENTRIES` before `rehash_try_insert_loop` becomes `li t3, HASHENTRIES`.
-	# The check `beqz a0, scan_next` becomes `beqz t3, scan_next`.
-	# The decrement `addi a0, a0, -1` (which was bugged) becomes `addi t3, t3, -1`.
-	# The jump `j try_insert` becomes `j rehash_try_insert_loop`.
-	# The label `rehash_try_insert_continue` is where it should jump to continue the loop.
-	# And the `mv a0, s3` (key_sum) for `hash_h2` is correct. `a0` gets clobbered with step, which is fine.
-	# ---- END Re-evaluation ----
-	# The fix will be applied when generating the full code edit for rehash.
-	# The code from `rehash_try_next_probe` will be: 
-	#   mv a0, s3 (key_sum for hash_h2)
-	#   jal hash_h2 (a0 gets step)
-	#   add a2, a2, a0 (update current_probe_target_offset)
-	#   (wrap logic for a2)
-	# rehash_try_insert_continue:
-	#   addi t3, t3, -1 (decrement probe_attempt_counter in t3)
-	#   j rehash_try_insert_loop
-	# This means t3 must be initialized before the loop starts: `li t3, HASHENTRIES`
-	# The entry to the loop is `rehash_try_insert_loop` and it checks `beqz t3, ...`
-	# This was already fixed when generating the code for hash_remove/retrieve effectively,
-	# by using a5 for the counter and ensuring it's not clobbered or restored correctly.
-	# Let's assume a similar pattern for rehash where the counter is in `t3` and the loop structure is correct.
-	# The prior live thoughts about a0 being clobbered as counter were indeed correct and a common bug pattern.
-	# The fix is to use a dedicated register for the counter if a0 is used for calls within the loop.
-	# In this rehash, the inner loop uses `jal hash_h2`. So `a0` (if used as counter) would be clobbered.
-	# The structure needs to be: init counter (e.g. t3), loop: check t3, call hash_h2 (a0 gets step), use step, decr t3, jump.
 
 	# Fixing the inner loop structure for rehash_rehash_try_insert_loop / rehash_try_next_probe
 	# This was actually implicitly handled in the previous edits to hash_retrieve and hash_remove by dedicating a5 to the counter and ensuring it was not clobbered.
