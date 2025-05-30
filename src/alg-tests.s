@@ -43,12 +43,20 @@ _start:
 
 	li	a0, 6
 	li	a1, 0b00010001000100010001000100010001
+.if CPU_BITS == 32
 	li	a2, 3
+.else
+	li	a2, 35
+.endif
 	jal	clz_test
 
 	li	a0, 7
 	li	a1, 0b00000000000000000001000100010001
+.if CPU_BITS == 51
 	li	a2, 19
+.else
+	li	a2, 51
+.endif
 	jal	clz_test
 
 
