@@ -494,12 +494,13 @@ size_done:
 # a0 = value that was removed if found, 0 if not found
 ################################################################################
 hash_remove:
-	FRAME	5				# ra, s0=curr_offset, s1=key_ptr_remove, s2=key_sum, s3=curr_entry_ptr
+	FRAME	6				# ra, s0=curr_offset, s1=key_ptr_remove, s2=key_sum, s3=curr_entry_ptr
 	PUSH	ra, 0
 	PUSH	s0, 1			# s0 for current_offset
 	PUSH	s1, 2			# s1 for key_ptr_to_remove (original a0)
 	PUSH	s2, 3			# s2 for key_sum
 	PUSH	s3, 4			# s3 for current_entry_pointer_in_table during strcmp
+	PUSH	s4, 5			# old a4
 
 	mv	s1, a0			# Save key_ptr_to_remove to s1
 
@@ -528,12 +529,12 @@ hash_remove:
 	# s0 now holds initial_scaled_byte_offset
 
 	mv	a2, s0			# Current offset in a2 (from s0)
-	la	a3, hash_table		# Table base in a3
-	li	a4, HASHENTRIES		# Probe counter in a4
+	li	s4, HASHENTRIES		# Probe counter in s4
 	li	t1, (ELEMENTLEN * HASHENTRIES)  # Total table size in bytes, for wrap-around, in t1
 
 remove_probe_loop:
-	beqz	a4, hash_remove_fail	# If probe_counter is 0, key not found
+	la	a3, hash_table		# Table base in a3 (reload as clobbered later)
+	beqz	s4, hash_remove_fail	# If probe_counter is 0, key not found
 
 	add	s3, a3, a2		# current_entry_ptr (s3) = base (a3) + current_offset (a2)
 	lw	a0, FLAGSOFFSET(s3)	# a0 = flags of this slot
@@ -574,7 +575,7 @@ remove_calc_next_probe:
 
 remove_probe_continue:
 	mv	a2, s0			# Update a2 (current_offset for loop) from s0
-	addi	a4, a4, -1		# Decrement probe_counter
+	addi	s4, s4, -1		# Decrement probe_counter
 	j	remove_probe_loop
 
 remove_found:
@@ -599,12 +600,13 @@ hash_remove_fail:
 	li	a0, 0			# Return 0 if key not found
 
 hash_remove_ret:
+	POP	s4, 5
 	POP	s3, 4
 	POP	s2, 3
 	POP	s1, 2
 	POP	s0, 1
 	POP	ra, 0
-	EFRAME	5
+	EFRAME	6
 	ret
 
 ################################################################################
