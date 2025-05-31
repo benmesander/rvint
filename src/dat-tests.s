@@ -72,8 +72,8 @@ _start:
 	la	a1, foo
 	call	hash_insert
 
-#	la	a0, knio
-#	call	hash_remove
+	la	a0, knio
+	call	hash_remove
 
 	la	a1, test
 	li	a2, 5

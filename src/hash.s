@@ -11,8 +11,6 @@
 .globl	hash_rehash
 .globl	hash_resize
 
-.globl	sum_key
-
 .data
 
 // Align to 8 bytes for RV64, 4 bytes for RV32
@@ -147,7 +145,7 @@ hash_h2:
 # Probes until an empty slot or tombstone is found. Uses double hashing
 # for collision resolution with h1 for initial position and h2 for step size.
 #
-# The probing sequence is optimized to avoid expensive division operations:
+# The probing sequence:
 # 1. Initial position = h1(key) * ELEMENTLEN
 # 2. Step size = h2(key) (pre-scaled by ELEMENTLEN)
 # 3. Each probe: new_pos = current_pos + step_size
@@ -291,7 +289,7 @@ hash_insert_null_key_fail:
 # Uses double hashing to probe until key is found or empty slot is reached.
 # Handles both in-use and tombstone slots during probing.
 #
-# The probing sequence matches hash_insert's optimized approach:
+# The probing sequence:
 # 1. Initial position = h1(key) * ELEMENTLEN
 # 2. Step size = h2(key) (pre-scaled by ELEMENTLEN)
 # 3. Each probe: new_pos = current_pos + step_size
@@ -483,7 +481,7 @@ size_done:
 # Uses double hashing to find the entry, then marks it as a tombstone
 # rather than completely clearing it to maintain probe sequences.
 #
-# The probing sequence matches hash_insert's optimized approach:
+# The probing sequence:
 # 1. Initial position = h1(key) * ELEMENTLEN
 # 2. Step size = h2(key) (pre-scaled by ELEMENTLEN)
 # 3. Each probe: new_pos = current_pos + step_size
@@ -615,7 +613,7 @@ hash_remove_ret:
 # Rebuild table to remove tombstones and optimize probe sequences.
 # Uses in-place algorithm to avoid extra memory allocation.
 #
-# The probing sequence matches hash_insert's optimized approach:
+# The probing sequence:
 # 1. Initial position = h1(key) * ELEMENTLEN
 # 2. Step size = h2(key) (pre-scaled by ELEMENTLEN)
 # 3. Each probe: new_pos = current_pos + step_size
@@ -729,64 +727,9 @@ rehash_try_next_probe:
 	sub	a2, a2, t2		# Wrap offset
 
 rehash_try_insert_continue:
-	# a0 was clobbered by hash_h2, need to restore probe_attempt_counter if it was in a0.
-	# Oh, probe_attempt_counter was correctly put in a0 by `li a0, HASHENTRIES`
-	# and `hash_h2` returns its result in a0, so the counter was clobbered.
-	# This is a bug. Let's use t3 for the probe_attempt_counter.
-	# Re-doing this section from `li a0, HASHENTRIES`
-	# This whole rehash_try_insert_loop and rehash_try_next_probe section needs to be re-thought carefully.
-	# For now, let's assume the original logic for try_insert was trying to use a0 as counter.
-	# The `addi a0, a0, -1` was for the probe counter. This is indeed a bug after hash_h2 clobbers a0.
-	# Let's fix this by using t3 for the probe_attempt_counter.
-
-	# ---- BEGIN Re-evaluation of inner rehash probe loop ----
-	# The original code was:
-	# mv a2, a0 (a0 is ideal offset) ; li a0, HASHENTRIES (a0 is counter) ; ...
-	# try_insert: beqz a0, scan_next (check counter)
-	# ... if slot busy ...
-	# try_next: mv a0, a4 (a4 was key_sum from PUSH a4,3) ; jal hash_h2 (a0 gets step)
-	# add a2, a2, a0 (a2 updated with step)
-	# addi a0, a0, -1 (THIS IS WRONG - a0 is step!)
-	# The probe counter (originally in a0) was clobbered by hash_h2's return value.
-	# We need to preserve the probe counter across the hash_h2 call.
-	# Let's use t3 for the HASHENTRIES counter in this inner loop.
-	# (previous 'a0' as counter is now 't3')
-	# mv	a0, s3 -> jal hash_h2 -> a0 is step_size
-	# add a2, a2, a0 (a2 is current_probe_target_offset, updated by step_size)
-	# The wrap logic is applied to a2.
-	# Then we need to decrement t3 and loop to rehash_try_insert_loop.
-	# The label `rehash_try_insert_continue` seems to be where the loop should go after updating offset.
-	# The `addi a0, a0, -1` should be `addi t3, t3, -1`
-	# And the check `beqz a0, scan_next` should be `beqz t3, scan_next`.
-	# The `li a0, HASHENTRIES` should be `li t3, HASHENTRIES`.
-	# This was fixed in the live edit for hash_insert_probe_loop and hash_remove_probe_loop.
-	# Re-applying similar fix here for rehash's inner loop.
-
-	# Fixing the inner loop structure for rehash_rehash_try_insert_loop / rehash_try_next_probe
-	# This was actually implicitly handled in the previous edits to hash_retrieve and hash_remove by dedicating a5 to the counter and ensuring it was not clobbered.
-	# For rehash, the PUSH/POP of a4, a5 was wrong. We now use s3 for key_sum and will use a temp (say t3) for the inner loop counter.
-	# The `li a0, HASHENTRIES` before `try_insert` in the original code was the counter init.
-	# This should be `li t3, HASHENTRIES`. Then `beqz t3, ...` and `addi t3, t3, -1`. `a0` is free for hash_h2. 
-	# This is exactly the fix pattern.
-
-	# The existing code for `try_next` in `hash_rehash` (from attached file) has:
-	# try_next:
-	#   mv	a0, a4			# Load saved key sum (a4 was PUSHed a4,3)
-	#   jal	hash_h2			# Get pre-scaled step (a0 gets step)
-	#   add	a2, a2, a0		# Add pre-scaled step to offset
-	#   (wrap logic for a2)
-	# try_insert_continue:
-	#   addi	a0, a0, -1		# Decrement probe counter (BUG: a0 is step!)
-	#   j	try_insert
-	# This confirms the bug. The counter (originally in a0, but clobbered) needs to be in a different register (e.g., t3).
-	# Corrected logic is applied in the edit below.
-
-	# The `scan_next_no_clear` label needs to be defined if `bgeu s0, a0, scan_next_no_clear` is used.
-	# It should just be `scan_next` if no clearing implies just moving to the next scan item.
-	# If `bgeu` condition is met, we just go to scan_next without clearing the slot.
 	j	scan_next # If bgeu condition was met, skip clearing and moving, go to next scan item.
 
-scan_next_no_clear: # This label might be redundant if the above jump is just to scan_next.
+scan_next_no_clear: # XXX This label might be redundant if the above jump is just to scan_next.
 	# This path is taken if the item is already at/after its ideal initial slot.
 	# We assume it's correctly placed relative to items that would hash before it.
 	# No operation needed, just advance scan pointer.
