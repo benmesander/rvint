@@ -52,14 +52,29 @@ _start:
 
 	li	a0, 7
 	li	a1, 0b00000000000000000001000100010001
-.if CPU_BITS == 51
+.if CPU_BITS == 32
 	li	a2, 19
 .else
 	li	a2, 51
 .endif
 	jal	clz_test
 
+	li	a0, 8
+	li	a1, 0b00000000000111110000000000000000
+	li	a2, 16
+	jal	ctz_test
+	
+	li	a0, 9
+	li	a1, 0b00000000000111110000000000100000
+	li	a2, 5
+	jal	ctz_test
 
+.if CPU_BITS == 64
+	li	a0, 10
+	li	a1, 0b0000000000011111000000000010000000000000000000000000000000000000
+	li	a2, 37
+	jal	ctz_test
+.endif
 
 	j	_end
 
@@ -117,7 +132,7 @@ sqrt_test:
 
 	mv	a0, s1
 	call	isqrt
-	mv 	s3, a0		# caculated result
+	mv 	s3, a0		# calculated result
 	call	to_decu
 	mv	a2, a1
 	mv	a1, a0
@@ -349,6 +364,62 @@ clz_test_done:
 clz_test_fail:
 	la	a1, fail
 	j	clz_test_done
+
+# input a0 test #
+# a1 number
+# a2 leading zeroes	
+ctz_test:
+	FRAME	3
+	PUSH	ra, 0
+	PUSH	s0, 1
+	PUSH	s1, 2
+	
+	mv	s0, a1
+	mv	s1, a2
+	
+	jal	header
+
+	mv	a0, s0
+	li	a1, CPU_BYTES
+	li	a2, 1
+	jal	to_bin
+	mv	a2, a1
+	mv 	a1, a0
+	jal	print
+	la	a1, space
+	li	a2, 1
+	jal	print
+
+	mv	a0, s0
+	jal	alt_ctz
+
+	mv	s0, a0
+	jal	to_decu
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+	la	a1, space
+	li	a2, 1
+	call	print
+
+
+	sub	a0, s0, s1
+	bnez	a0, ctz_test_fail
+	la	a1, pass
+	
+ctz_test_done:	
+	li	a2, 5
+	jal	print
+
+	POP	s1, 2
+	POP	s0, 1
+	POP	ra, 0
+	EFRAME 1
+	ret
+
+ctz_test_fail:
+	la	a1, fail
+	j	ctz_test_done
 
 
 # a1 - ptr to string to print
