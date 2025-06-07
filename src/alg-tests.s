@@ -391,7 +391,7 @@ ctz_test:
 	jal	print
 
 	mv	a0, s0
-	jal	alt_ctz
+	jal	bits_ctz
 
 	mv	s0, a0
 	jal	to_decu
