@@ -74,6 +74,8 @@ clang, lld, and make are assumed. I'm currently using clang 18.
 The TARGET, ARCH, and ABI should be edited in the Makefile,
 and the CPU_BITS constant should be set to match in config.s
 
+A static library, `librvint.a`, will be created to link against.
+
 ## Tests
 
 The test programs assume Linux syscalls are available. In particular
