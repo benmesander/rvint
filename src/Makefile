@@ -1,17 +1,21 @@
 # edit config.s to match target
-#TARGET	?=riscv64
-#ARCH	?=rv64gc
-#ABI	?=lp64
+# RV64
+TARGET	?=riscv64
+ARCH	?=rv64gc
+ABI	?=lp64
 
-TARGET	?=riscv32
-ARCH	?=rv32gc
-ABI	?=ilp32d
+#RV32
+#TARGET	?=riscv32
+#ARCH	?=rv32gc
+#ABI	?=ilp32d
+
+
 CC	:= clang
 LD	:= ld.lld
 CFLAGS	:= --target=$(TARGET) -march=$(ARCH) -mabi=$(ABI)
 LDFLAGS	:=
 
-SRCS	:= div.s mul.s io.s div-tests.s mul-tests.s sqrt.s alg-tests.s gcd.s bits.s hash.s #bcd.s 
+SRCS	:= div.s mul.s io.s dat-tests.s div-tests.s mul-tests.s sqrt.s alg-tests.s gcd.s bits.s hash.s #bcd.s 
 OBJS	:= $(SRCS:.s=.o)
 EXES	:= div-tests.x mul-tests.x alg-tests.x dat-tests.x # bcd-tests.x
 LIB	:= librvint.a
