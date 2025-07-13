@@ -172,22 +172,24 @@ divrem_cleanup_stack:
 ################################################################################
 
 div3:	
-	srli	a2, a0, 2	# a2: q = n >> 2
-	srli	a3, a0, 4	# a3: n >> 4
-	add	a2, a3, a2	# a2: q = (n >> 2) + (n >> 4)
-	srli	a3, a2, 4	# a3: q >> 4
-	add	a2, a3, a2	# a2: q = q + (q >> 4)
-	srli	a3, a2, 8	# a3: q >> 8
-	add	a2, a3, a2	# a2: q = q + (q >> 8)
-	srli	a3, a2, 16	# a3: q >> 16
-	add	a2, a3, a2	# a2: q = q + (q >> 16)
-	slli	a4, a2, 1	# a4: q * 2
-	add	a4, a4, a2	# a4: q * 3 (q * 2 + q)
-	sub	a4, a0, a4	# a4: r = n - q * 3
-	# a4 holds remainder r; a2 holds the quotient estimate
-	sltiu	a3, a4, 3	# a3 = 1 if r < 3, else a3 = 0
-	xori	a3, a3, 1	# a3 = 0 if r < 3, else a3 = 1 (this is the correction)
-	add	a0, a3, a2	# add correction to the quotient
+	# a0 contains n
+	srli	a1, a0, 2	# a1: q = n >> 2
+	srli	a2, a0, 4	# a2: n >> 4
+	add	a1, a2, a1	# a1: q = (n >> 2) + (n >> 4)
+	srli	a2, a1, 4	# a2: q >> 4
+	add	a1, a2, a1	# a1: q = q + (q >> 4)
+	srli	a2, a1, 8	# a2: q >> 8
+	add	a1, a2, a1	# a1: q = q + (q >> 8)
+	srli	a2, a1, 16	# a2: q >> 16
+	add	a1, a2, a1	# a1: final q estimate
+
+	slli	a2, a1, 1	# a2: q * 2
+	add	a2, a2, a1	# a2: q * 3
+	sub	a2, a0, a2	# a2: r = n - q * 3
+
+	sltiu	a3, a2, 3	# a3 = 1 if r < 3, else 0
+	xori	a3, a3, 1	# a3 = 0 if r < 3, else 1
+	add	a0, a1, a3	# a0 = q + correction
 
 .if CPU_BITS == 64
 	slli	a0, a0, 32	# get rid of any sign extension
