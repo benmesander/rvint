@@ -171,25 +171,57 @@ divrem_cleanup_stack:
 # a0 = quotient
 ################################################################################
 
+.macro SRLI r0, r1, i
+.if CPU_BITS == 64
+	srliw	\r0, \r1, \i
+.else
+	srli	\r0, \r1, \i
+.endif
+.endmacro
+
+.macro SLLI r0, r1, i
+.if CPU_BITS == 64
+	slliw	\r0, \r1, \i
+.else
+	slli	\r0, \r1, \i
+.endif
+.endmacro
+
+.macro ADD	r0, r1, r2
+.if CPU_BITS == 64
+	addw	\r0, \r1, \r2
+.else
+	add	\r0, \r1, \r2
+.endif
+.endmacro
+
+.macro SUB	r0, r1, r2
+.if CPU_BITS == 64
+	subw	\r0, \r1, \r2
+.else
+	sub	\r0, \r1, \r2
+.endif
+.endmacro
+
 div3:	
 	# a0 contains n
-	srli	a1, a0, 2	# a1: q = n >> 2
-	srli	a2, a0, 4	# a2: n >> 4
-	add	a1, a2, a1	# a1: q = (n >> 2) + (n >> 4)
-	srli	a2, a1, 4	# a2: q >> 4
-	add	a1, a2, a1	# a1: q = q + (q >> 4)
-	srli	a2, a1, 8	# a2: q >> 8
-	add	a1, a2, a1	# a1: q = q + (q >> 8)
-	srli	a2, a1, 16	# a2: q >> 16
-	add	a1, a2, a1	# a1: final q estimate
+	SRLI	a1, a0, 2	# a1: q = n >> 2
+	SRLI	a2, a0, 4	# a2: n >> 4
+	ADD	a1, a2, a1	# a1: q = (n >> 2) + (n >> 4)
+	SRLI	a2, a1, 4	# a2: q >> 4
+	ADD	a1, a2, a1	# a1: q = q + (q >> 4)
+	SRLI	a2, a1, 8	# a2: q >> 8
+	ADD	a1, a2, a1	# a1: q = q + (q >> 8)
+	SRLI	a2, a1, 16	# a2: q >> 16
+	ADD	a1, a2, a1	# a1: final q estimate
 
-	slli	a2, a1, 1	# a2: q * 2
-	add	a2, a2, a1	# a2: q * 3
-	sub	a2, a0, a2	# a2: r = n - q * 3
+	SLLI	a2, a1, 1	# a2: q * 2
+	ADD	a2, a2, a1	# a2: q * 3
+	SUB	a2, a0, a2	# a2: r = n - q * 3
 
 	sltiu	a0, a2, 3	# a0 = 1 if r < 3, else 0
 	xori	a0, a0, 1	# a0 = 0 if r < 3, else 1
-	add	a0, a1, a0	# a0 = q + correction
+	ADD	a0, a1, a0	# a0 = q + correction
 
 .if CPU_BITS == 64
 	slli	a0, a0, 32	# get rid of any sign extension
