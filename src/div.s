@@ -2,7 +2,8 @@
 
 .globl divremu
 .globl divrem
-
+.globl div3
+	
 .text
 
 ################################################################################
@@ -156,5 +157,44 @@ divrem_cleanup_stack:
 	POP	ra, 0
 	EFRAME	1
 	ret
+
+################################################################################
+# routine: div3
+#
+# Unsigned 32-bit integer division by 3 without using M extension.
+#
+# input registers:
+# a0 = dividend
+#
+# output registers:
+# a0 = quotient
+################################################################################
+
+div3:	
+	srli	a2, a0, 2	# a2: q = n >> 2
+	srli	a3, a0, 4	# a3: n >> 4
+	add	a2, a3, a2	# a2: q = (n >> 2) + (n >> 4)
+	srli	a3, a2, 4	# a3: q >> 4
+	add	a2, a3, a2	# a2: q = q + (q >> 4)
+	srli	a3, a2, 8	# a3: q >> 8
+	add	a2, a3, a2	# a2: q = q + (q >> 8)
+	srli	a3, a2, 16	# a3: q >> 16
+	add	a2, a3, a2	# a2: q = q + (q >> 16)
+	slli	a4, a2, 1	# a4: q * 2
+	add	a4, a4, a2	# a4: q * 3 (q * 2 + q)
+	sub	a4, a0, a4	# a4: r = n - q * 3
+	addi	a3, a4, 5	# a3: r + 5
+	slli	a4, a4, 2	# a4: r << 2
+	add	a3, a4, a3	# a3: (r + 5) + (r << 2)
+	srli	a3, a3, 4	# a3: ((r + 5) + (r << 2)) >> 4
+	add	a0, a3, a2	# a0: q + (((r + 5) + (r << 2)) >> 4)
+.if CPU_BITS == 64
+	slli	a0, a0, 32	# get rid of any sign extension
+	srli	a0, a0, 32
+.endif
+	ret
+
+
+
 
 .size divrem, .-divrem

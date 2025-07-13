@@ -17,6 +17,9 @@ where those two goals clash, I went with concise.
 ### On 64-bit processors
 - 64-bit by 64-bit signed and unsigned division with 64-bit result and remainder.
 
+### On both
+- Fast division of 32-bit unsigneds by three
+
 ## Multiplication
 
 ### On 32-bit processors:
@@ -159,6 +162,18 @@ syscall 64 is write and 93 is exit.
 # output registers:
 # a0 = quotient (Q)
 # a1 = remainder (R)
+################################################################################
+
+################################################################################
+# routine: div3
+#
+# Unsigned 32-bit integer division by 3 without using M extension.
+#
+# input registers:
+# a0 = dividend
+#
+# output registers:
+# a0 = quotient
 ################################################################################
 ```
 
