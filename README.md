@@ -167,7 +167,8 @@ syscall 64 is write and 93 is exit.
 ################################################################################
 # routine: div3
 #
-# Unsigned 32-bit integer division by 3 without using M extension.
+# Unsigned 32-bit integer division by 3 without using M extension. Suitable
+# for RV32E.
 #
 # input registers:
 # a0 = dividend

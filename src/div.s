@@ -161,7 +161,8 @@ divrem_cleanup_stack:
 ################################################################################
 # routine: div3
 #
-# Unsigned 32-bit integer division by 3 without using M extension.
+# Unsigned 32-bit integer division by 3 without using M extension. Suitable
+# for RV32E.	
 #
 # input registers:
 # a0 = dividend
@@ -183,11 +184,11 @@ div3:
 	slli	a4, a2, 1	# a4: q * 2
 	add	a4, a4, a2	# a4: q * 3 (q * 2 + q)
 	sub	a4, a0, a4	# a4: r = n - q * 3
-	addi	a3, a4, 5	# a3: r + 5
-	slli	a4, a4, 2	# a4: r << 2
-	add	a3, a4, a3	# a3: (r + 5) + (r << 2)
-	srli	a3, a3, 4	# a3: ((r + 5) + (r << 2)) >> 4
-	add	a0, a3, a2	# a0: q + (((r + 5) + (r << 2)) >> 4)
+	# a4 holds remainder r; a2 holds the quotient estimate
+	sltiu	a3, a4, 3	# a3 = 1 if r < 3, else a3 = 0
+	xori	a3, a3, 1	# a3 = 0 if r < 3, else a3 = 1 (this is the correction)
+	add	a0, a3, a2	# add correction to the quotient
+
 .if CPU_BITS == 64
 	slli	a0, a0, 32	# get rid of any sign extension
 	srli	a0, a0, 32
