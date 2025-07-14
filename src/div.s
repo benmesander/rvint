@@ -203,16 +203,6 @@ divrem_cleanup_stack:
 .endif
 .endmacro
 
-.macro SLTIU r0, r1, i
-.if CPU_BITS == 64
-	sltiu	\r0, \r1, \i
-	slli	\r0, \r0, 32
-	srli	\r0, \r0, 32
-.else
-	sltiu	\r0, \r1, \i
-.endif
-.endmacro
-	
 div3:	
 	# a0 contains n
 	SRLI	a1, a0, 2	# a1: q = n >> 2
@@ -229,7 +219,7 @@ div3:
 	ADD	a2, a2, a1	# a2: q * 3
 	SUB	a2, a0, a2	# a2: r = n - q * 3
 
-	SLTIU	a0, a2, 3	# a0 = 1 if r < 3, else 0
+	sltiu	a0, a2, 3	# a0 = 1 if r < 3, else 0
 	xori	a0, a0, 1	# a0 = 0 if r < 3, else 1
 	ADD	a0, a1, a0	# a0 = q + correction
 
