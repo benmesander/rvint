@@ -2,7 +2,7 @@
 
 .globl divremu
 .globl divrem
-.globl div3
+.globl div3u
 	
 .text
 
@@ -159,70 +159,44 @@ divrem_cleanup_stack:
 	ret
 
 ################################################################################
-# routine: div3
+# routine: div3u
 #
-# Unsigned 32-bit integer division by 3 without using M extension. Suitable
-# for RV32E.	
+# Unsigned fast division by 3 without using M extension.
+# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses a fast multiply/shift/add/correct algorithm.
+# Suitable for use on RV32E architectures.
 #
 # input registers:
-# a0 = dividend
+# a0 = unsigned dividend (32 or 64 bits)
 #
 # output registers:
-# a0 = quotient
+# a0 = quotient (unsigned)
 ################################################################################
-
-.macro SRLI r0, r1, i
-.if CPU_BITS == 64
-	srliw	\r0, \r1, \i
-.else
-	srli	\r0, \r1, \i
-.endif
-.endmacro
-
-.macro SLLI r0, r1, i
-.if CPU_BITS == 64
-	slliw	\r0, \r1, \i
-.else
-	slli	\r0, \r1, \i
-.endif
-.endmacro
-
-.macro ADD	r0, r1, r2
-.if CPU_BITS == 64
-	addw	\r0, \r1, \r2
-.else
-	add	\r0, \r1, \r2
-.endif
-.endmacro
-
-.macro SUB	r0, r1, r2
-.if CPU_BITS == 64
-	subw	\r0, \r1, \r2
-.else
-	sub	\r0, \r1, \r2
-.endif
-.endmacro
-
-div3:	
+div3u:
 	# a0 contains n
-	SRLI	a1, a0, 2	# a1: q = n >> 2
-	SRLI	a2, a0, 4	# a2: n >> 4
-	ADD	a1, a2, a1	# a1: q = (n >> 2) + (n >> 4)
-	SRLI	a2, a1, 4	# a2: q >> 4
-	ADD	a1, a2, a1	# a1: q = q + (q >> 4)
-	SRLI	a2, a1, 8	# a2: q >> 8
-	ADD	a1, a2, a1	# a1: q = q + (q >> 8)
-	SRLI	a2, a1, 16	# a2: q >> 16
-	ADD	a1, a2, a1	# a1: final q estimate
-
-	SLLI	a2, a1, 1	# a2: q * 2
-	ADD	a2, a2, a1	# a2: q * 3
-	SUB	a2, a0, a2	# a2: r = n - q * 3
-
-	sltiu	a0, a2, 3	# a0 = 1 if r < 3, else 0
-	xori	a0, a0, 1	# a0 = 0 if r < 3, else 1
-	ADD	a0, a1, a0	# a0 = q + correction
-
+	srli    a1, a0, 2      # a1: q = n >> 2
+	srli    a2, a0, 4      # a2: n >> 4
+	add     a1, a2, a1     # a1: q = (n >> 2) + (n >> 4)
+	srli    a2, a1, 4      # a2: q >> 4
+	add     a1, a2, a1     # a1: q = q + (q >> 4)
+	srli    a2, a1, 8      # a2: q >> 8
+	add     a1, a2, a1     # a1: q = q + (q >> 8)
+	srli    a2, a1, 16     # a2: q >> 16
+	add     a1, a2, a1     # a1: q = q + (q >> 16)
+.if CPU_BITS == 64
+	srli    a2, a1, 32     # a2: q >> 32
+	add     a1, a2, a1     # a1: q = q + (q >> 32)
+	srli    a2, a1, 48     # a2: q >> 48
+	add     a1, a2, a1     # a1: q = q + (q >> 48)
+.endif
+	# Correction step
+	slli    a2, a1, 1      # a2: q * 2
+	add     a2, a2, a1     # a2: q * 3
+	sub     a2, a0, a2     # a2: r = n - q * 3
+	# Correction: if r >= 3, increment q
+	sltiu   a0, a2, 3      # a0 = 1 if r < 3, else 0
+	xori    a0, a0, 1      # a0 = 0 if r < 3, else 1
+	add     a0, a1, a0     # a0 = q + correction
 	ret
 
 .size divrem, .-divrem

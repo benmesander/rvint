@@ -18,7 +18,7 @@ where those two goals clash, I went with concise.
 - 64-bit by 64-bit signed and unsigned division with 64-bit result and remainder.
 
 ### On both
-- Fast division of 32-bit unsigneds by three
+- Fast division of 32-bit or 64-bit unsigneds by three (see `div3u`)
 
 ## Multiplication
 
@@ -165,16 +165,18 @@ syscall 64 is write and 93 is exit.
 ################################################################################
 
 ################################################################################
-# routine: div3
+# routine: div3u
 #
-# Unsigned 32-bit integer division by 3 without using M extension. Suitable
-# for RV32E.
+# Unsigned fast division by 3 without using M extension.
+# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses a fast multiply/shift/add/correct algorithm.
+# Suitable for use on RV32E architectures.
 #
 # input registers:
-# a0 = dividend
+# a0 = unsigned dividend (32 or 64 bits)
 #
 # output registers:
-# a0 = quotient
+# a0 = quotient (unsigned)
 ################################################################################
 ```
 
@@ -407,6 +409,8 @@ syscall 64 is write and 93 is exit.
 ### Hash Table [hash.s](src/hash.s)
 
 ```riscv
+NOTE: Hash table is currently only partly implemented
+
 ################################################################################
 # Hash Table Implementation
 #
