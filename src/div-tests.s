@@ -442,6 +442,8 @@ div3u_tests:
 # a0 = value to divide, a1 = expected result
 #
 div3u_test_case:
+	FRAME	1
+	PUSH	ra, 0
     # Save input and expected value in s-registers
     mv s0, a0      # input
     mv s1, a1      # expected
@@ -508,26 +510,30 @@ div3u_test_case:
     bne a0, a1, div3u_fail
     la a1, pass
     call result
+	POP 	ra, 0
+	EFRAME 	1
     ret
 
 div3u_fail:
-    # Print expected value in hex
+	# Print expected value in hex
 .if CPU_BITS == 64
-    li a1, 8
+	li	a1, 8
 .else
-    li a1, 4
+	li	a1, 4
 .endif
-    li a2, 0
-    mv a0, s1
-    call to_hex
-    mv a2, a1
-    mv a1, a0
-    call print
-    la a1, space
-    li a2, 1
-    call print
-    la a1, fail
-    call result
+	li	a2, 0
+	mv	a0, s1
+	call	to_hex
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+	la	a1, space
+	li	a2, 1
+	call	print
+	la	a1, fail
+	call	result
+	POP 	ra,0
+	EFRAME 	1
     ret
 
 
@@ -566,3 +572,9 @@ test11s: .asciz	"test11: "
 pass: .asciz "pass\n"
 fail: .asciz "fail\n"
 space: .asciz " "
+colon: .asciz ": "
+
+	.data
+.align 2
+div3u_label: .asciz "div3u "
+div3u_test_counter: .word 0
