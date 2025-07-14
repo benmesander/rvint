@@ -370,7 +370,7 @@ test11:
 
 	la a1, pass
 	call result
-	j _end
+	j div3u_tests
 
 test11_fail:
 
@@ -378,7 +378,6 @@ test11_fail:
 	call result
 
 # --- div3u tests ---
-.globl div3u_tests
 
 div3u_tests:
 	# Test values for 32-bit
@@ -437,97 +436,99 @@ div3u_tests:
 	li a1, 0x5555555555555555
 	call div3u_test_case
 .endif
-	ret
+	j	_end
 
 #
 # a0 = value to divide, a1 = expected result
 #
 div3u_test_case:
-	# Print test number (incremented in t6)
-	la t3, div3u_test_counter
-	lw t6, 0(t3)
-	addi t6, t6, 1
-	sw t6, 0(t3)
-	mv a2, t6
-	call to_decu
-	mv a2, a1
-	mv a1, a0
-	call print
-	la a1, colon
-	li a2, 2
-	call print
+    # Save input and expected value in s-registers
+    mv s0, a0      # input
+    mv s1, a1      # expected
 
-	# Print 'div3u '
-	la a1, div3u_label
-	li a2, 6
-	call print
+    # Print test number (incremented in t6)
+    la t3, div3u_test_counter
+    lw t6, 0(t3)
+    addi t6, t6, 1
+    sw t6, 0(t3)
+    mv a2, t6
+    call to_decu
 
-	# Print input in hex
+    # Print input and label
+    mv a2, s0
+    mv a1, s0
+    call print
+    la a1, colon
+    li a2, 2
+    call print
+    la a1, div3u_label
+    li a2, 6
+    call print
+
+    # Print input in hex
 .if CPU_BITS == 64
-	li a1, 8
+    li a1, 8
 .else
-	li a1, 4
+    li a1, 4
 .endif
-	li a2, 0
-	call to_hex
-	mv a2, a1
-	mv a1, a0
-	call print
-	la a1, space
-	li a2, 1
-	call print
+    li a2, 0
+    mv a0, s0
+    call to_hex
+    mv a2, a1
+    mv a1, a0
+    call print
+    la a1, space
+    li a2, 1
+    call print
 
-	# Save input for later
-	mv t0, a0
+    # Call div3u
+    mv a0, s0
+    call div3u
+    mv s2, a0      # result
 
-	# Call div3u
-	mv a0, t0
-	call div3u
-	mv t1, a0
-
-	# Print result in hex
+    # Print result in hex
 .if CPU_BITS == 64
-	li a1, 8
+    li a1, 8
 .else
-	li a1, 4
+    li a1, 4
 .endif
-	li a2, 0
-	call to_hex
-	mv a2, a1
-	mv a1, a0
-	call print
-	la a1, space
-	li a2, 1
-	call print
+    li a2, 0
+    mv a0, s2
+    call to_hex
+    mv a2, a1
+    mv a1, a0
+    call print
+    la a1, space
+    li a2, 1
+    call print
 
-	# Compare result to expected (a1)
-	mv a0, t1
-	mv a2, a1
-	bne a0, a2, div3u_fail
-	la a1, pass
-	call result
-	ret
+    # Compare result to expected (s1)
+    mv a0, s2
+    mv a1, s1
+    bne a0, a1, div3u_fail
+    la a1, pass
+    call result
+    ret
 
 div3u_fail:
-	# Print expected value in hex
+    # Print expected value in hex
 .if CPU_BITS == 64
-	li a1, 8
+    li a1, 8
 .else
-	li a1, 4
+    li a1, 4
 .endif
-	li a2, 0
-	mv a0, a2
-	call to_hex
-	mv a2, a1
-	mv a1, a0
-	call print
-	la a1, space
-	li a2, 1
-	call print
-	la a1, fail
-	call result
-	ret
-
+    li a2, 0
+    mv a0, s1
+    call to_hex
+    mv a2, a1
+    mv a1, a0
+    call print
+    la a1, space
+    li a2, 1
+    call print
+    la a1, fail
+    call result
+    ret
 
 
 _end:
@@ -565,9 +566,3 @@ test11s: .asciz	"test11: "
 pass: .asciz "pass\n"
 fail: .asciz "fail\n"
 space: .asciz " "
-colon: .asciz ": "
-
-	.data
-.align 2
-div3u_label: .asciz "div3u "
-div3u_test_counter: .word 0
