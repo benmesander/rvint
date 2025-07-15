@@ -579,7 +579,7 @@ div10u_tests:
 
 	# Test 10: 0x7fffffffffffffff / 10 = 0xcccccccccccccc
 	li	a0, 0x7fffffffffffffff
-	li	a1, 0xcccccccccccccc
+	li	a1, 0x0ccccccccccccccc
 	call	div10u_test_case
 	
 	# Test 11: 0xffffffffffffffff / 10 = 0x1999999999999999
