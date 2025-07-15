@@ -1,8 +1,9 @@
-.include "config.s"
+	.include "config.s"
 
 .globl divremu
 .globl divrem
 .globl div3u
+.globl div10u
 	
 .text
 
@@ -168,6 +169,8 @@ divrem_cleanup_stack:
 	EFRAME	1
 	ret
 
+.size divrem, .-divrem
+	
 ################################################################################
 # routine: div3u
 #
@@ -223,4 +226,45 @@ div3u:
 
 	ret
 
-.size divrem, .-divrem
+.size div3u, .-div3u
+
+
+################################################################################
+# routine: div10u
+#
+# Unsigned fast 32-bit division by 10 without using M extension.
+# It uses a fast multiply/shift/add/correct algorithm.
+# Suitable for use on RV32E architectures.
+#
+# input registers:
+# a0 = unsigned dividend (32 bits)
+#
+# output registers:
+# a0 = quotient (unsigned)
+################################################################################
+div10u:
+	# Phase 1: Calculate approximate quotient q.
+	srli	a1, a0, 1	# a1 = (n >> 1)
+	srli	a2, a0, 2	# a2 = (n >> 2)
+	add	a1, a1, a2	# a1 = (n >> 1) + (n >> 2)
+	srli	a2, a1, 4	# a2 = (q >> 4)
+	add	a1, a1, a2	# a1 = q + (q >> 4)
+	srli	a2, a1, 8	# a2 = (q >> 8)
+	add	a1, a1, a2	# a1 = q + (q >> 8)
+	srli	a2, a1, 16	# a2 = (q >> 16)
+	add	a1, a1, a2	# a1 = q + (q >> 16)
+	srli	a1, a1, 3	# a1 = q = q >> 3 (Final approximate quotient)
+
+	# Phase 2: Calculate r = n - 10*q
+	slli	a2, a1, 1	# a2 = q * 2
+	slli	a3, a2, 2	# a3 = (q * 2) * 4 = q * 8
+	add	a2, a2, a3	# a2 = (q * 2) + (q * 8) = q * 10
+	sub	a3, a0, a2	# a3 = r = n - (q * 10)
+
+	# Phase 3: Add correction if r >= 10
+	sltiu	a3, a3, 10	# a3 = 1 if r < 10, else 0
+	xori	a3, a3, 1	# a3 = 1 if r >= 10, else 0 (correction factor)
+	add	a0, a1, a3	# a0 = q + correction
+	ret
+	
+.size div10u, .-div10u
