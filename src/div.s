@@ -9,10 +9,7 @@
 ################################################################################
 # routine: divremu
 #
-# Unsigned integer division without using M extension.
-# This division is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses the restoring division algorithm. It can be used to emulate
-# the RISC-V M extension div, rem, divw, and remw instructions.
+# Unsigned integer division using a restoring algorithm.
 #
 # input registers:
 # a0 = dividend
@@ -23,33 +20,46 @@
 # a1 = remainder
 ################################################################################
 
-# uses a0-a5
-
 divremu:
-	# check for division by zero, if so immediately return
+	# Check for division by zero
 	beqz	a1, divremu_zero
 
-	mv	a2, a0		# dividend
-	mv	a3, a1		# divisor
-	li	a0, 0		# quotient
-	li	a1, 0		# remainder
-	li	a5, 1		# set bit to the highest bit position
-	slli	a5, a5, CPU_BITS-1
+	mv	a2, a0		# Use a2 for the dividend; it will become the quotient.
+	mv	a0, zero		# a0 will hold the remainder, initialized to 0.
+	li	a3, CPU_BITS	# Use a3 as the loop counter.
 
 divremu_loop:
-	slli	a1, a1, 1	# shift remainder left by 1
-	and	a4, a2, a5	# Isolate the highest bit of the dividend
-	snez	a4, a4
-	add	a1, a1, a4	# insert next dividend bit into remainder
+	# Step 1: Shift the remainder left by 1.
+	slli	a0, a0, 1
 
-	# Check if remainder is greater than or equal to divisor
-	bltu	a1, a3, divremu_continue
-	sub	a1, a1, a3	# subtract divisor from remainder
-	add	a0, a0, a5	# add bit to quotient
+	# Step 2: Bring the next bit from the dividend (MSB of a2) into the remainder.
+	bltz	a2, set_rem_bit
 
-divremu_continue:
-	srli	a5, a5, 1	# shift the bit mask to the right
-	bnez	a5, divremu_loop
+continue_shift:
+	# Step 3: Shift the dividend left.
+	slli	a2, a2, 1
+
+	# Step 4: Fast Path - If remainder < divisor, do nothing else this iteration.
+	bltu	a0, a1, continue_loop
+	
+	# Step 5: If remainder >= divisor, subtract and set the quotient bit.
+	sub	a0, a0, a1
+	ori	a2, a2, 1
+
+continue_loop:
+	# Step 6: Decrement the counter and loop if not finished.
+	addi	a3, a3, -1
+	bnez	a3, divremu_loop
+	j	done
+
+set_rem_bit:
+	ori	a0, a0, 1
+	j	continue_shift
+
+done:
+	# Final result arrangement
+	mv	a1, a0
+	mv	a0, a2
 	ret
 
 divremu_zero:
