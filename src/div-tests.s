@@ -570,6 +570,24 @@ div10u_tests:
 	li	a1, 429496729
 	call	div10u_test_case
 
+.if CPU_BITS == 64
+	# 64-bit test cases
+	# Test 9: 0x100000000 / 10 = 0x19999999
+	li	a0, 0x100000000
+	li	a1, 0x19999999
+	call	div10u_test_case
+
+	# Test 10: 0x7fffffffffffffff / 10 = 0x0CCCCCCCCCCCCCCC
+	li	a0, 0x7fffffffffffffff
+	li	a1, 0x0CCCCCCCCCCCCCCC
+	call	div10u_test_case
+	
+	# Test 11: 0xffffffffffffffff / 10 = 0x1999999999999999
+	li	a0, -1
+	li	a1, 0x1999999999999999
+	call	div10u_test_case
+.endif
+
 	j	_end
 
 #
@@ -602,7 +620,11 @@ div10u_test_case:
 	call	print
 
 	# Print input in hex
-	li	a1, 4		# 32-bit only for now
+.if CPU_BITS == 64
+	li	a1, 8
+.else
+	li	a1, 4
+.endif
 	li	a2, 1
 	mv	a0, s0
 	call	to_hex
@@ -619,7 +641,11 @@ div10u_test_case:
 	mv	s2, a0		# result
 
 	# Print result in hex
+.if CPU_BITS == 64
+	li	a1, 8
+.else
 	li	a1, 4
+.endif
 	li	a2, 1
 	mv	a0, s2
 	call	to_hex
@@ -643,7 +669,11 @@ div10u_test_case:
 
 div10u_fail:
 	# Print expected value in hex
+.if CPU_BITS == 64
+	li	a1, 8
+.else
 	li	a1, 4
+.endif
 	li	a2, 1
 	mv	a0, s1
 	call	to_hex
@@ -702,4 +732,3 @@ div3u_label:		.asciz	"div3u "
 div10u_label:		.asciz	"div10u: "
 div3u_test_counter:	.word	0
 div10u_test_counter:	.word	0
-
