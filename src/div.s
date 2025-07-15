@@ -192,15 +192,24 @@ div3u:
 	add     a2, a2, a1     # a2: q * 3
 	sub     a2, a0, a2     # a2: r = n - q * 3
 
-        # Correction step handles errors up to 6.
-        # It calculates floor(r*11/32) which is a robust approximation of r/3.
-	slli    a0, a2, 3       # a0 = r * 8
-	add     a0, a0, a2      # a0 = r * 9 (a2 still holds r)
-	slli    a2, a2, 1       # a2 = r * 2 (a2 is now overwritten)
-	add     a0, a0, a2      # a0 = (r * 9) + (r * 2) = r * 11
-	srli    a0, a0, 5       # a0 = (r * 11) >> 5, this is the correction amount
+.if CPU_BITS == 64
+        # Correction step for 64-bit (5 instructions)
+        # Handles errors up to 6+. Calculates floor(r*11/32).
+        slli    a0, a2, 3       # a0: r * 8
+        add     a0, a0, a2      # a0: r * 9
+        slli    a2, a2, 1       # a2: r * 2
+        add     a0, a0, a2      # a0: r * 11
+        srli    a0, a0, 5       # a0: correction amount
+.else
+        # Correction step for 32-bit (4 instructions)
+        # Sufficient for errors up to 5. Calculates floor((5r+5)/16).
+        addi    a0, a2, 5       # a0: r + 5
+        slli    a2, a2, 2       # a2: r << 2
+        add     a0, a0, a2      # a0: (r + 5) + (r << 2)
+        srli    a0, a0, 4       # a0: correction amount
+.endif
 
-        add     a0, a1, a0      # a0 = q + correction
+        add     a0, a1, a0      # a0: q + correction
 
 	ret
 
