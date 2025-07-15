@@ -193,10 +193,13 @@ div3u:
 	slli    a2, a1, 1      # a2: q * 2
 	add     a2, a2, a1     # a2: q * 3
 	sub     a2, a0, a2     # a2: r = n - q * 3
-	# Correction: if r >= 3, increment q
-	sltiu   a0, a2, 3      # a0 = 1 if r < 3, else 0
-	xori    a0, a0, 1      # a0 = 0 if r < 3, else 1
-	add     a0, a1, a0     # a0 = q + correction
+
+	addi	a0, a2, 5	# a0: r + 5
+	slli	a2, a2, 2	# a2: r << 2
+	add	a0, a0, a2	# a0: (r + 5) + (r << 2)
+	srli	a0, a0, 4	# a0: ((r + 5) + (r << 2)) >> 4
+	add	a0, a1, a0	# a0: q + ((r + 5) + (r << 2)) >> 4
+
 	ret
 
 .size divrem, .-divrem
