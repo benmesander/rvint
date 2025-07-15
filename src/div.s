@@ -228,16 +228,16 @@ div3u:
 
 .size div3u, .-div3u
 
-
 ################################################################################
 # routine: div10u
 #
-# Unsigned fast 32-bit division by 10 without using M extension.
+# Unsigned fast division by 10 without using M extension.
+# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
 # It uses a fast multiply/shift/add/correct algorithm.
 # Suitable for use on RV32E architectures.
 #
 # input registers:
-# a0 = unsigned dividend (32 bits)
+# a0 = unsigned dividend (32 or 64 bits)
 #
 # output registers:
 # a0 = quotient (unsigned)
@@ -253,6 +253,10 @@ div10u:
 	add	a1, a1, a2	# a1 = q + (q >> 8)
 	srli	a2, a1, 16	# a2 = (q >> 16)
 	add	a1, a1, a2	# a1 = q + (q >> 16)
+.if CPU_BITS == 64
+	srli	a2, a1, 32	# a2 = (q >> 32)
+	add	a1, a1, a2	# a1 = q + (q >> 32)
+.endif
 	srli	a1, a1, 3	# a1 = q = q >> 3 (Final approximate quotient)
 
 	# Phase 2: Calculate r = n - 10*q
@@ -261,7 +265,7 @@ div10u:
 	add	a2, a2, a3	# a2 = (q * 2) + (q * 8) = q * 10
 	sub	a3, a0, a2	# a3 = r = n - (q * 10)
 
-	# Phase 3: Add correction if r >= 10
+	# Phase 3: Add correction if r >= 10. This logic is robust for both 32 and 64 bits.
 	sltiu	a3, a3, 10	# a3 = 1 if r < 10, else 0
 	xori	a3, a3, 1	# a3 = 1 if r >= 10, else 0 (correction factor)
 	add	a0, a1, a3	# a0 = q + correction
