@@ -194,11 +194,11 @@ div3u:
 
         # Correction step handles errors up to 6.
         # It calculates floor(r*11/32) which is a robust approximation of r/3.
-        slli    a0, a2, 3       # a0 = r * 8
-        add     a0, a0, a2      # a0 = r * 9
-        slli    a3, a2, 1       # a3 = r * 2
-        add     a0, a0, a3      # a0 = r * 11
-        srli    a0, a0, 5       # a0 = (r * 11) >> 5
+	slli    a0, a2, 3       # a0 = r * 8
+	add     a0, a0, a2      # a0 = r * 9 (a2 still holds r)
+	slli    a2, a2, 1       # a2 = r * 2 (a2 is now overwritten)
+	add     a0, a0, a2      # a0 = (r * 9) + (r * 2) = r * 11
+	srli    a0, a0, 5       # a0 = (r * 11) >> 5, this is the correction amount
 
         add     a0, a1, a0      # a0 = q + correction
 
