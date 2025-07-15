@@ -187,16 +187,20 @@ div3u:
 	srli    a2, a1, 32     # a2: q >> 32
 	add     a1, a2, a1     # a1: q = q + (q >> 32)
 .endif
-	# Correction step
+	# Remainder calculation
 	slli    a2, a1, 1      # a2: q * 2
 	add     a2, a2, a1     # a2: q * 3
 	sub     a2, a0, a2     # a2: r = n - q * 3
 
-	addi	a0, a2, 5	# a0: r + 5
-	slli	a2, a2, 2	# a2: r << 2
-	add	a0, a0, a2	# a0: (r + 5) + (r << 2)
-	srli	a0, a0, 4	# a0: ((r + 5) + (r << 2)) >> 4
-	add	a0, a1, a0	# a0: q + ((r + 5) + (r << 2)) >> 4
+        # Correction step handles errors up to 6.
+        # It calculates floor(r*11/32) which is a robust approximation of r/3.
+        slli    a0, a2, 3       # a0 = r * 8
+        add     a0, a0, a2      # a0 = r * 9
+        slli    a3, a2, 1       # a3 = r * 2
+        add     a0, a0, a3      # a0 = r * 11
+        srli    a0, a0, 5       # a0 = (r * 11) >> 5
+
+        add     a0, a1, a0      # a0 = q + correction
 
 	ret
 
