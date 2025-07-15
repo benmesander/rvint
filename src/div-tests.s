@@ -440,18 +440,18 @@ div3u_test_case:
 	mv	s0, a0		# input
 	mv	s1, a1		# expected
 
-	# Print test number (incremented in t6)
+	# Print test number
 	la	t3, div3u_test_counter
 	lw	t6, 0(t3)
 	addi	t6, t6, 1
 	sw	t6, 0(t3)
-	mv	a2, t6
+	mv	a0, t6
 	call	to_decu
-
-	# Print input and label
-	mv	a2, s0
-	mv	a1, s0
+	mv	a2, a1
+	mv	a1, a0
 	call	print
+
+	# Print label
 	la	a1, colon
 	li	a2, 2
 	call	print
@@ -577,9 +577,9 @@ div10u_tests:
 	li	a1, 0x19999999
 	call	div10u_test_case
 
-	# Test 10: 0x7fffffffffffffff / 10 = 0x0CCCCCCCCCCCCCCC
+	# Test 10: 0x7fffffffffffffff / 10 = 0xcccccccccccccc
 	li	a0, 0x7fffffffffffffff
-	li	a1, 0x0CCCCCCCCCCCCCCC
+	li	a1, 0xcccccccccccccc
 	call	div10u_test_case
 	
 	# Test 11: 0xffffffffffffffff / 10 = 0x1999999999999999
@@ -600,23 +600,23 @@ div10u_test_case:
 	mv	s0, a0		# input n
 	mv	s1, a1		# expected quotient
 
-	# Print test number (incremented in t6)
+	# Print test number
 	la	t3, div10u_test_counter
 	lw	t6, 0(t3)
 	addi	t6, t6, 1
 	sw	t6, 0(t3)
-	mv	a2, t6
+	mv	a0, t6
 	call	to_decu
-
-	# Print input and label
-	mv	a2, s0
-	mv	a1, s0
+	mv	a2, a1
+	mv	a1, a0
 	call	print
+
+	# Print label
 	la	a1, colon
 	li	a2, 2
 	call	print
 	la	a1, div10u_label
-	li	a2, 7
+	li	a2, 8
 	call	print
 
 	# Print input in hex
@@ -732,3 +732,4 @@ div3u_label:		.asciz	"div3u "
 div10u_label:		.asciz	"div10u: "
 div3u_test_counter:	.word	0
 div10u_test_counter:	.word	0
+
