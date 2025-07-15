@@ -186,8 +186,6 @@ div3u:
 .if CPU_BITS == 64
 	srli    a2, a1, 32     # a2: q >> 32
 	add     a1, a2, a1     # a1: q = q + (q >> 32)
-	srli    a2, a1, 48     # a2: q >> 48
-	add     a1, a2, a1     # a1: q = q + (q >> 48)
 .endif
 	# Correction step
 	slli    a2, a1, 1      # a2: q * 2
