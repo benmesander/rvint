@@ -14,11 +14,10 @@ where those two goals clash, I went with concise.
 
 ### On 32-bit processors
 - 32-bit by 32-bit signed and unsigned division with 32-bit result and remainder.
+- Fast unsigned 32-bit division by 3
 ### On 64-bit processors
 - 64-bit by 64-bit signed and unsigned division with 64-bit result and remainder.
-
-### On both
-- Fast division of 32-bit or 64-bit unsigneds by three (see `div3u`)
+- Fast unsigned 64-bit division by 3
 
 ## Multiplication
 
@@ -170,7 +169,7 @@ syscall 64 is write and 93 is exit.
 # Unsigned fast division by 3 without using M extension.
 # This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
 # It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
+# Also suitable for use on RV32E architectures.
 #
 # input registers:
 # a0 = unsigned dividend (32 or 64 bits)
