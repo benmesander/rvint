@@ -229,6 +229,49 @@ div3u:
 .size div3u, .-div3u
 
 ################################################################################
+# routine: div5u
+#
+# Unsigned fast division by 5 without using M extension.
+# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses a fast multiply/shift/add/correct algorithm.
+# Suitable for use on RV32E architectures.
+#
+# input registers:
+# a0 = unsigned dividend (32 or 64 bits)
+#
+# output registers:
+# a0 = quotient (unsigned)
+################################################################################
+div5u:
+	srli	a1, a0, 1	# a1 = (n >> 1)
+	srli	a2, a0, 2	# a2 = (n >> 2)
+	add	a1, a1, a2	# a1 = q = (n >> 1) + (n >> 2)
+	srli	a2, a1, 4	# a2 = (q >> 4)
+	add	a1, a1, a2	# a1 = q + (q >> 4)
+	srli	a2, a1, 8	# a2 = (q >> 8)
+	add	a1, a1, a2	# a1 = q + (q >> 8)
+	srli	a2, a1, 16	# a2 = (q >> 16)
+	add	a1, a1, a2	# a1 = q + (q >> 16)
+.if CPU_BITS == 64
+	srli	a2, a1, 32	# a2 = (q >> 32)
+	add	a1, a1, a2	# a1 = q + (q >> 32)
+.endif
+	srli	a1, a1, 2	# a1 = q = q >> 2 (Final approximate quotient)
+
+	# Calculate r = n - q*5
+	slli	a2, a1, 2	# a2 = q*4
+	add	a2, a2, a1	# a2 = q*4 + q = q*5
+	sub	a2, a0, a2	# a2 = r = n - q*5
+
+	# Add correction q + (7*r >> 5)
+	slli	a3, a2, 3	# a3 = r*8
+	sub	a2, a3, a2	# a2 = (r*8) - r = r*7
+	srli	a2, a2, 5	# a2 = 7*r >> 5
+	add	a0, a1, a2	# a0 = q + (7*r >> 5)
+	ret
+.size div5u, .-div5u
+	
+################################################################################
 # routine: div10u
 #
 # Unsigned fast division by 10 without using M extension.
