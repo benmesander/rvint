@@ -15,10 +15,12 @@ where those two goals clash, I went with concise.
 ### On 32-bit processors
 - 32-bit by 32-bit signed and unsigned division with 32-bit result and remainder.
 - Fast 32-bit unsigned division by 3
+- Fast 32-bit unsigned division by 5 (untested)
 - Fast 32-bit unsigned division by 10
 ### On 64-bit processors
 - 64-bit by 64-bit signed and unsigned division with 64-bit result and remainder.
 - Fast 64-bit unsigned division by 3
+- Fast 64-bit unsigned division by 5 (untested)
 - Fast 64-bit unsigned division by 10
 
 ## Multiplication
@@ -172,6 +174,21 @@ syscall 64 is write and 93 is exit.
 # This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
 # It uses a fast multiply/shift/add/correct algorithm.
 # Also suitable for use on RV32E architectures.
+#
+# input registers:
+# a0 = unsigned dividend (32 or 64 bits)
+#
+# output registers:
+# a0 = quotient (unsigned)
+################################################################################
+
+################################################################################
+# routine: div5u
+#
+# Unsigned fast division by 5 without using M extension.
+# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses a fast multiply/shift/add/correct algorithm.
+# Suitable for use on RV32E architectures.
 #
 # input registers:
 # a0 = unsigned dividend (32 or 64 bits)
