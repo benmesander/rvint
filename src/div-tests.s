@@ -748,14 +748,14 @@ div5u_tests:
 	li	a1, 0x33333333
 	call	div5u_test_case
 
-	# Test 12: 0x7fffffffffffffff / 5 = 0x3333333333333333
+	# Test 12: 0x7fffffffffffffff / 5 = 0x1999999999999999
 	li	a0, 0x7fffffffffffffff
-	li	a1, 0x3333333333333333
+	li	a1, 0x1999999999999999
 	call	div5u_test_case
 
-	# Test 13: 0x8000000000000000 / 5 = 0x3333333333333333
+	# Test 13: 0x8000000000000000 / 5 = 0x1999999999999999
 	li	a0, 0x8000000000000000
-	li	a1, 0x3333333333333333
+	li	a1, 0x1999999999999999
 	call	div5u_test_case
 
 	# Test 14: 0xffffffffffffffff / 5 = 0x3333333333333333
