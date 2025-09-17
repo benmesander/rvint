@@ -1,14 +1,18 @@
 # edit config.s to match target
-# RV64
-TARGET	?=riscv64
-ARCH	?=rv64gc
-ABI	?=lp64
+# RV64GC
+#TARGET	?=riscv64
+#ARCH	?=rv64gc
+#ABI	?=lp64
 
-#RV32
+#RV32GC
+TARGET	?=riscv32
+ARCH	?=rv32gc
+ABI	?=ilp32d
+
+#CH32V003 - RV32E 
 #TARGET	?=riscv32
-#ARCH	?=rv32gc
-#ABI	?=ilp32d
-
+#ARCH	?=rv32ec_zicsr
+#ABI	?=ilp32e
 
 CC	:= clang
 LD	:= ld.lld

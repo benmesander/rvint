@@ -11,6 +11,7 @@
 # routine: divremu
 #
 # Unsigned integer division using a restoring algorithm.
+# RV32E compatible.
 #
 # input registers:
 # a0 = dividend
@@ -87,7 +88,7 @@ divremu_zero:
 # a1 = remainder (R)
 ################################################################################
 
-# calls divremu, which uses a0-a5.
+# calls divremu, which uses a0-a3.
 # stash a0, a1 in t0, t1
 # this uses t0-t5 to avoid the s regs
 

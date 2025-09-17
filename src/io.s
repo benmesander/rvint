@@ -21,6 +21,7 @@
 # routine: to_hex
 #
 # Convert a value in a register to an ASCII hexadecimal string.
+# RV32E compatible
 #
 # input registers:
 # a0 = number to convert to ascii hex
@@ -32,8 +33,8 @@
 # a1 = length of string
 ################################################################################
 to_hex:
-	la	a3, iobuf
-	li	a6, '9'
+	la	a3, iobuf	# output pointer
+	li	t0, '9'
 	slli	a1, a1, 1	# count of nibbles
 	beqz	a2, to_hex_loop
 	li	a4, 0x7830	# '0x' in ascii, little-endian
@@ -46,7 +47,7 @@ to_hex_loop:
 	srl	a5, a0, a4
 	andi	a5, a5, 0xf
 	addi	a5, a5, '0'	# numeral
-	ble	a5, a6, to_hex_digit
+	ble	a5, t0, to_hex_digit
 	addi	a5, a5, 'a'-('0'+10) # too big for numeral, add offset to alpha
 to_hex_digit:
 	sb	a5, 0(a3)
@@ -63,6 +64,7 @@ to_hex_digit:
 # routine: to_bin
 #
 # Convert a value in a register to an ASCII binary string.
+# RV32E compatible.	
 #
 # input registers:
 # a0 = number to convert to ascii binary
@@ -75,7 +77,7 @@ to_hex_digit:
 ################################################################################
 
 to_bin:
-	la	a4, iobuf
+	la	a4, iobuf	# output pointer
 	slli	a1, a1, 3	# count of bits (a1 * 8)
 	li	a5, ' '
 
@@ -106,6 +108,7 @@ to_bin_no_space:
 # routine: to_decu
 #
 # Convert a value in a register to an unsigned ASCII decimal string.
+# RV32E compatible
 #
 # input registers:
 # a0 = unsigned number to convert to ascii unsigned decimal
@@ -130,7 +133,7 @@ to_decu_loop:
 	addi	s0, s0, -1
 	mv	a0, s1
 	li	a1, 10
-	call	divremu			# a0 quotient a1, remainder
+	call	divremu			# a0 quotient a1, remainder XXX: call div10u? need remainder
 	addi	a1, a1, '0'
 	sb	a1, 0(s0)
 	mv	s1, a0
@@ -188,7 +191,7 @@ to_dec_loop:
 	addi	s0, s0, -1
 	mv	a0, s1
 	li	a1, 10
-	call	divremu			# Output: a0=quotient, a1=remainder
+	call	divremu			# Output: a0=quotient, a1=remainder XXX: call div10u? need remainder
 	addi	a1, a1, '0'
 	sb	a1, 0(s0)
 	mv	s1, a0
@@ -219,6 +222,7 @@ to_dec_retval:
 #
 # Read an ASCII hexidecimal string into a register. The parsing of the value
 # stops when we read the first non-hex character.
+# RV32E compatible.
 #
 # input registers:
 # a0 = pointer to number to convert from hex, terminated with non-hex char.
@@ -233,7 +237,7 @@ from_hex:
 	li	a1, 0
 	li	a2, 0
 	li	a5, 9
-	li	a6, 5
+	li	t0, 5
 from_hex_nibble:
 	lb	a3, (a0)
 
@@ -244,7 +248,7 @@ from_hex_nibble:
 	# Handle a-f and A-F by converting to uppercase
 	andi	a3, a3, 0xDF	# clear bit 5 (cvt to upper)
 	addi	a4, a3, -'A'
-	bgtu	a4, a6, from_hex_done
+	bgtu	a4, t0, from_hex_done
 	addi	a4, a4, 10	# A-F -> 10-15
 
 from_hex_add_digit:
@@ -263,6 +267,7 @@ from_hex_done:
 #
 # Read an ASCII binary string into a register. The parsing of the value
 # stops when we read the first non-binary character.
+# RV32E compatible.
 #
 # input registers:
 # a0 = pointer to number to convert from binary, terminated with non-binary char.
@@ -297,6 +302,7 @@ from_bin_done:
 #
 # Read an ASCII unsigned decimal string into a register. The parsing of the value
 # stops when we read the first non-decimal character.
+# RV32E compatible.
 #
 # input registers:
 # a0 = pointer to number to convert from decimal, terminated with non-decimal char.
@@ -310,12 +316,12 @@ from_bin_done:
 from_decu:
 	li	a1, 0
 	li	a2, 0
-	li	a7, 9
+	li	t1, 9
 
 from_decu_digit:
-	lb	a6,(a0)
-	addi	a5, a6, -'0'
-	bgtu	a5, a7, from_decu_done
+	lb	t0, (a0)
+	addi	a5, t0, -'0'
+	bgtu	a5, t1, from_decu_done
 
 	li	a2, 1
 	slli	a3, a1, 1	# a3 = a1 * 2
@@ -334,6 +340,7 @@ from_decu_done:
 #
 # Read an ASCII signed decimal string into a register. The parsing of the value
 # stops when we read the first non-decimal character.
+# RV32E compatible.
 #
 # input registers:
 # a0 = pointer to number to convert from decimal, terminated with non-decimal char.

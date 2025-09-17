@@ -10,6 +10,7 @@
 # This is useful for processors with no B extension. This routine provides the
 # functionality of the ctz instruction (on 32-bit processors) and ctzw (on
 # 64-bit processors).
+# RV32E compatible.
 #
 # input registers:
 # a0 = number
@@ -81,6 +82,7 @@ bits_ctz_is_zero:
 # This is useful for processors with no B extension. This routine provides the
 # functionality of the clz instruction (on 32-bit processors) and clzw (on
 # 64-bit processors).
+# RV32E compatible.
 #
 # Algorithm from figure 5.11 Hackers Delight, 2nd ed.
 #

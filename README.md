@@ -1,8 +1,9 @@
 # rvint
 
 Integer-based mathematical subroutines which implement RISC-V M and B
-extension functionality on I, and Zmmul instruction sets. If there is
-interest, I could support other instruction sets such as E.
+extension functionality on I, and Zmmul instruction sets. There is
+partial support for the reduced functionality E instruction set
+where this is easy to do and doesn't involve a performance tradeoff.
 
 These routines are designed to be both concise and efficient, although
 where those two goals clash, I went with concise.
@@ -13,12 +14,12 @@ where those two goals clash, I went with concise.
 ## Division
 
 ### On 32-bit processors
-- 32-bit by 32-bit signed and unsigned division with 32-bit result and remainder.
+- 32-bit by 32-bit signed and unsigned division with 32-bit result and remainder. (unsigned division is RV32E compatible)
 - Fast 32-bit unsigned division by 3
 - Fast 32-bit unsigned division by 5 (untested)
 - Fast 32-bit unsigned division by 10
 ### On 64-bit processors
-- 64-bit by 64-bit signed and unsigned division with 64-bit result and remainder.
+- 64-bit by 64-bit signed and unsigned division with 64-bit result and remainder. (unsigned division is RV64E compatible)
 - Fast 64-bit unsigned division by 3
 - Fast 64-bit unsigned division by 5 (untested)
 - Fast 64-bit unsigned division by 10
@@ -39,14 +40,14 @@ where those two goals clash, I went with concise.
 These operations support 32-bit numbers on 32-bit architectures and
 64-bit numbers on 64-bit architectures.
 
-- ASCII binary to binary.
-- ASCII unsigned decimal to binary.
-- ASCII signed decimal to two's complement binary.
-- ASCII hexadecimal to binary.
-- binary to ASCII binary.
-- two's complement binary to ASCII signed decimal.
-- unsigned binary to unsigned ASCII decimal.
-- binary to ASCII hexadecimal.
+- ASCII binary to binary. (RV32E compatible)
+- ASCII unsigned decimal to binary. (RV32E compatible)
+- ASCII signed decimal to two's complement binary. (RV32E compatible)
+- ASCII hexadecimal to binary. (RV32E compatible)
+- binary to ASCII binary. (RV32E compatible)
+- two's complement binary to ASCII signed decimal. (RV32E compatible)
+- unsigned binary to unsigned ASCII decimal. (RV32E compatible)
+- binary to ASCII hexadecimal. (RV32E compatible)
 
 ## Square Root
 - 32-bit integer square root on 32-bit processors.
@@ -61,10 +62,10 @@ These operations support 32-bit numbers on 32-bit architectures and
 - 64-bit LCM of two unsigned 64-bit numbers on 64-bit processors.
 
 ## Bit Operations
-- Count leading zeroes in 32-bit number on 32-bit processors.
-- Count leading zeroes in 64-bit number on 64-bit processors.
-- Count trailing zeroes in 32-bit number on 32-bit processors.
-- Count trailing zeroes in 64-bit number on 64-bit processors.
+- Count leading zeroes in 32-bit number on 32-bit processors. (RV32E compatible)
+- Count leading zeroes in 64-bit number on 64-bit processors. (RV64E compatible)
+- Count trailing zeroes in 32-bit number on 32-bit processors. (RV32E compatible)
+- Count trailing zeroes in 64-bit number on 64-bit processors. (RV64E compatible)
 
 ## Hash Table
 - Double hashing collision resolution
@@ -81,6 +82,12 @@ The TARGET, ARCH, and ABI should be edited in the Makefile,
 and the CPU_BITS constant should be set to match in config.s
 
 A static library, `librvint.a`, will be created to link against.
+
+Only certain routines support RV32E and RV64E. The
+routines that do not currently give compile errors; this will
+be fixed in the future. RV64E is not a focus as I am unaware of
+any real world implementations. The Makefile has a CH32V003 target
+that is an RV32EC_zicsr target.
 
 ## Tests
 
@@ -106,6 +113,7 @@ syscall 64 is write and 93 is exit.
 # This is useful for processors with no B extension. This routine provides the
 # functionality of the ctz instruction (on 32-bit processors) and ctzw (on
 # 64-bit processors).
+# RV32E compatible.
 #
 # input registers:
 # a0 = number
@@ -121,6 +129,7 @@ syscall 64 is write and 93 is exit.
 # This is useful for processors with no B extension. This routine provides the
 # functionality of the clz instruction (on 32-bit processors) and clzw (on
 # 64-bit processors).
+# RV32E compatible.
 #
 # input registers:
 # a0 = number
@@ -137,6 +146,7 @@ syscall 64 is write and 93 is exit.
 # routine: divremu
 #
 # Unsigned integer division without using M extension.
+# RV32E compatible.
 # This division is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
 # It uses the restoring division algorithm. It can be used to emulate
 # the RISC-V M extension divu, remu, divuw, and remuw instructions.
@@ -252,6 +262,7 @@ syscall 64 is write and 93 is exit.
 # routine: to_hex
 #
 # Convert a value in a register to an ASCII hexadecimal string.
+# RV32E compatible
 #
 # input registers:
 # a0 = number to convert to ascii hex
@@ -267,6 +278,7 @@ syscall 64 is write and 93 is exit.
 # routine: to_bin
 #
 # Convert a value in a register to an ASCII binary string.
+# RV32E compatible.
 #
 # input registers:
 # a0 = number to convert to ascii binary
@@ -282,6 +294,7 @@ syscall 64 is write and 93 is exit.
 # routine: to_decu
 #
 # Convert a value in a register to an unsigned ASCII decimal string.
+# RV32E compatible
 #
 # input registers:
 # a0 = unsigned number to convert to ascii unsigned decimal
@@ -309,6 +322,7 @@ syscall 64 is write and 93 is exit.
 #
 # Read an ASCII hexidecimal string into a register. The parsing of the value
 # stops when we read the first non-hex character.
+# RV32E compatible.
 #
 # input registers:
 # a0 = pointer to number to convert from hex, terminated with non-hex char.
@@ -324,6 +338,7 @@ syscall 64 is write and 93 is exit.
 #
 # Read an ASCII binary string into a register. The parsing of the value
 # stops when we read the first non-binary character.
+# RV32E compatible.
 #
 # input registers:
 # a0 = pointer to number to convert from binary, terminated with non-binary char.
@@ -339,6 +354,7 @@ syscall 64 is write and 93 is exit.
 #
 # Read an ASCII unsigned decimal string into a register. The parsing of the value
 # stops when we read the first non-decimal character.
+# RV32E compatible.
 #
 # input registers:
 # a0 = pointer to number to convert from decimal, terminated with non-decimal char.
@@ -354,6 +370,7 @@ syscall 64 is write and 93 is exit.
 #
 # Read an ASCII signed decimal string into a register. The parsing of the value
 # stops when we read the first non-decimal character.
+# RV32E compatible.
 #
 # input registers:
 # a0 = pointer to number to convert from decimal, terminated with non-decimal char.
