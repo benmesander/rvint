@@ -16,12 +16,12 @@ where those two goals clash, I went with concise.
 ### On 32-bit processors
 - 32-bit by 32-bit signed and unsigned division with 32-bit result and remainder. (unsigned division is RV32E compatible)
 - Fast 32-bit unsigned division by 3
-- Fast 32-bit unsigned division by 5 (untested)
+- Fast 32-bit unsigned division by 5
 - Fast 32-bit unsigned division by 10
 ### On 64-bit processors
 - 64-bit by 64-bit signed and unsigned division with 64-bit result and remainder. (unsigned division is RV64E compatible)
 - Fast 64-bit unsigned division by 3
-- Fast 64-bit unsigned division by 5 (untested)
+- Fast 64-bit unsigned division by 5
 - Fast 64-bit unsigned division by 10
 
 ## Multiplication
