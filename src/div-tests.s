@@ -428,6 +428,7 @@ div3u_tests:
 	li	a1, 0x5555555555555555
 	call	div3u_test_case
 .endif
+	j	div5u_tests
 
 # --- div5u tests ---
 div5u_tests:
@@ -503,6 +504,73 @@ div5u_tests:
 	li	a1, 0x3333333333333333
 	call	div5u_test_case
 .endif
+	j	div6u_tests
+
+# --- div6u tests ---
+div6u_tests:
+	# Test 1: 0 / 6 = 0
+	li	a0, 0
+	li	a1, 0
+	call	div6u_test_case
+
+	# Test 2: 5 / 6 = 0
+	li	a0, 5
+	li	a1, 0
+	call	div6u_test_case
+
+	# Test 3: 6 / 6 = 1
+	li	a0, 6
+	li	a1, 1
+	call	div6u_test_case
+
+	# Test 4: 11 / 6 = 1
+	li	a0, 11
+	li	a1, 1
+	call	div6u_test_case
+
+	# Test 5: 123 / 6 = 20
+	li	a0, 123
+	li	a1, 20
+	call	div6u_test_case
+
+	# Test 6: 0x7fffffff / 6 = 0x15555555
+	li	a0, 0x7fffffff
+	li	a1, 0x15555555
+	call	div6u_test_case
+
+	# Test 7: 0x80000000 / 6 = 0x15555555
+	li	a0, 0x80000000
+	li	a1, 0x15555555
+	call	div6u_test_case
+
+	# Test 8: 0xffffffff / 6 = 0x2aaaaaaa
+	li	a0, 0xffffffff
+	li	a1, 0x2aaaaaaa
+	call	div6u_test_case
+
+.if CPU_BITS == 64
+	# 64-bit test cases
+	# Test 9: 0x100000000 / 6 = 0x2aaaaaaa
+	li	a0, 0x100000000
+	li	a1, 0x2aaaaaaa
+	call	div6u_test_case
+
+	# Test 10: 0x7fffffffffffffff / 6 = 0x1555555555555555
+	li	a0, 0x7fffffffffffffff
+	li	a1, 0x1555555555555555
+	call	div6u_test_case
+	
+	# Test 11: 0x8000000000000000 / 6 = 0x1555555555555555
+	li	a0, 0x8000000000000000
+	li	a1, 0x1555555555555555
+	call	div6u_test_case
+
+	# Test 12: 0xffffffffffffffff / 6 = 0x2aaaaaaaaaaaaaaa
+	li	a0, -1
+	li	a1, 0x2aaaaaaaaaaaaaaa
+	call	div6u_test_case
+.endif
+	j	div10u_tests
 
 # --- div10u tests ---
 div10u_tests:
@@ -766,6 +834,105 @@ div5u_fail:
 #
 # a0 = value to divide, a1 = expected result
 #
+div6u_test_case:
+	FRAME	1
+	PUSH	ra, 0
+	# Save input and expected value
+	mv	s0, a0		# input n
+	mv	s1, a1		# expected quotient
+
+	# Print test number
+	la	t3, div6u_test_counter
+	lw	t6, 0(t3)
+	addi	t6, t6, 1
+	sw	t6, 0(t3)
+	mv	a0, t6
+	call	to_decu
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+
+	# Print label
+	la	a1, colon
+	li	a2, 2
+	call	print
+	la	a1, div6u_label
+	li	a2, 7
+	call	print
+
+	# Print input in hex
+.if CPU_BITS == 64
+	li	a1, 8
+.else
+	li	a1, 4
+.endif
+	li	a2, 1
+	mv	a0, s0
+	call	to_hex
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+	la	a1, space
+	li	a2, 1
+	call	print
+	
+	# Call div6u
+	mv	a0, s0
+	call	div6u
+	mv	s2, a0		# result
+
+	# Print result in hex
+.if CPU_BITS == 64
+	li	a1, 8
+.else
+	li	a1, 4
+.endif
+	li	a2, 1
+	mv	a0, s2
+	call	to_hex
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+	la	a1, space
+	li	a2, 1
+	call	print
+	
+	# Check result
+	mv	a0, s2
+	bne	a0, s1, div6u_fail
+
+	# Pass
+	la	a1, pass
+	call	result
+	POP	ra, 0
+	EFRAME	1
+	ret
+
+div6u_fail:
+	# Print expected value in hex
+.if CPU_BITS == 64
+	li	a1, 8
+.else
+	li	a1, 4
+.endif
+	li	a2, 1
+	mv	a0, s1
+	call	to_hex
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+	la	a1, space
+	li	a2, 1
+	call	print
+	la	a1, fail
+	call	result
+	POP	ra, 0
+	EFRAME	1
+	ret
+
+#
+# a0 = value to divide, a1 = expected result
+#
 div10u_test_case:
 	FRAME	1
 	PUSH	ra, 0
@@ -904,5 +1071,9 @@ div3u_label:		.asciz	"div3u "
 div3u_test_counter:	.word	0
 div5u_label:		.asciz	"div5u: "
 div5u_test_counter:	.word	0
+div6u_label:		.asciz	"div6u: "
+div6u_test_counter:	.word	0
 div10u_label:		.asciz	"div10u: "
 div10u_test_counter:	.word	0
+
+
