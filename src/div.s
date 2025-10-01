@@ -288,10 +288,11 @@ div5u:
 # output registers:
 # a0 = quotient (unsigned)
 ################################################################################
-#div6u:
+div6u:
+	# Phase 1: Calculate approximate quotient q.
 	srli	a1, a0, 1	# a1 = (n >> 1)
-	srli	a2, a0, 3	# a2 = (n >> 2)
-	add	a1, a1, a2	# q = (n >> 1) + (n >> 2)
+	srli	a2, a0, 3	# a2 = (n >> 3)
+	add	a1, a1, a2	# q = (n >> 1) + (n >> 3)
 	srli	a2, a1, 4	# a2 = (q >> 4)
 	add	a1, a1, a2	# q = q + (q >> 4)
 	srli	a2, a1, 8	# a2 = (q >> 8)
@@ -304,94 +305,32 @@ div5u:
 .endif
 	srli	a1, a1, 2	# q = q >> 2
 
-	# compute r = n - q*6
+	# Phase 2: Calculate remainder r = n - 6*q
 	slli	a2, a1, 2	# a2 = q * 4
 	slli	a3, a1, 1	# a3 = q * 2
-	add	a2, a2, a3	# a2 = q*6
-	sub	a2, a0, a2	# a2 = r = n - q*6
+	add	a2, a2, a3	# a2 = q * 6
+	sub	a2, a0, a2	# a2 = r = n - q * 6
 
-	# add correction
-	sltiu	a2, a2, 6	# a2 = 1 if a2 < 6 (unsigned), else a2 = 0
-	xori	a2, a2, 1	# flip the result
-	add	a0, a1, a2	# q = q + (r > 5)
-	ret
-#.size	div6u, .-div6u	
-
-# =============================================================================
-# divu6: Unsigned integer division by 6
-#
-# ABI:
-#   Input:      a0 - Unsigned integer dividend (n)
-#   Output:     a0 - Unsigned integer quotient (floor(n/6))
-#   Clobbers:   a1, t0, t1 (scratch registers)
-# =============================================================================
-div6u:	
-divu6:
-
+	# Phase 3: Correction (conditionally compiled)
 .if CPU_BITS == 32
-    # -------------------------------------------------------------------------
-    # 32-bit Implementation (RV32I / RV32E)
-    # -------------------------------------------------------------------------
-    # Step 1: Calculate y = n / 2
-    srli a1, a0, 1          # a1 = y = n >> 1
-    mv   t1, a1              # Save y in t1 for later (remainder calculation)
-
-    # Step 2: Calculate approximate quotient for y / 3
-    # Based on multiplying by approx 4/3 and shifting right by 2.
-    # q_approx is calculated in a0. a1 is used as a temporary.
-    srli a0, t1, 2          # a0 = y >> 2
-    add  a0, a0, t1          # a0 = t = y + (y >> 2)
-    srli a1, a0, 4          # a1 = t >> 4
-    add  a0, a0, a1          # a0 = t = t + (t >> 4)
-    srli a1, a0, 8          # a1 = t >> 8
-    add  a0, a0, a1          # a0 = t = t + (t >> 8)
-    srli a1, a0, 16         # a1 = t >> 16
-    add  a0, a0, a1          # a0 = t = t + (t >> 16)
-    srli a0, a0, 2          # a0 = q_approx = t >> 2
-
-    # Step 3: Correction step
-    # q_final = q_approx + (y - 3*q_approx >= 3)
-    slli a1, a0, 1          # a1 = q_approx * 2
-    add  a1, a1, a0          # a1 = q_approx * 3
-    sub  a1, t1, a1          # a1 = rem = y - (q_approx * 3)
-    li   t0, 2               # Load constant 2 for comparison
-    sltu t0, t0, a1           # t0 = 1 if 2 < rem (i.e., rem >= 3), else 0
-    add  a0, a0, t0          # a0 = q_final = q_approx + correction
-    ret
-.else
-    # -------------------------------------------------------------------------
-    # 64-bit Implementation (RV64I)
-    # -------------------------------------------------------------------------
-    # Step 1: Calculate y = n / 2
-    srli a1, a0, 1          # a1 = y = n >> 1
-    mv   t1, a1              # Save y in t1 for later (remainder calculation)
-
-    # Step 2: Calculate approximate quotient for y / 3
-    # Same logic as 32-bit, but with an extra step for the upper 32 bits.
-    # q_approx is calculated in a0. a1 is used as a temporary.
-    srli a0, t1, 2          # a0 = y >> 2
-    add  a0, a0, t1          # a0 = t = y + (y >> 2)
-    srli a1, a0, 4          # a1 = t >> 4
-    add  a0, a0, a1          # a0 = t = t + (t >> 4)
-    srli a1, a0, 8          # a1 = t >> 8
-    add  a0, a0, a1          # a0 = t = t + (t >> 8)
-    srli a1, a0, 16         # a1 = t >> 16
-    add  a0, a0, a1          # a0 = t = t + (t >> 16)
-    srli a1, a0, 32         # a1 = t >> 32
-    add  a0, a0, a1          # a0 = t = t + (t >> 32)
-    srli a0, a0, 2          # a0 = q_approx = t >> 2
-
-    # Step 3: Correction step
-    # q_final = q_approx + (y - 3*q_approx >= 3)
-    slli a1, a0, 1          # a1 = q_approx * 2
-    add  a1, a1, a0          # a1 = q_approx * 3
-    sub  a1, t1, a1          # a1 = rem = y - (q_approx * 3)
-    li   t0, 2               # Load constant 2 for comparison
-    sltu t0, t0, a1           # t0 = 1 if 2 < rem (i.e., rem >= 3), else 0
-    add  a0, a0, t0          # a0 = q_final = q_approx + correction
-    ret
+	# For 32-bit, the error is at most 1, so a simple check is sufficient.
+	sltiu	a3, a2, 6	# a3 = 1 if r < 6
+	xori	a3, a3, 1	# a3 = 1 if r >= 6
+	add	a0, a1, a3	# q = q + correction
 .endif
-.size	divu6, .-divu6	
+.if CPU_BITS == 64
+	# For 64-bit, we use a fast magic number multiplication to find
+	# the correction amount, which is floor(r * 11 / 64).
+	# This single step is sufficient to produce the correct result.
+	slli	a3, a2, 3	# a3 = r * 8
+	add	a3, a3, a2	# a3 = r * 9
+	slli	a4, a2, 1	# a4 = r * 2
+	add	a3, a3, a4	# a3 = r * 11
+	srli	a3, a3, 6	# a3 = floor((r * 11) / 64) -> correction amount
+	add	a0, a1, a3	# a0 = q_approx + correction
+.endif
+	ret
+.size	div6u, .-div6u
 
 ################################################################################
 # routine: div10u
