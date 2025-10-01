@@ -311,7 +311,7 @@ div6u:
 	add	a2, a2, a3	# a2 = q * 6
 	sub	a2, a0, a2	# a2 = r = n - q * 6
 
-	# Phase 3: Correction (conditionally compiled)
+	# Phase 3: Correction
 .if CPU_BITS == 32
 	# For 32-bit, the error is at most 1, so a simple check is sufficient.
 	sltiu	a3, a2, 6	# a3 = 1 if r < 6
