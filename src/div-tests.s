@@ -428,7 +428,143 @@ div3u_tests:
 	li	a1, 0x5555555555555555
 	call	div3u_test_case
 .endif
-	j	div10u_tests
+
+# --- div5u tests ---
+div5u_tests:
+	# Test 1: 0 / 5 = 0
+	li	a0, 0
+	li	a1, 0
+	call	div5u_test_case
+
+	# Test 2: 1 / 5 = 0
+	li	a0, 1
+	li	a1, 0
+	call	div5u_test_case
+
+	# Test 3: 4 / 5 = 0
+	li	a0, 4
+	li	a1, 0
+	call	div5u_test_case
+
+	# Test 4: 5 / 5 = 1
+	li	a0, 5
+	li	a1, 1
+	call	div5u_test_case
+
+	# Test 5: 9 / 5 = 1
+	li	a0, 9
+	li	a1, 1
+	call	div5u_test_case
+
+	# Test 6: 10 / 5 = 2
+	li	a0, 10
+	li	a1, 2
+	call	div5u_test_case
+
+	# Test 7: 123 / 5 = 24
+	li	a0, 123
+	li	a1, 24
+	call	div5u_test_case
+
+	# Test 8: 0x7fffffff / 5 = 0x19999999
+	li	a0, 0x7fffffff
+	li	a1, 0x19999999
+	call	div5u_test_case
+
+	# Test 9: 0x80000000 / 5 = 0x19999999
+	li	a0, 0x80000000
+	li	a1, 0x19999999
+	call	div5u_test_case
+
+	# Test 10: 0xffffffff / 5 = 0x33333333
+	li	a0, 0xffffffff
+	li	a1, 0x33333333
+	call	div5u_test_case
+
+.if CPU_BITS == 64
+	# 64-bit test cases
+	# Test 11: 0x100000000 / 5 = 0x33333333
+	li	a0, 0x100000000
+	li	a1, 0x33333333
+	call	div5u_test_case
+
+	# Test 12: 0x7fffffffffffffff / 5 = 0x1999999999999999
+	li	a0, 0x7fffffffffffffff
+	li	a1, 0x1999999999999999
+	call	div5u_test_case
+
+	# Test 13: 0x8000000000000000 / 5 = 0x1999999999999999
+	li	a0, 0x8000000000000000
+	li	a1, 0x1999999999999999
+	call	div5u_test_case
+
+	# Test 14: 0xffffffffffffffff / 5 = 0x3333333333333333
+	li	a0, -1
+	li	a1, 0x3333333333333333
+	call	div5u_test_case
+.endif
+
+# --- div10u tests ---
+div10u_tests:
+	# Test 1: 0 / 10 = 0
+	li	a0, 0
+	li	a1, 0
+	call	div10u_test_case
+
+	# Test 2: 9 / 10 = 0
+	li	a0, 9
+	li	a1, 0
+	call	div10u_test_case
+
+	# Test 3: 10 / 10 = 1
+	li	a0, 10
+	li	a1, 1
+	call	div10u_test_case
+
+	# Test 4: 19 / 10 = 1
+	li	a0, 19
+	li	a1, 1
+	call	div10u_test_case
+
+	# Test 5: 123 / 10 = 12
+	li	a0, 123
+	li	a1, 12
+	call	div10u_test_case
+
+	# Test 6: 0x7fffffff / 10 = 214748364
+	li	a0, 0x7fffffff
+	li	a1, 214748364
+	call	div10u_test_case
+
+	# Test 7: 0x80000000 / 10 = 214748364
+	li	a0, 0x80000000
+	li	a1, 214748364
+	call	div10u_test_case
+
+	# Test 8: 0xffffffff / 10 = 429496729
+	li	a0, 0xffffffff
+	li	a1, 429496729
+	call	div10u_test_case
+
+.if CPU_BITS == 64
+	# 64-bit test cases
+	# Test 9: 0x100000000 / 10 = 0x19999999
+	li	a0, 0x100000000
+	li	a1, 0x19999999
+	call	div10u_test_case
+
+	# Test 10: 0x7fffffffffffffff / 10 = 0xcccccccccccccc
+	li	a0, 0x7fffffffffffffff
+	li	a1, 0x0ccccccccccccccc
+	call	div10u_test_case
+	
+	# Test 11: 0xffffffffffffffff / 10 = 0x1999999999999999
+	li	a0, -1
+	li	a1, 0x1999999999999999
+	call	div10u_test_case
+.endif
+
+	j	_end
 
 #
 # a0 = value to divide, a1 = expected result
@@ -528,67 +664,104 @@ div3u_fail:
 	EFRAME 	1
 	ret
 
-# --- div10u tests ---
-div10u_tests:
-	# Test 1: 0 / 10 = 0
-	li	a0, 0
-	li	a1, 0
-	call	div10u_test_case
+#
+# a0 = value to divide, a1 = expected result
+#
+div5u_test_case:
+	FRAME	1
+	PUSH	ra, 0
+	# Save input and expected value
+	mv	s0, a0		# input n
+	mv	s1, a1		# expected quotient
 
-	# Test 2: 9 / 10 = 0
-	li	a0, 9
-	li	a1, 0
-	call	div10u_test_case
+	# Print test number
+	la	t3, div5u_test_counter
+	lw	t6, 0(t3)
+	addi	t6, t6, 1
+	sw	t6, 0(t3)
+	mv	a0, t6
+	call	to_decu
+	mv	a2, a1
+	mv	a1, a0
+	call	print
 
-	# Test 3: 10 / 10 = 1
-	li	a0, 10
-	li	a1, 1
-	call	div10u_test_case
+	# Print label
+	la	a1, colon
+	li	a2, 2
+	call	print
+	la	a1, div5u_label
+	li	a2, 7
+	call	print
 
-	# Test 4: 19 / 10 = 1
-	li	a0, 19
-	li	a1, 1
-	call	div10u_test_case
-
-	# Test 5: 123 / 10 = 12
-	li	a0, 123
-	li	a1, 12
-	call	div10u_test_case
-
-	# Test 6: 0x7fffffff / 10 = 214748364
-	li	a0, 0x7fffffff
-	li	a1, 214748364
-	call	div10u_test_case
-
-	# Test 7: 0x80000000 / 10 = 214748364
-	li	a0, 0x80000000
-	li	a1, 214748364
-	call	div10u_test_case
-
-	# Test 8: 0xffffffff / 10 = 429496729
-	li	a0, 0xffffffff
-	li	a1, 429496729
-	call	div10u_test_case
-
+	# Print input in hex
 .if CPU_BITS == 64
-	# 64-bit test cases
-	# Test 9: 0x100000000 / 10 = 0x19999999
-	li	a0, 0x100000000
-	li	a1, 0x19999999
-	call	div10u_test_case
-
-	# Test 10: 0x7fffffffffffffff / 10 = 0xcccccccccccccc
-	li	a0, 0x7fffffffffffffff
-	li	a1, 0x0ccccccccccccccc
-	call	div10u_test_case
-	
-	# Test 11: 0xffffffffffffffff / 10 = 0x1999999999999999
-	li	a0, -1
-	li	a1, 0x1999999999999999
-	call	div10u_test_case
+	li	a1, 8
+.else
+	li	a1, 4
 .endif
+	li	a2, 1
+	mv	a0, s0
+	call	to_hex
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+	la	a1, space
+	li	a2, 1
+	call	print
+	
+	# Call div5u
+	mv	a0, s0
+	call	div5u
+	mv	s2, a0		# result
 
-	j	div5u_tests
+	# Print result in hex
+.if CPU_BITS == 64
+	li	a1, 8
+.else
+	li	a1, 4
+.endif
+	li	a2, 1
+	mv	a0, s2
+	call	to_hex
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+	la	a1, space
+	li	a2, 1
+	call	print
+	
+	# Check result
+	mv	a0, s2
+	bne	a0, s1, div5u_fail
+
+	# Pass
+	la	a1, pass
+	call	result
+	POP	ra, 0
+	EFRAME	1
+	ret
+
+div5u_fail:
+	# Print expected value in hex
+.if CPU_BITS == 64
+	li	a1, 8
+.else
+	li	a1, 4
+.endif
+	li	a2, 1
+	mv	a0, s1
+	call	to_hex
+	mv	a2, a1
+	mv	a1, a0
+	call	print
+	la	a1, space
+	li	a2, 1
+	call	print
+	la	a1, fail
+	call	result
+	POP	ra, 0
+	EFRAME	1
+	ret
 
 #
 # a0 = value to divide, a1 = expected result
@@ -688,182 +861,6 @@ div10u_fail:
 	POP	ra, 0
 	EFRAME	1
 	ret
-
-# --- div5u tests ---
-div5u_tests:
-	# Test 1: 0 / 5 = 0
-	li	a0, 0
-	li	a1, 0
-	call	div5u_test_case
-
-	# Test 2: 1 / 5 = 0
-	li	a0, 1
-	li	a1, 0
-	call	div5u_test_case
-
-	# Test 3: 4 / 5 = 0
-	li	a0, 4
-	li	a1, 0
-	call	div5u_test_case
-
-	# Test 4: 5 / 5 = 1
-	li	a0, 5
-	li	a1, 1
-	call	div5u_test_case
-
-	# Test 5: 9 / 5 = 1
-	li	a0, 9
-	li	a1, 1
-	call	div5u_test_case
-
-	# Test 6: 10 / 5 = 2
-	li	a0, 10
-	li	a1, 2
-	call	div5u_test_case
-
-	# Test 7: 123 / 5 = 24
-	li	a0, 123
-	li	a1, 24
-	call	div5u_test_case
-
-	# Test 8: 0x7fffffff / 5 = 0x19999999
-	li	a0, 0x7fffffff
-	li	a1, 0x19999999
-	call	div5u_test_case
-
-	# Test 9: 0x80000000 / 5 = 0x19999999
-	li	a0, 0x80000000
-	li	a1, 0x19999999
-	call	div5u_test_case
-
-	# Test 10: 0xffffffff / 5 = 0x33333333
-	li	a0, 0xffffffff
-	li	a1, 0x33333333
-	call	div5u_test_case
-
-.if CPU_BITS == 64
-	# 64-bit test cases
-	# Test 11: 0x100000000 / 5 = 0x33333333
-	li	a0, 0x100000000
-	li	a1, 0x33333333
-	call	div5u_test_case
-
-	# Test 12: 0x7fffffffffffffff / 5 = 0x1999999999999999
-	li	a0, 0x7fffffffffffffff
-	li	a1, 0x1999999999999999
-	call	div5u_test_case
-
-	# Test 13: 0x8000000000000000 / 5 = 0x1999999999999999
-	li	a0, 0x8000000000000000
-	li	a1, 0x1999999999999999
-	call	div5u_test_case
-
-	# Test 14: 0xffffffffffffffff / 5 = 0x3333333333333333
-	li	a0, -1
-	li	a1, 0x3333333333333333
-	call	div5u_test_case
-.endif
-
-	j	_end
-
-#
-# a0 = value to divide, a1 = expected result
-#
-div5u_test_case:
-	FRAME	1
-	PUSH	ra, 0
-	# Save input and expected value
-	mv	s0, a0		# input n
-	mv	s1, a1		# expected quotient
-
-	# Print test number
-	la	t3, div5u_test_counter
-	lw	t6, 0(t3)
-	addi	t6, t6, 1
-	sw	t6, 0(t3)
-	mv	a0, t6
-	call	to_decu
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-
-	# Print label
-	la	a1, colon
-	li	a2, 2
-	call	print
-	la	a1, div5u_label
-	li	a2, 7
-	call	print
-
-	# Print input in hex
-.if CPU_BITS == 64
-	li	a1, 8
-.else
-	li	a1, 4
-.endif
-	li	a2, 1
-	mv	a0, s0
-	call	to_hex
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-	la	a1, space
-	li	a2, 1
-	call	print
-	
-	# Call div5u
-	mv	a0, s0
-	call	div5u
-	mv	s2, a0		# result
-
-	# Print result in hex
-.if CPU_BITS == 64
-	li	a1, 8
-.else
-	li	a1, 4
-.endif
-	li	a2, 1
-	mv	a0, s2
-	call	to_hex
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-	la	a1, space
-	li	a2, 1
-	call	print
-	
-	# Check result
-	mv	a0, s2
-	bne	a0, s1, div5u_fail
-
-	# Pass
-	la	a1, pass
-	call	result
-	POP	ra, 0
-	EFRAME	1
-	ret
-
-div5u_fail:
-	# Print expected value in hex
-.if CPU_BITS == 64
-	li	a1, 8
-.else
-	li	a1, 4
-.endif
-	li	a2, 1
-	mv	a0, s1
-	call	to_hex
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-	la	a1, space
-	li	a2, 1
-	call	print
-	la	a1, fail
-	call	result
-	POP	ra, 0
-	EFRAME	1
-	ret
 _end:
 	
 	li	a0, 0		# exit code
@@ -904,8 +901,8 @@ colon:	.asciz	": "
 .data
 .align 2
 div3u_label:		.asciz	"div3u "
-div10u_label:		.asciz	"div10u: "
 div3u_test_counter:	.word	0
-div10u_test_counter:	.word	0
 div5u_label:		.asciz	"div5u: "
 div5u_test_counter:	.word	0
+div10u_label:		.asciz	"div10u: "
+div10u_test_counter:	.word	0
