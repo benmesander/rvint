@@ -390,30 +390,60 @@ div7u:
 # a0 = quotient (unsigned)
 ################################################################################	
 div9u:
-	srli	a1, a0, 3	# a1 = (n >> 3) XXX: should be (n + (n >> 3)) >> 3 ?
-	sub	a1, a0, a1	# a1 = q = n - (n >> 3)
-	srli	a2, a1, 6	# a2 = (q >> 6)
-	add	a1, a1, a2	# a1 = q = q + (q >> 6)
-	srli	a2, a1, 12	# a2 = (q >> 12)
-	srli	a3, a1, 24	# a3 = (q >> 24)
-	add	a1, a1, a2	# a1 = q + (q >> 12)
-	add	a1, a1, a3	# a1 = q = q + (q >> 12) + (q >> 24)
-	srli	a1, a1, 3	# a1 = (q >> 3)
+        # Phase 1: approximate quotient
+        # Common start: use subtractive refinement style (guarantees under/estimate)
+        srli    a2, a0, 3       # a2 = n >> 3
+        sub	a1, a0, a2	# a1 = q = n - (n >> 3)
+
+        srli    a2, a1, 6	# a2 = q >> 6
+        add     a1, a1, a2	# a1 = q + (q >> 6)
+        srli    a2, a1, 12	# a2 = q >> 12
+        add     a1, a1, a2	# a1 = q + (q >> 12)
+        srli    a2, a1, 24	# a2 = q >> 24
+        add     a1, a1, a2	# a1 = q + (q >> 24)
+
 .if CPU_BITS == 64
-	srli	a2, a1, 48	# a2 = (q >> 48)
-	add	a1, a1, a2	# a1 = q + (q >> 48)
+        # extra refinement for 64-bit (keeps remainder small enough for fixed-point correction)
+        srli    a2, a1, 36	# a2 = q >> 36
+        add     a1, a1, a2	# a2 = q + (q >> 36)
+        srli    a2, a1, 48	# a2 = q >> 48
+        add     a1, a1, a2	# a2 = q + (q >> 48)
 .endif
 
-	slli	a2, a1, 3	# a2 = (q * 8)
-	add	a3, a1, a2	# a3 = (q * 8) + q = (q * 9)
-	sub	a2, a0, a3	# a2 = r = n - (q * 9)
+        srli    a1, a1, 3        # a1 = q = q >> 3
 
-	sltiu	a3, a2, 9	# a3 = 1 if r < 9
-	xori	a3, a3, 1	# a3 = 1 if r >= 9 (r > 8)
-	add	a0, a1, a3	# q = q + (r > 8)
-	ret
+        # Phase 2: remainder r = n - 9*q
+        slli    a2, a1, 3        # a2 = q*8
+        add     a3, a1, a2       # a3 = q*9
+        sub     a2, a0, a3       # a2 = r = n - 9*q
+
+.if CPU_BITS == 32
+        # Phase 3 (RV32): cheap correction
+        # if r >= 9 then q+1 else q
+        sltiu   a3, a2, 9        # a3 = 1 if r < 9
+        xori    a3, a3, 1        # a3 = 1 if r >= 9
+        add     a0, a1, a3       # final quotient in a0
+        ret
+.endif
+
+.if CPU_BITS == 64
+        # Phase 3 (RV64): 
+        # corr = (r * 456) >> 12, where 456 = 256 + 128 + 64 + 8
+        slli    a3, a2, 8        # a3 = r << 8  (r*256)
+        slli    a4, a2, 7        # a4 = r << 7  (r*128)
+        add     a3, a3, a4
+        slli    a4, a2, 6        # a4 = r << 6  (r*64)
+        add     a3, a3, a4
+        slli    a4, a2, 3        # a4 = r << 3  (r*8)
+        add     a3, a3, a4       # a3 = r * 456
+        srli    a3, a3, 12       # a3 = corr = floor(r / 9)
+
+        add     a0, a1, a3       # final quotient
+        ret
+.endif
 
 .size div9u, .-div9u
+
 	
 ################################################################################
 # routine: div10u
