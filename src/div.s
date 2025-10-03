@@ -5,6 +5,8 @@
 .globl div3u
 .globl div5u
 .globl div6u	
+.globl div7u
+.globl div9u	
 .globl div10u
 
 .text
@@ -314,9 +316,9 @@ div6u:
 	# Phase 3: Correction
 .if CPU_BITS == 32
 	# For 32-bit, the error is at most 1, so a simple check is sufficient.
-	sltiu	a3, a2, 6	# a3 = 1 if r < 6
-	xori	a3, a3, 1	# a3 = 1 if r >= 6
-	add	a0, a1, a3	# q = q + correction
+	sltiu	a3, a2, 6	# a3 = 1 if r < 6 
+	xori	a3, a3, 1	# a3 = 1 if r >= 6 (r > 5)
+	add	a0, a1, a3	# q = q + (r > 5)
 .endif
 .if CPU_BITS == 64
 	# For 64-bit, we use a fast magic number multiplication to find
@@ -332,6 +334,87 @@ div6u:
 	ret
 .size	div6u, .-div6u
 
+################################################################################
+# routine: div7u
+#
+# Unsigned fast division by 7 without using M extension.
+# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses a fast multiply/shift/add/correct algorithm.
+# Suitable for use on RV32E architectures.
+#
+# input registers:
+# a0 = unsigned dividend (32 or 64 bits)
+#
+# output registers:
+# a0 = quotient (unsigned)
+################################################################################
+div7u:
+	srli	a1, a0, 1	# a1 = (n >> 1)
+	srli	a2, a0, 4	# a2 = (n >> 4)
+	add	a1, a1, a2	# a1 = q = (n >> 1) + (n >> 4)
+	srli	a2, a1, 6	# a2 = (q >> 6)
+	add	a1, a1, a2	# a1 = q = q + (q >> 6)
+	srli	a2, a1, 12	# a2 = (q >> 12)
+	srli	a3, a1, 24	# a3 = (q >> 24)
+	add	a1, a1, a2	# a1 = q + (q >> 12)
+	add	a1, a1, a3	# a1 = q + (q >> 12) + (q >> 24)
+	srli	a1, a1, 2	# a1 = q >> 2
+.if CPU_BITS == 64
+	srli	a2, a1, 48	# a2 = (q >> 48)
+	add	a1, a1, a2	# a1 = q + (q >> 48)
+.endif
+
+	slli	a2, a1, 3	# (q * 8)
+	sub	a3, a2, a1	# a3 = (q * 7) = (q * 8) - q
+	sub	a2, a0, a3	# a2 = r = n - (q * 7)
+
+	sltiu	a3, a2, 7	# a3 = 1 if r < 7
+	xori	a3, a3, 1	# a3 = 1 if r >= 7 (r > 6)
+	add	a0, a1, a3	# q = q + (r > 6)
+	ret
+	
+.size	div7u, .-div7u
+
+################################################################################
+# routine: div9u
+#
+# Unsigned fast division by 9 without using M extension.
+# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses a fast multiply/shift/add/correct algorithm.
+# Suitable for use on RV32E architectures.
+#
+# input registers:
+# a0 = unsigned dividend (32 or 64 bits)
+#
+# output registers:
+# a0 = quotient (unsigned)
+################################################################################	
+div9u:
+	srli	a1, a0, 3	# a1 = (n >> 3) XXX: should be (n + (n >> 3)) >> 3 ?
+	sub	a1, a0, a1	# a1 = q = n - (n >> 3)
+	srli	a2, a1, 6	# a2 = (q >> 6)
+	add	a1, a1, a2	# a1 = q = q + (q >> 6)
+	srli	a2, a1, 12	# a2 = (q >> 12)
+	srli	a3, a1, 24	# a3 = (q >> 24)
+	add	a1, a1, a2	# a1 = q + (q >> 12)
+	add	a1, a1, a3	# a1 = q = q + (q >> 12) + (q >> 24)
+	srli	a1, a1, 3	# a1 = (q >> 3)
+.if CPU_BITS == 64
+	srli	a2, a1, 48	# a2 = (q >> 48)
+	add	a1, a1, a2	# a1 = q + (q >> 48)
+.endif
+
+	slli	a2, a1, 3	# a2 = (q * 8)
+	add	a3, a1, a2	# a3 = (q * 8) + q = (q * 9)
+	sub	a2, a0, a3	# a2 = r = n - (q * 9)
+
+	sltiu	a3, a2, 9	# a3 = 1 if r < 9
+	xori	a3, a3, 1	# a3 = 1 if r >= 9 (r > 8)
+	add	a0, a1, a3	# q = q + (r > 8)
+	ret
+
+.size div9u, .-div9u
+	
 ################################################################################
 # routine: div10u
 #
@@ -372,7 +455,26 @@ div10u:
 	# Phase 3: Add correction if r >= 10. This logic is robust for both 32 and 64 bits.
 	sltiu	a3, a3, 10	# a3 = 1 if r < 10, else 0
 	xori	a3, a3, 1	# a3 = 1 if r >= 10, else 0 (correction factor)
-	add	a0, a1, a3	# a0 = q + correction
+	add	a0, a1, a3	# a0 = q + (r > 9)
 	ret
 	
 .size div10u, .-div10u
+
+################################################################################
+# routine: div11u
+#
+# Unsigned fast division by 11 without using M extension.
+# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses a fast multiply/shift/add/correct algorithm.
+# Suitable for use on RV32E architectures.
+#
+# input registers:
+# a0 = unsigned dividend (32 or 64 bits)
+#
+# output registers:
+# a0 = quotient (unsigned)
+################################################################################	
+div11u:
+.size div10u, .-div10u	
+
+
