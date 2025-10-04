@@ -525,9 +525,9 @@ div11u:
 
 	srli	a2, a1, 3	# a2 = q = (q >> 3) (note: a1 = q << 3)
 
-	# compute remainder where q*11 = (q << 4) - (q << 1) - q
+	# compute remainder
 	slli	a1, a2, 4
-	slli	a3, a2, 1
+	slli	a3, a2, 2
 	sub	a1, a1, a3
 	sub	a1, a1, a2
 	sub	a1, a0, a1	# a1 = r = n - q8*11
