@@ -8,7 +8,9 @@
 .globl div7u
 .globl div9u	
 .globl div10u
-
+.globl div11u
+.globl div12u
+	
 .text
 
 ################################################################################
@@ -505,6 +507,56 @@ div10u:
 # a0 = quotient (unsigned)
 ################################################################################	
 div11u:
-.size div10u, .-div10u	
+	srli	a1, a0, 1	# a1 = (n >> 1)
+	srli	a2, a0, 2	# a2 = (n >> 2)
+	add	a1, a1, a2	# a1 = (n >> 1) + (n >> 2)
+	srli	a2, a0, 5	# a2 = (n >> 5)
+	sub	a1, a1, a2	# a1 = (n >> 1) + (n >> 2) - (n >> 5)
+	srli	a2, a0, 7	# a2 = (n >> 7)
+	add	a1, a1, a2	# a1 = q = (n >> 1) + (n >> 2) - (n >> 5) + (n >> 7)
+	srli	a2, a1, 10	# a2 = (q >> 10)
+	add	a1, a1, a2	# a1 = q = q + (q >> 10)
+	srli	a2, a1, 20	# a2 = (q >> 20)
+	add	a1, a1, a2	# a1 = q = q + (q >> 20)
+.if CPU_BITS == 64
+	srli	a2, a1, 40	# a2 = (q >> 40)
+	add	a1, a1, a2	# a1 = q = q + (q >> 40)
+.endif	
+
+	srli	a2, a1, 3	# a2 = q = (q >> 3) (note: a1 = q << 3)
+
+	# compute remainder where q*11 = (q << 4) - (q << 1) - q
+	slli	a1, a2, 4
+	slli	a3, a2, 1
+	sub	a1, a1, a3
+	sub	a1, a1, a2
+	sub	a1, a0, a1	# a1 = r = n - q8*11
+
+	sltiu	a3, a1, 11	# a3 = 1 if r < 11, else 0
+	xori	a3, a3, 1	# a3 = 1 if r >= 11, else 0
+	add	a0, a2, a3	# a0 = q = q + correction
+	ret
+
+.size div11u, .-div11u	
 
 
+################################################################################
+# routine: div12u
+#
+# Unsigned fast division by 12 without using M extension.
+# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses a fast multiply/shift/add/correct algorithm.
+# Suitable for use on RV32E architectures.
+#
+# input registers:
+# a0 = unsigned dividend (32 or 64 bits)
+#
+# output registers:
+# a0 = quotient (unsigned)
+################################################################################	
+div12u:
+	
+
+
+
+.size div12u, .-div12u	
