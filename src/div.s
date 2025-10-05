@@ -577,7 +577,7 @@ div12u:
 	sub	a2, a0, a2	# a1 = r = n - q*12
 
 	# correct approximate quotient
-	slti	a3, a1, 12	# a3 = 1 if r < 12, else 0
+	sltiu	a3, a1, 12	# a3 = 1 if r < 12, else 0
 	xori	a3, a3, 1	# a3 = 1 if r >= 12, else 0
 	add	a0, a2, a3	# a0 = q = q + correction
 	ret
@@ -646,4 +646,101 @@ div13u:
 # a0 = quotient (unsigned)
 ################################################################################	
 div100u:
+	# estimate quotient
+	srli	a1, a0, 1	# a1 = (n >> 1)
+	srli	a2, a0, 3	# a2 = (n >> 3)
+	add	a1, a1, a2	# a1 = (n >> 1) + (n >> 3)
+	srli	a2, a0, 6	# a2 = (n >> 6)
+	add	a1, a1, a2 	# a1 = (n >> 1) + (n >> 3) + (n >> 6)
+	srli	a2, a0, 10	# a2 = (n >> 10)
+	sub	a1, a1, a2	# a1 = (n >> 1) + (n >> 3) + (n >> 6) - (n >> 10)
+	srli	a2, a0, 12	# a2 = (n >> 12)
+	add	a1, a1, a2	# a1 = (n >> 1) + (n >> 3) + (n >> 6) - (n >> 10) +
+				#      (n >> 12)
+	srli	a2, a0, 13	# a2 = (n >> 13)
+	add	a1, a1, a2	# a1 = (n >> 1) + (n >> 3) + (n >> 6) - (n >> 10) +
+				#      (n >> 12) + (n >> 13)
+	srli	a2, a0, 15	# a2 = (n >> 16)
+	sub	a1, a1, a2	# a1 = (n >> 1) + (n >> 3) + (n >> 6) - (n >> 10) +
+				#      (n >> 12) + (n >> 13) - (n >> 16)
+	srli	a2, a1, 20	# a2 = (q >> 20)
+	add	a1, a1, a2	# a1 = q + (q >> 20)
+.if CPU_BITS == 64
+	# XXX: extend computation to 64 bits
+.endif	
+	srli	a1, a1, 6	# a1 = q = (q >> 6)
+
+	# compute remainder from estimated quotient
+	# n*100 = (n << 6) + (n << 5)) + (n << 2)
+	slli	a2, a1, 6
+	slli	a3, a1, 5
+	add	a2, a2, a3
+	slli	a3, a1, 2
+	add	a2, a2, a3	# a2 = q*100
+	sub	a2, a0, a2	# a2 = r = n - q*100
+
+	# compute correction to estimated quotient
+	sltiu	a3, a1, 100	# a3 = 1 if r < 100, else 0
+	xori	a3, a3, 1	# a3 = 1 if r >= 100, else 0
+	add	a0, a2, a3	# a0 = q = q + correction
+	ret
+
 .size div100u, .-div100u	
+
+################################################################################
+# routine: div1000u
+#
+# Unsigned fast division by 1000 without using M extension.
+# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses a fast multiply/shift/add/correct algorithm.
+# Suitable for use on RV32E architectures.
+#
+# input registers:
+# a0 = unsigned dividend (32 or 64 bits)
+#
+# output registers:
+# a0 = quotient (unsigned)
+################################################################################	
+div1000u:
+	# estimate quotient
+	srli	a1, a0, 1	# a1 = q = (n >> 1)
+	srli	a2, a0, 7	# a2 = t = (n >> 7)
+	srli	a3, a0, 8	# a3 = (n >> 8)
+	add	a2, a2, a3	# a2 = t = (n >> 7) + (n >> 8)
+	srli	a3, a0, 12	# a3 = (n >> 12)
+	add	a2, a2, a3	# a2 = t = (n >> 7) + (n >> 8) + (n >> 12)
+	add	a1, a1, a2	# a1 = q = (n >> 1) + t
+	srli	a3, a0, 15	# a3 = (n >> 15)
+	add	a1, a1, a3	# a1 = q = (n >> 1) + t + (n >> 15)
+	srli	a3, a2, 11	# a3 = (t >> 11)
+	add	a1, a1, a3	# a1 = q = (n >> 1) + t + (n >> 15) + (t >> 11)
+	srli	a3, a2, 14	# a3 = (t >> 14)
+	add	a1, a1, a3	# a1 = q = (n >> 1) + t + (n >> 15) + (t >> 11) + (t >> 14)
+.if CPU_BITS == 64
+	# XXX: extend computation to 64 bits
+.endif
+	srli	a1, a1, 9	# a1 = q = q >> 9
+
+	# compute remainder n - q*1000
+
+	# mul by 100
+	slli	a2, a1, 6
+	slli	a3, a1, 5
+	add	a2, a2, a3
+	slli	a3, a1, 2
+	add	a2, a2, a3	# a2 = q*100
+
+	# mul by 10
+	slli	a3, a2, 3
+	slli	a4, a2, 1
+	add	a2, a3, a4	# a2 = q*1000
+
+	sub	a2, a0, a2	# a2 = r = n - q*1000
+
+	# compute correction to estimated quotient
+	sltiu	a3, a1, 1000	# a3 = 1 if r < 1000, else 0
+	xori	a3, a3, 1	# a3 = 1 if r >= 1000, else 0
+	add	a0, a2, a3	# a0 = q = q + correction
+	ret
+
+.size div1000u, .-div1000u
