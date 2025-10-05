@@ -10,6 +10,10 @@
 .globl div10u
 .globl div11u
 .globl div12u
+.globl div13u
+.globl div100u
+.globl div1000u
+.globl div3
 	
 .text
 
@@ -744,3 +748,48 @@ div1000u:
 	ret
 
 .size div1000u, .-div1000u
+
+################################################################################
+# routine: div3
+#
+# Unsigned fast division by 3 without using M extension.
+# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses a fast multiply/shift/add/correct algorithm.
+# Suitable for use on RV32E architectures.
+#
+# input registers:
+# a0 = unsigned dividend (32 or 64 bits)
+#
+# output registers:
+# a0 = quotient (unsigned)
+################################################################################
+div3:
+	# estimate quotient
+	# add 2 if n < 0
+.if CPU_BITS == 32
+	srai	a1, a0, 31
+.else
+	srai	a1, a0, 63
+.endif	
+	andi	a1, a1, 2
+	add	a0, a0, a1
+
+	srai	a1, a0, 2	# a1 = q = (n >> 2)
+	srai	a2, a0, 4	# a2 = (n >> 4)
+	add	a1, a1, a2 	# a1 = q = (n >> 2) + (n >> 4)
+	srai	a2, a1, 4	# a2 = (q >> 4)
+	add	a1, a1, a2	# a1 = q = q + (q >> 4)
+	srai	a2, a1, 8	# a2 = (q >> 8)
+	add	a1, a1, a2	# a1 = q = q + (q >> 8)
+	srai	a2, a1, 16	# a2 = (q >> 16)
+	add	a1, a1, a2	# a1 = q = q + (q >> 16)
+.if CPU_BITS == 64
+	# XXX: continue approximation for 64 bits
+.endif	
+
+	# compute remainder
+	
+
+
+
+.size div3, .-div3
