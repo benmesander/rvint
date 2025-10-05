@@ -539,7 +539,6 @@ div11u:
 
 .size div11u, .-div11u	
 
-
 ################################################################################
 # routine: div12u
 #
@@ -555,8 +554,96 @@ div11u:
 # a0 = quotient (unsigned)
 ################################################################################	
 div12u:
-	
+	# compute approximate quotient
+	srli	a1, a0, 1	# a1 = (n >> 1)
+	srli	a2, a0, 3	# a2 = (n >> 3)
+	add	a1, a1, a2	# a1 = q = (n >> 1) + (n >> 3)
+	srli	a2, a1, 4	# a2 = (q >> 4)
+	add	a1, a1, a2	# a1 = q = q + (q >> 4)
+	srli	a2, a1, 8	# a2 = (q >> 8)
+	add	a1, a1, a2	# a1 = q = q + (q >> 8)
+	srli	a2, a1, 16	# a2 = (q >> 16)
+	add	a1, a1, a2	# a1 = q = q + (q >> 16)
+.if CPU_BITS == 64
+	srli	a2, a1, 32	# a2 = (q >> 32)
+	add	a1, a1, a2	# a1 = q + (q >> 32)
+.endif	
+	srli	a1, a1, 3
 
+	# compute remainder
+	slli	a2, a1, 1
+	add	a2, a2, a1
+	slli	a2, a2, 2	# a2 = q*12
+	sub	a2, a0, a2	# a1 = r = n - q*12
 
+	# correct approximate quotient
+	slti	a3, a1, 12	# a3 = 1 if r < 12, else 0
+	xori	a3, a3, 1	# a3 = 1 if r >= 12, else 0
+	add	a0, a2, a3	# a0 = q = q + correction
+	ret
 
 .size div12u, .-div12u	
+
+################################################################################
+# routine: div13u
+#
+# Unsigned fast division by 13 without using M extension.
+# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses a fast multiply/shift/add/correct algorithm.
+# Suitable for use on RV32E architectures.
+#
+# input registers:
+# a0 = unsigned dividend (32 or 64 bits)
+#
+# output registers:
+# a0 = quotient (unsigned)
+################################################################################	
+div13u:
+	# estimate quotient
+	srli	a1, a0, 1	# a1 = (n >> 1)
+	srli	a2, a0, 4	# a2 = (n >> 4)
+	add	a1, a1, a2	# a1 = q = (n >> 1) + (n >> 4)
+	srli	a2, a1, 4	# a2 = (q >> 4) 
+	add	a1, a1, a2	# a1 = q + (q >> 4)
+	srli	a2, a2, 1	# a2 = (q >> 5) parallel addition
+	add	a1, a1, a2	# a1 = q + (q >> 4) + (q >> 5)
+	srli	a2, a1, 12	# a2 = (q >> 12)
+	add	a1, a1, a2	# a1 = q + (q >> 12)
+	srli	a2, a2, 12	# a2 = (q >> 24) parallel addition
+	add	a2, a1, a2	# a1 = q + (q >> 12) + (q >> 24)
+.if CPU_BITS == 64
+	# xxx: refine quotient for 64 bit values
+.endif
+	srli	a1, a1, 3	# a1 = q = q >> 3
+
+	# compute remainder
+	slli	a2, a1, 4
+	slli	a3, a1, 2
+	sub	a2, a2, a3
+	add	a2, a2, a1	# a2 = q*13
+	sub	a2, a0, a2	# a2 = r = n - q*13
+
+	# correct estimated quotient
+	slti	a3, a1, 13	# a3 = 1 if r < 13, else 0
+	xori	a3, a3, 1	# a3 = 1 if r >= 13, else 0
+	add	a0, a2, a3	# a0 = q = q + correction
+	ret
+
+.size div13u, .-div13u	
+
+################################################################################
+# routine: div100u
+#
+# Unsigned fast division by 100 without using M extension.
+# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses a fast multiply/shift/add/correct algorithm.
+# Suitable for use on RV32E architectures.
+#
+# input registers:
+# a0 = unsigned dividend (32 or 64 bits)
+#
+# output registers:
+# a0 = quotient (unsigned)
+################################################################################	
+div100u:
+.size div100u, .-div100u	
