@@ -16,6 +16,15 @@
 # Load values into registers.
 # Call the function under test.
 
+	# straight line division tests
+	# dividend, divisor, expected quotient, actual quotient
+	# 32 or 64 bits
+	# test number counter
+	# test name
+	# output format:
+	# 1: div10u: 0x0000000000000000 0x0000000000000000 pass
+	# 2: div10u: 0x0000000000000009 0x0000000000000000 fail 0x0000000000000007
+
 .globl _start
 
 _start:
