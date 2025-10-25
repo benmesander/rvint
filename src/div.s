@@ -14,6 +14,8 @@
 .globl div100u
 .globl div1000u
 .globl div3
+.globl div3u_test
+.globl div3_test
 	
 .text
 
@@ -37,7 +39,7 @@ divremu:
 	beqz	a1, divremu_zero
 
 	mv	a2, a0		# Use a2 for the dividend; it will become the quotient.
-	mv	a0, zero		# a0 will hold the remainder, initialized to 0.
+	mv	a0, zero	# a0 will hold the remainder, initialized to 0.
 	li	a3, CPU_BITS	# Use a3 as the loop counter.
 
 divremu_loop:
@@ -752,7 +754,7 @@ div1000u:
 ################################################################################
 # routine: div3
 #
-# Unsigned fast division by 3 without using M extension.
+# Signed fast division by 3 without using M extension.
 # This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
 # It uses a fast multiply/shift/add/correct algorithm.
 # Suitable for use on RV32E architectures.
@@ -793,3 +795,80 @@ div3:
 
 
 .size div3, .-div3
+
+################################################################################
+# routine: div3_test
+#
+# Fast test for divisibility by three.
+# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses a fast multiply/shift/add/correct algorithm.
+# Suitable for use on RV32E architectures.
+#
+# input registers:
+# a0 = number to test for divisibility by three
+#
+# output registers:
+# a0 = 0 if divisible by three, 1 = not divisible by three
+################################################################################
+
+div3_test:
+	# --- compute absolute value ---
+	srai    a1, a0, CPU_BITS-1     # a1 = sign mask: 0x0 for pos, 0xFF.. for neg
+	xor     a0, a0, a1             # flip bits if negative
+	sub     a0, a0, a1             # subtract sign mask → abs(a0)
+
+	# --- fall through ---
+
+################################################################################
+# routine: div3u_test
+#
+# Fast test for unsigned divisibility by three.
+# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
+# It uses a fast multiply/shift/add/correct algorithm.
+# Suitable for use on RV32E architectures.
+#
+# input registers:
+# a0 = number to test for divisibility by three
+#
+# output registers:
+# a0 = 0 if divisible by three, 1 = not divisible by three
+################################################################################
+
+div3u_test:
+	# a0 = n
+	# returns a0 = 0 if divisible by 3, 1 otherwise
+
+.if CPU_BITS == 64
+	# Fold upper 32 bits into lower 32 bits
+	srli    a1, a0, 32
+	add     a0, a0, a1
+.endif
+
+	# Fold 32 -> 16 bits
+	srli    a1, a0, 16
+	add     a0, a0, a1
+
+	# Fold 16 -> 8 bits
+	srli    a1, a0, 8
+	add     a0, a0, a1
+
+	# Keep only low 8 bits (0..255)
+	andi    a0, a0, 0xFF
+
+	# --- Branchless remainder reduction ---
+	# Generate mask: a1 = 1 if a0 ≥ 3
+	sltiu   a1, a0, 3      # a1 = 1 if a0 < 3
+	xori    a1, a1, 1      # a1 = 1 if a0 ≥ 3
+
+	# Subtract 3 using mask (max 3 subtracts needed)
+	sub     a0, a0, a1     # subtract 1 if ≥ 3
+	sub     a0, a0, a1     # subtract 2 if ≥ 3
+	sub     a0, a0, a1     # subtract 3 if ≥ 3
+
+	# --- Final test: remainder != 0 -> a0 = 1, else 0 ---
+	sltu    a0, x0, a0
+
+	ret	
+
+
+.size div3_test, .-div3_test
