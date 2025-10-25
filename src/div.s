@@ -812,12 +812,12 @@ div3:
 ################################################################################
 
 div3_test:
-	# --- compute absolute value ---
+	# compute absolute value
 	srai    a1, a0, CPU_BITS-1     # a1 = sign mask: 0x0 for pos, 0xFF.. for neg
 	xor     a0, a0, a1             # flip bits if negative
 	sub     a0, a0, a1             # subtract sign mask → abs(a0)
 
-	# --- fall through ---
+	#### INTENTIONAL FALL THROUGH ####
 
 ################################################################################
 # routine: div3u_test
@@ -855,20 +855,18 @@ div3u_test:
 	# Keep only low 8 bits (0..255)
 	andi    a0, a0, 0xFF
 
-	# --- Branchless remainder reduction ---
-	# Generate mask: a1 = 1 if a0 ≥ 3
+	# Generate mask: a1 = 1 if a0 >= 3
 	sltiu   a1, a0, 3      # a1 = 1 if a0 < 3
-	xori    a1, a1, 1      # a1 = 1 if a0 ≥ 3
+	xori    a1, a1, 1      # a1 = 1 if a0 >= 3
 
 	# Subtract 3 using mask (max 3 subtracts needed)
-	sub     a0, a0, a1     # subtract 1 if ≥ 3
-	sub     a0, a0, a1     # subtract 2 if ≥ 3
-	sub     a0, a0, a1     # subtract 3 if ≥ 3
+	sub     a0, a0, a1     # subtract 1 if >= 3
+	sub     a0, a0, a1     # subtract 2 if >= 3
+	sub     a0, a0, a1     # subtract 3 if >= 3
 
 	# --- Final test: remainder != 0 -> a0 = 1, else 0 ---
-	sltu    a0, x0, a0
+	sltu    a0, zero, a0
 
 	ret	
-
 
 .size div3_test, .-div3_test
