@@ -90,6 +90,7 @@ These operations support 32-bit numbers on 32-bit architectures and
 - Count trailing zeroes in 64-bit number on 64-bit processors. (RV64E compatible)
 
 ## Hash Table
+- WARNING - UNFINISHED
 - Double hashing collision resolution
 - Linear probing with tombstone deletion
 - Configurable table size and entry format
