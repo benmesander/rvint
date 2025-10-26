@@ -815,7 +815,7 @@ div3_test:
 	# compute absolute value
 	srai    a1, a0, CPU_BITS-1     # a1 = sign mask: 0x0 for pos, 0xFF.. for neg
 	xor     a0, a0, a1             # flip bits if negative
-	sub     a0, a0, a1             # subtract sign mask → abs(a0)
+	sub     a0, a0, a1             # subtract sign mask -> abs(a0)
 
 	#### INTENTIONAL FALL THROUGH ####
 
