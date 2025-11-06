@@ -26,9 +26,8 @@ where those two goals clash, I went with concise.
 - Fast 32-bit unsigned division by 13 (no tests)
 - Fast 32-bit unsigned division by 100 (no tests)
 - Fast 32-bit unsigned division by 1000 (no tests)
-- Fast 32-bit signed division by 3 (unfinished, no tests)
-- Fast 32-bit signed for signed divisibility by 3 (no tests)
-- Fast 32-bit signed for unsigned divisibility by 3 (no tests)
+- Fast 32-bit signed division by 3 (no tests)
+- Fast 32-bit signed division by 5 (no tests)
 ### On 64-bit processors
 - 64-bit by 64-bit signed and unsigned division with 64-bit result and remainder. (unsigned division is RV64E compatible)
 - Fast 64-bit unsigned division by 3
@@ -39,12 +38,11 @@ where those two goals clash, I went with concise.
 - Fast 64-bit unsigned division by 10
 - Fast 64-bit unsigned division by 11 (no tests)
 - Fast 64-bit unsigned division by 12 (no tests)
-- Fast 64-bit unsigned division by 13 (unfinished, no tests)
-- Fast 64-bit unsigned division by 100 (unfinished, no tests)
-- Fast 64-bit unsigned division by 1000 (unfinished, no tests)
-- Fast 64-bit signed division by 3 (unfinished, no tests)
-- Fast 64-bit signed for signed divisibility by 3 (no tests)
-- Fast 64-bit signed for unsigned divisibility by 3 (no tests)
+- Fast 64-bit unsigned division by 13 (no tests)
+- Fast 64-bit unsigned division by 100 (no tests)
+- Fast 64-bit unsigned division by 1000 (no tests)
+- Fast 64-bit signed division by 3 (no tests)
+- Fast 32-bit signed division by 5 (no tests)
 
 ## Multiplication
 
@@ -321,7 +319,7 @@ syscall 64 is write and 93 is exit.
 ################################################################################
 
 ################################################################################
-# routine: div13u WARNING - NO TESTS, 64-BIT PATH UNFINISHED
+# routine: div13u WARNING - NO TESTS
 #
 # Unsigned fast division by 13 without using M extension.
 # This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
@@ -337,7 +335,7 @@ syscall 64 is write and 93 is exit.
 
 
 ################################################################################
-# routine: div100u WARNING - NO TESTS, 64-BIT PATH UNFINISHED
+# routine: div100u WARNING - NO TESTS
 #
 # Unsigned fast division by 100 without using M extension.
 # This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
@@ -353,7 +351,7 @@ syscall 64 is write and 93 is exit.
 
 
 ################################################################################
-# routine: div1000u WARNING - NO TESTS, 64-BIT PATH UNFINISHED
+# routine: div1000u WARNING - NO TESTS
 #
 # Unsigned fast division by 1000 without using M extension.
 # This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
@@ -368,7 +366,7 @@ syscall 64 is write and 93 is exit.
 ################################################################################	
 
 ################################################################################
-# routine: div3 WARNING - UNFINISHED
+# routine: div3 WARNING - NO TESTS
 #
 # Signed fast division by 3 without using M extension.
 # This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
@@ -376,42 +374,26 @@ syscall 64 is write and 93 is exit.
 # Suitable for use on RV32E architectures.
 #
 # input registers:
-# a0 = unsigned dividend (32 or 64 bits)
+# a0 = signed dividend (32 or 64 bits)
 #
 # output registers:
-# a0 = quotient (unsigned)
+# a0 = quotient (signed)
 ################################################################################
 
 ################################################################################
-# routine: div3_test WARNING - NO TESTS
+# routine: div5 WARNING - NO TESTS
 #
-# Fast test for divisibility by three.
+# Signed fast division by 5 without using M extension.
 # This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
 # It uses a fast multiply/shift/add/correct algorithm.
 # Suitable for use on RV32E architectures.
 #
 # input registers:
-# a0 = number to test for divisibility by three
+# a0 = signed dividend (32 or 64 bits)
 #
 # output registers:
-# a0 = 0 if divisible by three, 1 = not divisible by three
+# a0 = quotient (signed)
 ################################################################################
-
-################################################################################
-# routine: div3u_test WARNING - NO TESTS
-#
-# Fast test for unsigned divisibility by three.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
-#
-# input registers:
-# a0 = number to test for divisibility by three
-#
-# output registers:
-# a0 = 0 if divisible by three, 1 = not divisible by three
-################################################################################
-
 ```
 
 ### Algorithms: [gcd.s](src/gcd.s)
