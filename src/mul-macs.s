@@ -1,0 +1,35 @@
+
+
+.macro mul3 src dest scratch0
+.if HAS_ZBA
+	sh1add	\dest, \src, \src
+.else	
+	slli	\scratch0, \src, 1
+	add	\dest, \scratch0, \src
+.endif
+.endm
+
+.macro mul6 src dest scratch0
+.if HAS_ZBA
+	sh1add	\dest, \src, \src
+	slli	\dest, \dest, 1
+.else
+	slli	\dest, \src, 1
+	slli	\scratch0, \src, 2
+	add	\dest, \dest, \scratch0
+
+.endif
+.endm	
+
+.macro mul11 src dest scratch0
+.if HAS_ZBA
+	sh3add	\dest, \src, \src
+	sh1add	\dest, \src, \dest
+.else
+	slli	\scratch0, \src, 2
+	add	\scratch0, \scratch0, \src
+	slli	\scratch0, \scratch0, 1
+	add	\dest, \scratch0, \src
+.endif
+.endm
+	

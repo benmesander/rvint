@@ -37,7 +37,7 @@ all: $(EXES) $(LIB)
 %.o: %.s
 	$(CC) $(CFLAGS) -c $< -o $@
 
-div.o:	div.s config.s
+div.o:	div.s config.s mul-macs.s
 mul.o:	mul.s config.s
 io.o:	io.s config.s
 sqrt.o:	sqrt.s config.s

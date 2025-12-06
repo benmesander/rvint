@@ -1,4 +1,5 @@
 .include "config.s"
+.include "mul-macs.s"
 
 .globl divremu
 .globl divrem
@@ -372,43 +373,22 @@ div5u:
 	srli	a1, a1, 2	# a1 = q = q >> 2 (Final approximate quotient)
 
 	# Calculate r = n - q*5
+.if HAS_ZBA
+	sh2add	a2, a1, a1
+.else
 	slli	a2, a1, 2	# a2 = q*4
 	add	a2, a2, a1	# a2 = q*4 + q = q*5
+.endif
 	sub	a2, a0, a2	# a2 = r = n - q*5
 
 	# Add correction q + (7*r >> 5)
 	slli	a3, a2, 3	# a3 = r*8
-	sub	a2, a3, a2	# a2 = (r*8) - r = r*7
-	srli	a2, a2, 5	# a2 = 7*r >> 5
-	add	a0, a1, a2	# a0 = q + (7*r >> 5)
+	sub	a3, a3, a2	# a2 = (r*8) - r = r*7
+	srli	a3, a2, 5	# a2 = 7*r >> 5
+	add	a0, a1, a3	# a0 = q + (7*r >> 5)
 	ret
 .size div5u, .-div5u
 	
-.if 0 == 1
-div5u:
-        # Estimate quotient: q_est = (n >> 3) + (n >> 4)
-        # This is a fast, XLEN-agnostic under-estimate (n * 0.1875)
-        srli    a1, a0, 3               # a1 = n >> 3
-        srli    a2, a0, 4               # a2 = n >> 4
-        add     a1, a1, a2              # a1 = q_est
-
-        # Calculate remainder: r = n - q*5
-        slli    a2, a1, 2               # a2 = q_est * 4
-        add     a2, a2, a1              # a2 = q_est * 5
-        sub     a2, a0, a2              # a2 = r = n - q_est*5
-
-        # Add correction: q + (7*r >> 5)
-        slli    a3, a2, 3               # a3 = r * 8
-        sub     a2, a3, a2              # a2 = (r * 8) - r = r * 7
-        srli    a2, a2, 5               # a2 = (r * 7) >> 5
-        add     a0, a1, a2              # a0 = q_est + correction
-
-        ret
-
-.size div5u, .-div5u
-.endif
-
-
 ################################################################################
 # routine: div6u
 #
@@ -441,9 +421,7 @@ div6u:
 	srli	a1, a1, 2	# q = q >> 2
 
 	# Phase 2: Calculate remainder r = n - 6*q
-	slli	a2, a1, 2	# a2 = q * 4
-	slli	a3, a1, 1	# a3 = q * 2
-	add	a2, a2, a3	# a2 = q * 6
+	mul6	a1, a2, a3		# a2 = q * 6
 	sub	a2, a0, a2	# a2 = r = n - q * 6
 
 	# Phase 3: Correction
@@ -456,10 +434,7 @@ div6u:
 	# For 64-bit, we use a fast magic number multiplication to find
 	# the correction amount, which is floor(r * 11 / 64).
 	# This single step is sufficient to produce the correct result.
-	slli	a3, a2, 3	# a3 = r * 8
-	add	a3, a3, a2	# a3 = r * 9
-	slli	a4, a2, 1	# a4 = r * 2
-	add	a3, a3, a4	# a3 = r * 11
+	mul11	a2, a3, a3
 	srli	a3, a3, 6	# a3 = floor((r * 11) / 64) -> correction amount
 .endif
 	add	a0, a1, a3	# a0 = q_approx + correction
@@ -487,14 +462,14 @@ div7u:
 	srli	a2, a1, 6	# a2 = (q >> 6)
 	add	a1, a1, a2	# a1 = q = q + (q >> 6)
 	srli	a2, a1, 12	# a2 = (q >> 12)
-	srli	a3, a1, 24	# a3 = (q >> 24)
-	add	a1, a1, a2	# a1 = q + (q >> 12)
-	add	a1, a1, a3	# a1 = q + (q >> 12) + (q >> 24)
-	srli	a1, a1, 2	# a1 = q >> 2
+	add	a1, a1, a2
+	srli	a2, a1, 24	# a2 = (q >> 24)
+	add	a1, a1, a2	# a1 = q + (q >> 24)
 .if CPU_BITS == 64
 	srli	a2, a1, 48	# a2 = (q >> 48)
 	add	a1, a1, a2	# a1 = q + (q >> 48)
 .endif
+	srli	a1, a1, 2	# a1 = q >> 2
 
 	slli	a2, a1, 3	# (q * 8)
 	sub	a3, a2, a1	# a3 = (q * 7) = (q * 8) - q
@@ -510,65 +485,66 @@ div7u:
 ################################################################################
 # routine: div9u
 #
-# Unsigned fast division by 9 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
+# Unsigned fast division by 9.
+# Approximation: q = n * (1/9)
+# Series: 1/9 = (7/8) * (1/8) * (1 + 1/64 + 1/4096...)
 #
-# input registers:
-# a0 = unsigned dividend (32 or 64 bits)
+# RV32E Compatible.
 #
-# output registers:
-# a0 = quotient (unsigned)
-################################################################################	
+# input:  a0 = dividend
+# output: a0 = quotient
+################################################################################    
 div9u:
-        # Phase 1: approximate quotient
-        # Common start: use subtractive refinement style (guarantees under/estimate)
+        # ----------------------------------------------------------------------
+        # Phase 1: Approximate Quotient
+        # Target: q_accum = n * (8/9)
+        # ----------------------------------------------------------------------
+        # Start with n * (7/8)
         srli    a2, a0, 3       # a2 = n >> 3
-        sub	a1, a0, a2	# a1 = q = n - (n >> 3)
+        sub     a1, a0, a2      # a1 = n - (n >> 3) = n * 0.875
 
-        srli    a2, a1, 6	# a2 = q >> 6
-        add     a1, a1, a2	# a1 = q + (q >> 6)
-        srli    a2, a1, 12	# a2 = q >> 12
-        add     a1, a1, a2	# a1 = q + (q >> 12)
-        srli    a2, a1, 24	# a2 = q >> 24
-        add     a1, a1, a2	# a1 = q + (q >> 24)
+        # Series expansion: Multiply by (1 + 1/64 + 1/4096...)
+        srli    a2, a1, 6
+        add     a1, a1, a2      # q += q >> 6
 
-.if CPU_BITS == 64
-        # extra refinement for 64-bit (keeps remainder small enough for fixed-point correction)
-        srli    a2, a1, 36	# a2 = q >> 36
-        add     a1, a1, a2	# a2 = q + (q >> 36)
-        srli    a2, a1, 48	# a2 = q >> 48
-        add     a1, a1, a2	# a2 = q + (q >> 48)
-.endif
+        srli    a2, a1, 12
+        add     a1, a1, a2      # q += q >> 12
 
-        srli    a1, a1, 3        # a1 = q = q >> 3
-
-        # Phase 2: remainder r = n - 9*q
-        slli    a2, a1, 3        # a2 = q*8
-        add     a3, a1, a2       # a3 = q*9
-        sub     a2, a0, a3       # a2 = r = n - 9*q
-
-.if CPU_BITS == 32
-        # Phase 3 (RV32): correction
-        # if r >= 9 then q+1 else q
-        sltiu   a3, a2, 9        # a3 = 1 if r < 9
-        xori    a3, a3, 1        # a3 = 1 if r >= 9
-.endif
+        srli    a2, a1, 24
+        add     a1, a1, a2      # q += q >> 24
 
 .if CPU_BITS == 64
-        # Phase 3 (RV64):  correction
-	# corr = floor(r/9) using (r * 5) >> 4
-	slli	a3, a2, 2	# a3 = r * 4
-	add	a3, a3, a2	# a3 = r * 5
-	srli	a3, a3, 4	# a3 = (r * 5) >> 4
+        srli    a2, a1, 48
+        add     a1, a1, a2      # q += q >> 48
 .endif
 
-        add     a0, a1, a3       # final quotient
-	ret
+        # Final adjustment: q = (n * 8/9) / 8 = n / 9
+        srli    a1, a1, 3       # a1 = q_approx
 
+        # ----------------------------------------------------------------------
+        # Phase 2: Remainder (r = n - 9q)
+        # ----------------------------------------------------------------------
+.if HAS_ZBA
+        # sh3add rd, rs1, rs2 -> rd = rs2 + (rs1 << 3)
+        sh3add  a3, a1, a1      # a3 = a1 + 8*a1 = 9*q
+.else    
+        slli    a2, a1, 3       # a2 = 8*q
+        add     a3, a1, a2      # a3 = 9*q
+.endif
+        sub     a2, a0, a3      # a2 = r = n - 9*q
+
+        # ----------------------------------------------------------------------
+        # Phase 3: Correction
+        # ----------------------------------------------------------------------
+        # If r >= 9, we under-estimated q by 1.
+        # This simple check is sufficient for both 32-bit and 64-bit
+        # because the series approximation is highly accurate.
+        sltiu   a3, a2, 9       # a3 = 1 if r < 9
+        xori    a3, a3, 1       # a3 = 1 if r >= 9
+        add     a0, a1, a3      # q = q + correction
+
+        ret
 .size div9u, .-div9u
-
 	
 ################################################################################
 # routine: div10u
@@ -585,34 +561,48 @@ div9u:
 # a0 = quotient (unsigned)
 ################################################################################
 div10u:
-	# Phase 1: Calculate approximate quotient q.
-	srli	a1, a0, 1	# a1 = (n >> 1)
-	srli	a2, a0, 2	# a2 = (n >> 2)
-	add	a1, a1, a2	# a1 = (n >> 1) + (n >> 2)
-	srli	a2, a1, 4	# a2 = (q >> 4)
-	add	a1, a1, a2	# a1 = q + (q >> 4)
-	srli	a2, a1, 8	# a2 = (q >> 8)
-	add	a1, a1, a2	# a1 = q + (q >> 8)
-	srli	a2, a1, 16	# a2 = (q >> 16)
-	add	a1, a1, a2	# a1 = q + (q >> 16)
-.if CPU_BITS == 64
-	srli	a2, a1, 32	# a2 = (q >> 32)
-	add	a1, a1, a2	# a1 = q + (q >> 32)
+	# Phase 1: Calculate approximate quotient
+	# Target: q_accum = n * 0.8
+.if HAS_ZBA
+	# ZBA: 3 * (n >> 2) = 0.75n
+	srli	a1, a0, 2
+	sh1add	a1, a1, a1
+.else
+	# Base ISA: n - (n >> 2) = 0.75n
+	srli	a2, a0, 2
+	sub	a1, a0, a2
 .endif
-	srli	a1, a1, 3	# a1 = q = q >> 3 (Final approximate quotient)
+	
+	# Continue series expansion...
+	srli	a2, a1, 4
+	add	a1, a1, a2	# q += q >> 4
+	srli	a2, a1, 8
+	add	a1, a1, a2	# q += q >> 8
+	srli	a2, a1, 16
+	add	a1, a1, a2	# q += q >> 16
+.if CPU_BITS == 64
+	srli	a2, a1, 32
+	add	a1, a1, a2
+.endif
+	
+	# Final adjustment: (n * 0.8) / 8 = n / 10
+	srli	a1, a1, 3
 
 	# Phase 2: Calculate r = n - 10*q
-	slli	a2, a1, 1	# a2 = q * 2
-	slli	a3, a2, 2	# a3 = (q * 2) * 4 = q * 8
-	add	a2, a2, a3	# a2 = (q * 2) + (q * 8) = q * 10
-	sub	a3, a0, a2	# a3 = r = n - (q * 10)
+	slli	a2, a1, 1	# a2 = 2q
+.if HAS_ZBA
+	sh2add	a2, a2, a2	# a2 = 2q + 4(2q) = 10q
+.else	
+	slli	a3, a2, 2	# a3 = 8q
+	add	a2, a2, a3	# a2 = 10q
+.endif
+	sub	a3, a0, a2	# a3 = r
 
-	# Phase 3: Add correction if r >= 10. This logic is robust for both 32 and 64 bits.
-	sltiu	a3, a3, 10	# a3 = 1 if r < 10, else 0
-	xori	a3, a3, 1	# a3 = 1 if r >= 10, else 0 (correction factor)
-	add	a0, a1, a3	# a0 = q + (r > 9)
+	# Phase 3: Correction
+	sltiu	a3, a3, 10
+	xori	a3, a3, 1
+	add	a0, a1, a3
 	ret
-	
 .size div10u, .-div10u
 
 ################################################################################
@@ -649,10 +639,15 @@ div11u:
 	srli	a2, a1, 3	# a2 = q = (q >> 3) (note: a1 = q << 3)
 
 	# compute remainder
+.if HAS_ZBA
+	sh3add	a1, a2, a2
+	sh1add	a1, a2, a1
+.else
 	slli	a1, a2, 4
 	slli	a3, a2, 2
 	sub	a1, a1, a3
 	sub	a1, a1, a2
+.endif
 	sub	a1, a0, a1	# a1 = r = n - q8*11
 
 	sltiu	a3, a1, 11	# a3 = 1 if r < 11, else 0
@@ -678,9 +673,16 @@ div11u:
 ################################################################################	
 div12u:
 	# compute approximate quotient
+.if HAS_ZBA
+	# 5 * (n >> 3) = 5/8 * n = 0.625n
+	srli	a1, a0, 3
+	sh2add	a1, a1, a1	# a1 = a1 + 4*a1 = 5*a1
+.else	
+	# n/2 + n/8 = 0.625n
 	srli	a1, a0, 1	# a1 = (n >> 1)
 	srli	a2, a0, 3	# a2 = (n >> 3)
 	add	a1, a1, a2	# a1 = q = (n >> 1) + (n >> 3)
+.endif
 	srli	a2, a1, 4	# a2 = (q >> 4)
 	add	a1, a1, a2	# a1 = q = q + (q >> 4)
 	srli	a2, a1, 8	# a2 = (q >> 8)
@@ -694,15 +696,19 @@ div12u:
 	srli	a1, a1, 3
 
 	# compute remainder
+.if HAS_ZBA
+	sh1add	a2, a1, a1
+.else
 	slli	a2, a1, 1
 	add	a2, a2, a1
+.endif
 	slli	a2, a2, 2	# a2 = q*12
 	sub	a2, a0, a2	# a1 = r = n - q*12
 
 	# correct approximate quotient
-	sltiu	a3, a1, 12	# a3 = 1 if r < 12, else 0
+	sltiu	a3, a2, 12	# a3 = 1 if r < 12, else 0
 	xori	a3, a3, 1	# a3 = 1 if r >= 12, else 0
-	add	a0, a2, a3	# a0 = q = q + correction
+	add	a0, a1, a3	# a0 = q = q + correction
 	ret
 
 .size div12u, .-div12u	
@@ -723,9 +729,16 @@ div12u:
 ################################################################################	
 div13u:
 	# estimate quotient
+.if HAS_ZBA
+	# 9 * (n >> 4) == 9/16 * n
+	srli	a1, a0, 4	# / 16
+	sh3add	a1, a1, a1	# a1 = a1 + 8 * a1 = 9 * a1
+.else
+	# n / 2 + n / 16 = 9/16 * n
 	srli	a1, a0, 1	# a1 = (n >> 1)
 	srli	a2, a0, 4	# a2 = (n >> 4)
 	add	a1, a1, a2	# a1 = q = (n >> 1) + (n >> 4)
+.endif
 	srli	a2, a1, 4	# a2 = (q >> 4) 
 	add	a1, a1, a2	# a1 = q + (q >> 4)
 	srli	a2, a2, 1	# a2 = (q >> 5) parallel addition
@@ -742,16 +755,25 @@ div13u:
 	srli	a1, a1, 3	# a1 = q = q >> 3
 
 	# compute remainder
+.if HAS_ZBA
+	sh3add	a2, a1, a1	# a2 = 9q
+	sh2add	a2, a1, a2	# a2 = 4q + 9q = q*13
+.else
 	slli	a2, a1, 4
 	slli	a3, a1, 2
 	sub	a2, a2, a3
 	add	a2, a2, a1	# a2 = q*13
+.endif
 	sub	a2, a0, a2	# a2 = r = n - q*13
 
 	# correct estimated quotient
 	# compute corr = floor(r / 13) using (r * 5) >> 6
+.if HAS_ZBA
+	sh2add	a3, a2, a2
+.else
 	slli	a3, a2, 2	# a3 = r * 4
 	add	a3, a3, a2	# a3 = r * 5
+.endif
 	srli	a3, a3, 6	# (approx r / 12.8)
 	add	a0, a1, a3	# a0 = q + correction
 
@@ -775,48 +797,53 @@ div13u:
 ################################################################################	
 div100u:
 	# estimate quotient
+.if HAS_ZBA
+	srli	a1, a0, 3
+	sh2add	a1, a1, a1 	# a1 = a1 + 4a1 = 5a1
+.else
 	srli	a1, a0, 1	# a1 = (n >> 1)
 	srli	a2, a0, 3	# a2 = (n >> 3)
 	add	a1, a1, a2	# a1 = (n >> 1) + (n >> 3)
+.endif
+
+# Series Expansion: q *= 1.01587... (Target 0.6349)
+	srli	a2, a1, 6
+	add	a1, a1, a2	# q += q >> 6
+
+	srli	a2, a1, 12
+	add	a1, a1, a2	# q += q >> 12
+
+	srli	a2, a1, 24
+	add	a1, a1, a2	# q += q >> 24
 
 .if CPU_BITS == 64
-	# 64-bit specific approximation steps
-	# This is derived from q = (n>>1)+(n>>3); q = q + (q>>6); ...
-	srli    a2, a1, 6
-	add     a1, a1, a2	# a1 = a1 + (a1>>6)
-	srli    a2, a1, 12
-	add     a1, a1, a2  	# a1 = a1 + (a1>>12)
-	srli    a2, a1, 24
-	add     a1, a1, a2  	# a1 = a1 + (a1>>24)
-	srli    a2, a1, 48
-	add     a1, a1, a2  	# a1 = a1 + (a1>>48)
-.else
-	# 32-bit specific approximation steps
-	# This sequence approximates (n * 0.64) for 32-bit n.
-	srli    a2, a0, 6   	# a2 = (n >> 6)
-	add     a1, a1, a2  	# a1 = (n >> 1) + (n >> 3) + (n >> 6)
-	srli    a2, a0, 10  	# a2 = (n >> 10)
-	sub     a1, a1, a2  	# ... - (n >> 10)
-	srli    a2, a0, 12  	# a2 = (n >> 12)
-	add     a1, a1, a2  	# ... + (n >> 12)
-	srli    a2, a0, 13  	# a2 = (n >> 13)
-	add     a1, a1, a2  	# ... + (n >> 13)
-	srli    a2, a0, 15  	# a2 = (n >> 15)
-	sub     a1, a1, a2  	# ... - (n >> 15)
-	srli    a2, a1, 20  	# a2 = (q_approx >> 20)
-	add     a1, a1, a2  	# a1 = q_approx + (q_approx >> 20)
+	srli	a2, a1, 48
+	add	a1, a1, a2	# q += q >> 48
 .endif
-	srli	a1, a1, 6	# a1 = q_est
 
-	# Compute remainder from estimated quotient (XLEN-agnostic)
-	# n*100 = (n << 6) + (n << 5)) + (n << 2)
-	# This is safe from overflow because the max quotient for 64-bit
-	# (UINT64_MAX / 100) is << 64.
-	slli    a2, a1, 6   	# a2 = q_est * 64
-	slli    a3, a1, 5   	# a3 = q_est * 32
-	add     a2, a2, a3  	# a2 = q_est * 96
-	slli    a3, a1, 2   	# a3 = q_est * 4
-	add     a2, a2, a3  	# a2 = q_est * 100
+	# Precision Correction: q *= 1.0078... (Target 0.64)
+	# Current: 0.6349. Target 0.64. Gap is ~1/128.
+	srli	a2, a1, 7
+	add	a1, a1, a2	# q += q >> 7
+
+	# Final shift: (n * 0.64) / 64 = n / 100
+	srli	a1, a1, 6	# a1 = q_approx
+
+	# Compute remainder from estimated quotient
+.if HAS_ZBA
+	sh1add	a2, a1, a1	# a2 = 3q
+	sh3add	a2, a2, a1	# a2 = 24q + q = 25q
+	slli	a2, a2, 2	# a2 = 100q
+.else	
+	# n * 100
+	slli	a2, a1, 1	# 2q
+	slli	a3, a1, 3	# 8q
+	add	a2, a2, a3	# a2 = 10q
+	
+	slli	a3, a2, 1	# 20q
+	slli	a2, a2, 3	# 80q
+	add	a2, a2, a3	# a2 = 100q
+.endif
 	sub     a2, a0, a2  	# a2 = r = n - q_est * 100
 
 
