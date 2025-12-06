@@ -1,4 +1,11 @@
 .include "config.s"
+.data
+.align	8
+# use dwords for 64-bit
+.word	0	# dividend
+.word	0	# quotient
+.word	div3u	# pointer to routine
+.word	div3u_label	# pointer to nul-terminated ascii string
 .text
 	
 # runs on linux
@@ -385,6 +392,11 @@ test11_fail:
 
 	la	a1, fail
 	call	result
+
+# --- XXX: new division tests go here ---
+
+
+
 
 # --- div3u tests ---
 
