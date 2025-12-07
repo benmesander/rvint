@@ -5,9 +5,9 @@
 .globl divrem
 .globl div3u
 .globl div5u
-.globl div6u	
+.globl div6u
 .globl div7u
-.globl div9u	
+.globl div9u
 .globl div10u
 .globl div11u
 .globl div12u
@@ -18,7 +18,7 @@
 .globl div5
 .globl divtst3
 .globl divtst3u
-	
+
 .text
 
 ################################################################################
@@ -50,131 +50,131 @@
 ###### ROLLED VERSION (Small Size) #############################################
 
 divremu:
-        # Check for division by zero
-        beqz    a1, divremu_zero
+	# Check for division by zero
+	beqz	a1, divremu_zero
 
-        mv      a2, a0                  # Use a2 for dividend/quotient
-        mv      a0, zero                # a0 will hold the remainder
+	mv	a2, a0			# Use a2 for dividend/quotient
+	mv	a0, zero		# a0 will hold the remainder
 
 .if HAS_ZBB
-        # Optimization: Skip leading zeros
-        clz     t0, a2                  # Count leading zeros of Dividend
-        li      a3, CPU_BITS
-        sub     a3, a3, t0              # Loop Count = CPU_BITS - LeadingZeros
+	# Optimization: Skip leading zeros
+	clz	t0, a2			# Count leading zeros of Dividend
+	li	a3, CPU_BITS
+	sub	a3, a3, t0		# Loop Count = CPU_BITS - LeadingZeros
 
-        # Align the MSB of the dividend to the MSB position of the register
-        sll     a2, a2, t0
+	# Align the MSB of the dividend to the MSB position of the register
+	sll	a2, a2, t0
 
-        # Edge case: If dividend was 0, a3 is 0. Skip loop.
-        beqz    a3, divremu_done
+	# Edge case: If dividend was 0, a3 is 0. Skip loop.
+	beqz	a3, divremu_done
 .else
-        li      a3, CPU_BITS            # Use a3 as the loop counter
+	li	a3, CPU_BITS		# Use a3 as the loop counter
 .endif
 
 divremu_loop:
-        # Step 1: Extract MSB
-        srli    t0, a2, MSB_SHIFT
+	# Step 1: Extract MSB
+	srli	t0, a2, MSB_SHIFT
 
-        # Step 2: Shift Remainder and Merge new bit
+	# Step 2: Shift Remainder and Merge new bit
 .if HAS_ZBA
-        # sh1add rd, rs1, rs2  ->  rd = rs2 + (rs1 << 1)
-        sh1add  a0, a0, t0
+	# sh1add rd, rs1, rs2  ->  rd = rs2 + (rs1 << 1)
+	sh1add	a0, a0, t0
 .else
-        slli    a0, a0, 1
-        or      a0, a0, t0
+	slli	a0, a0, 1
+	or	a0, a0, t0
 .endif
 
-        # Step 3: Shift Dividend left
-        slli    a2, a2, 1
+	# Step 3: Shift Dividend left
+	slli	a2, a2, 1
 
-        # Step 4: Compare Remainder vs Divisor
-        sltu    t1, a0, a1              # t1 = 1 if Rem < Div (Fail)
+	# Step 4: Compare Remainder vs Divisor
+	sltu	t1, a0, a1		# t1 = 1 if Rem < Div (Fail)
 
-        # Step 5: Branchless Subtract
+	# Step 5: Branchless Subtract
 .if HAS_ZICOND
-        # If t1 (Fail) is set, subtract 0. If clear, subtract Divisor.
-        czero.nez t2, a1, t1
+	# If t1 (Fail) is set, subtract 0. If clear, subtract Divisor.
+	czero.nez t2, a1, t1
 .else
-        addi    t2, t1, -1              # Mask: 0 if Fail, -1 if Pass
-        and     t2, a1, t2              # t2 = Divisor or 0
+	addi	t2, t1, -1		# Mask: 0 if Fail, -1 if Pass
+	and	t2, a1, t2		# t2 = Divisor or 0
 .endif
 
-        sub     a0, a0, t2
+	sub	a0, a0, t2
 
-        # Step 6: Update Quotient Bit
-        xori    t1, t1, 1               # Invert: 1 = Pass
-        or      a2, a2, t1              # Add bit to quotient
+	# Step 6: Update Quotient Bit
+	xori	t1, t1, 1		# Invert: 1 = Pass
+	or	a2, a2, t1		# Add bit to quotient
 
-        # Loop maintenance
-        addi    a3, a3, -1
-        bnez    a3, divremu_loop
+	# Loop maintenance
+	addi	a3, a3, -1
+	bnez	a3, divremu_loop
 
-        # Fall through to 'COMMON EPILOGUE'
+	# Fall through to 'COMMON EPILOGUE'
 
 .else
 
 ###### UNROLLED VERSION (4x Speed) #############################################
 
 .macro DIV_STEP
-        # --- 1. Shift Remainder & Merge MSB ---
-        srli    t0, a2, MSB_SHIFT
+	# --- 1. Shift Remainder & Merge MSB ---
+	srli	t0, a2, MSB_SHIFT
 
 .if HAS_ZBA == 1
-        sh1add  a0, a0, t0
+	sh1add	a0, a0, t0
 .else
-        slli    a0, a0, 1
-        or      a0, a0, t0
+	slli	a0, a0, 1
+	or	a0, a0, t0
 .endif
 
-        # --- 2. Prepare Dividend/Quotient ---
-        slli    a2, a2, 1
+	# --- 2. Prepare Dividend/Quotient ---
+	slli	a2, a2, 1
 
-        # --- 3. Compare ---
-        sltu    t0, a0, a1              # t0 = 1 if Rem < Div (Fail)
+	# --- 3. Compare ---
+	sltu	t0, a0, a1		# t0 = 1 if Rem < Div (Fail)
 
-        # --- 4. Branchless Subtraction Logic ---
+	# --- 4. Branchless Subtraction Logic ---
 .if HAS_ZICOND == 1
-        czero.nez t2, a1, t0
+	czero.nez t2, a1, t0
 .else
-        addi    t1, t0, -1              # Mask
-        and     t2, a1, t1              # Filter
+	addi	t1, t0, -1		# Mask
+	and	t2, a1, t1		# Filter
 .endif
-        sub     a0, a0, t2
+	sub	a0, a0, t2
 
-        # --- 5. Update Quotient Bit ---
-        xori    t0, t0, 1
-        or      a2, a2, t0
+	# --- 5. Update Quotient Bit ---
+	xori	t0, t0, 1
+	or	a2, a2, t0
 .endm
 
 divremu:
-        beqz    a1, divremu_zero
+	beqz	a1, divremu_zero
 
-        mv      a2, a0                  # a2 = Dividend
-        mv      a0, zero                # a0 = Remainder
-        li      a3, (CPU_BITS / 4)      # Loop counter (8 or 16)
+	mv	a2, a0			# a2 = Dividend
+	mv	a0, zero		# a0 = Remainder
+	li	a3, (CPU_BITS / 4)	# Loop counter (8 or 16)
 
 div_loop_4x:
-        DIV_STEP
-        DIV_STEP
-        DIV_STEP
-        DIV_STEP
+	DIV_STEP
+	DIV_STEP
+	DIV_STEP
+	DIV_STEP
 
-        addi    a3, a3, -1
-        bnez    a3, div_loop_4x
+	addi	a3, a3, -1
+	bnez	a3, div_loop_4x
 
 .endif
 
 ###### COMMON EPILOGUE #########################################################
 
 divremu_done:
-        mv      a1, a0                  # Remainder
-        mv      a0, a2                  # Quotient
-        ret
+	mv	a1, a0			# Remainder
+	mv	a0, a2			# Quotient
+	ret
 
 divremu_zero:
-        mv      a1, a0                  # Remainder = Dividend
-        li      a0, -1                  # Quotient = MAX
-        ret
+	mv	a1, a0			# Remainder = Dividend
+	li	a0, -1			# Quotient = MAX
+	ret
 
 .size divremu, .-divremu
 
@@ -191,85 +191,85 @@ divremu_zero:
 # output: a0 = quotient (Q), a1 = remainder (R)
 ################################################################################
 
-.equ    SIGN_BIT_SHIFT, (CPU_BITS - 1)
+.equ	SIGN_BIT_SHIFT, (CPU_BITS - 1)
 
 divrem:
-        # 1. Setup Stack and Save Inputs
-        FRAME   1
-        PUSH    ra, 0
+	# 1. Setup Stack and Save Inputs
+	FRAME	1
+	PUSH	ra, 0
 
-        mv      t0, a0          # t0 = Original N
-        mv      t1, a1          # t1 = Original D
+	mv	t0, a0		# t0 = Original N
+	mv	t1, a1		# t1 = Original D
 
-        # 2. Handle Zero Divisor
-        beq     t1, zero, divrem_by_zero
+	# 2. Handle Zero Divisor
+	beq	t1, zero, divrem_by_zero
 
-        # 3. Handle Overflow (INT_MIN / -1)
+	# 3. Handle Overflow (INT_MIN / -1)
 .if HAS_ZBS == 1
 	bseti	t2, zero, SIGN_BIT_SHIFT
 .else
-        # Construct INT_MIN safely for both 32/64
-        li      t2, 1
-        slli    t2, t2, SIGN_BIT_SHIFT  # t2 = INT_MIN (0x800...00)
+	# Construct INT_MIN safely for both 32/64
+	li	t2, 1
+	slli	t2, t2, SIGN_BIT_SHIFT	# t2 = INT_MIN (0x800...00)
 .endif
-        
-        # Check conditions
-        bne     t0, t2, divrem_abs      # If N != INT_MIN, safe
-        li      t3, -1
-        beq     t1, t3, divrem_overflow # If N==MIN && D==-1, Overflow
+
+	# Check conditions
+	bne	t0, t2, divrem_abs	# If N != INT_MIN, safe
+	li	t3, -1
+	beq	t1, t3, divrem_overflow # If N==MIN && D==-1, Overflow
 
 divrem_abs:
-        # 4. Compute Absolute Values (Branchless)
-        # Generate Sign Masks (0 = Pos, -1 = Neg)
-        srai    t4, t0, SIGN_BIT_SHIFT  # t4 = Sign Mask N (Kept for later)
-        srai    t5, t1, SIGN_BIT_SHIFT  # t5 = Sign Mask D (Kept for later)
+	# 4. Compute Absolute Values (Branchless)
+	# Generate Sign Masks (0 = Pos, -1 = Neg)
+	srai	t4, t0, SIGN_BIT_SHIFT	# t4 = Sign Mask N (Kept for later)
+	srai	t5, t1, SIGN_BIT_SHIFT	# t5 = Sign Mask D (Kept for later)
 
-        # Apply Abs(N)
-        xor     a0, t0, t4
-        sub     a0, a0, t4              # a0 = abs(N)
+	# Apply Abs(N)
+	xor	a0, t0, t4
+	sub	a0, a0, t4		# a0 = abs(N)
 
-        # Apply Abs(D)
-        xor     a1, t1, t5
-        sub     a1, a1, t5              # a1 = abs(D)
+	# Apply Abs(D)
+	xor	a1, t1, t5
+	sub	a1, a1, t5		# a1 = abs(D)
 
-        # 5. Perform Unsigned Division
-        # WARNING: We assume divremu does NOT clobber t4 or t5.
-        call    divremu
-        # Returns: a0 = abs(Q), a1 = abs(R)
+	# 5. Perform Unsigned Division
+	# WARNING: We assume divremu does NOT clobber t4 or t5.
+	call	divremu
+	# Returns: a0 = abs(Q), a1 = abs(R)
 
-        # 6. Apply Signs (Branchless)
-        
-        # Quotient Sign: Sign(N) ^ Sign(D)
-        xor     t0, t4, t5              # t0 = Sign Mask Q
-        xor     a0, a0, t0
-        sub     a0, a0, t0              # Q = Q * Sign
+	# 6. Apply Signs (Branchless)
 
-        # Remainder Sign: Sign(N)
-        # If N was negative (t4 = -1), we negate R.
-        # If N was positive (t4 = 0), we leave R.
-        xor     a1, a1, t4
-        sub     a1, a1, t4              # R = R * Sign(N)
+	# Quotient Sign: Sign(N) ^ Sign(D)
+	xor	t0, t4, t5		# t0 = Sign Mask Q
+	xor	a0, a0, t0
+	sub	a0, a0, t0		# Q = Q * Sign
+
+	# Remainder Sign: Sign(N)
+	# If N was negative (t4 = -1), we negate R.
+	# If N was positive (t4 = 0), we leave R.
+	xor	a1, a1, t4
+	sub	a1, a1, t4		# R = R * Sign(N)
 
 divrem_cleanup_stack:
-        POP     ra, 0
-        EFRAME  1
-        ret
+	POP	ra, 0
+	EFRAME	1
+	ret
 
 # --- Exception Paths ---
 
 divrem_by_zero:
-        li      a0, -1                  # Spec: Q = -1 (all 1s)
-        mv      a1, t0                  # Spec: R = Dividend
-        j       divrem_cleanup_stack
+	li	a0, -1			# Spec: Q = -1 (all 1s)
+	mv	a1, t0			# Spec: R = Dividend
+	j	divrem_cleanup_stack
 
 divrem_overflow:
-        # Return INT_MIN / 0
-        li      a0, 1
-        slli    a0, a0, SIGN_BIT_SHIFT  # Q = INT_MIN
-        li      a1, 0                   # R = 0
-        j       divrem_cleanup_stack
+	# Return INT_MIN / 0
+	li	a0, 1
+	slli	a0, a0, SIGN_BIT_SHIFT	# Q = INT_MIN
+	li	a1, 0			# R = 0
+	j	divrem_cleanup_stack
 
-.size divrem, .-divrem	
+.size divrem, .-divrem
 
 ################################################################################
 # routine: div3u
@@ -287,37 +287,37 @@ divrem_overflow:
 ################################################################################
 div3u:
 	# a0 contains n
-	srli    a1, a0, 2      	# a1: q = n >> 2
-	srli    a2, a0, 4      	# a2: n >> 4
-	add     a1, a2, a1     	# a1: q = (n >> 2) + (n >> 4)
-	srli    a2, a1, 4      	# a2: q >> 4
-	add     a1, a2, a1     	# a1: q = q + (q >> 4)
-	srli    a2, a1, 8      	# a2: q >> 8
-	add     a1, a2, a1     	# a1: q = q + (q >> 8)
-	srli    a2, a1, 16     	# a2: q >> 16
-	add     a1, a2, a1     	# a1: q = q + (q >> 16)
+	srli	a1, a0, 2		# a1: q = n >> 2
+	srli	a2, a0, 4		# a2: n >> 4
+	add	a1, a2, a1		# a1: q = (n >> 2) + (n >> 4)
+	srli	a2, a1, 4		# a2: q >> 4
+	add	a1, a2, a1		# a1: q = q + (q >> 4)
+	srli	a2, a1, 8		# a2: q >> 8
+	add	a1, a2, a1		# a1: q = q + (q >> 8)
+	srli	a2, a1, 16		# a2: q >> 16
+	add	a1, a2, a1		# a1: q = q + (q >> 16)
 .if CPU_BITS == 64
-	srli    a2, a1, 32     	# a2: q >> 32
-	add     a1, a2, a1     	# a1: q = q + (q >> 32)
+	srli	a2, a1, 32		# a2: q >> 32
+	add	a1, a2, a1		# a1: q = q + (q >> 32)
 .endif
 	# Remainder calculation
 	mul3	a2, a1, a2
-	sub     a2, a0, a2     	# a2: r = n - q * 3
+	sub	a2, a0, a2		# a2: r = n - q * 3
 
 .if CPU_BITS == 64
-        # Correction step for 64-bit
-        # Handles errors up to 6+. Calculates floor(r*11/32).
+	# Correction step for 64-bit
+	# Handles errors up to 6+. Calculates floor(r*11/32).
 	mul11	a0, a2, a0	# a0 = r * 11
-        srli    a0, a0, 5       # a0 = 11r/32: correction amoutn
+	srli	a0, a0, 5	# a0 = 11r/32: correction amoutn
 .else
-        # Correction step for 32-bit
-        # Sufficient for errors up to 5. Calculates floor((5r+5)/16).
+	# Correction step for 32-bit
+	# Sufficient for errors up to 5. Calculates floor((5r+5)/16).
 	mul5	a0, a2, a0
 	addi	a0, a0, 5
-        srli    a0, a0, 4       # a0/16: correction amount
+	srli	a0, a0, 4	# a0/16: correction amount
 .endif
 
-        add     a0, a1, a0      # a0: q + correction
+	add	a0, a1, a0	# a0: q + correction
 
 	ret
 
@@ -363,7 +363,7 @@ div5u:
 	add	a0, a1, a3	# a0 = q + (7*r >> 5)
 	ret
 .size div5u, .-div5u
-	
+
 ################################################################################
 # routine: div6u
 #
@@ -454,7 +454,7 @@ div7u:
 	xori	a3, a3, 1	# a3 = 1 if r >= 7 (r > 6)
 	add	a0, a1, a3	# q = q + (r > 6)
 	ret
-	
+
 .size	div7u, .-div7u
 
 ################################################################################
@@ -470,57 +470,39 @@ div7u:
 # output: a0 = quotient
 ################################################################################    
 div9u:
-        # ----------------------------------------------------------------------
-        # Phase 1: Approximate Quotient
-        # Target: q_accum = n * (8/9)
-        # ----------------------------------------------------------------------
-        # Start with n * (7/8)
-        srli    a2, a0, 3       # a2 = n >> 3
-        sub     a1, a0, a2      # a1 = n - (n >> 3) = n * 0.875
-
-        # Series expansion: Multiply by (1 + 1/64 + 1/4096...)
-        srli    a2, a1, 6
-        add     a1, a1, a2      # q += q >> 6
-
-        srli    a2, a1, 12
-        add     a1, a1, a2      # q += q >> 12
-
-        srli    a2, a1, 24
-        add     a1, a1, a2      # q += q >> 24
-
+	# Phase 1: Approximate Quotient
+	# Target: q_accum = n * (8/9)
+	# Start with n * (7/8)
+	srli	a2, a0, 3	# a2 = n >> 3
+	sub	a1, a0, a2	# a1 = n - (n >> 3) = n * 0.875
+	# Series expansion: Multiply by (1 + 1/64 + 1/4096...)
+	srli	a2, a1, 6
+	add	a1, a1, a2	# q += q >> 6
+	srli	a2, a1, 12
+	add	a1, a1, a2	# q += q >> 12
+	srli	a2, a1, 24
+	add	a1, a1, a2	# q += q >> 24
 .if CPU_BITS == 64
-        srli    a2, a1, 48
-        add     a1, a1, a2      # q += q >> 48
+	srli	a2, a1, 48
+	add	a1, a1, a2	# q += q >> 48
 .endif
 
-        # Final adjustment: q = (n * 8/9) / 8 = n / 9
-        srli    a1, a1, 3       # a1 = q_approx
+	# Final adjustment: q = (n * 8/9) / 8 = n / 9
+	srli	a1, a1, 3	# a1 = q_approx
 
-        # ----------------------------------------------------------------------
-        # Phase 2: Remainder (r = n - 9q)
-        # ----------------------------------------------------------------------
-.if HAS_ZBA
-        # sh3add rd, rs1, rs2 -> rd = rs2 + (rs1 << 3)
-        sh3add  a3, a1, a1      # a3 = a1 + 8*a1 = 9*q
-.else    
-        slli    a2, a1, 3       # a2 = 8*q
-        add     a3, a1, a2      # a3 = 9*q
-.endif
-        sub     a2, a0, a3      # a2 = r = n - 9*q
+	# Phase 2: Remainder (r = n - 9q)
+	mul9	a3, a1, a2
+	sub	a2, a0, a3	# a2 = r = n - 9*q
 
-        # ----------------------------------------------------------------------
-        # Phase 3: Correction
-        # ----------------------------------------------------------------------
-        # If r >= 9, we under-estimated q by 1.
-        # This simple check is sufficient for both 32-bit and 64-bit
-        # because the series approximation is highly accurate.
-        sltiu   a3, a2, 9       # a3 = 1 if r < 9
-        xori    a3, a3, 1       # a3 = 1 if r >= 9
-        add     a0, a1, a3      # q = q + correction
+	# Phase 3: Correction
+	# If r >= 9, we under-estimated q by 1.
+	sltiu	a3, a2, 9	# a3 = 1 if r < 9
+	xori	a3, a3, 1	# a3 = 1 if r >= 9
+	add	a0, a1, a3	# q = q + correction
 
-        ret
+	ret
 .size div9u, .-div9u
-	
+
 ################################################################################
 # routine: div10u
 #
@@ -538,16 +520,11 @@ div9u:
 div10u:
 	# Phase 1: Calculate approximate quotient
 	# Target: q_accum = n * 0.8
-.if HAS_ZBA
-	# ZBA: 3 * (n >> 2) = 0.75n
-	srli	a1, a0, 2	# XXX: seems like no advantage to zba here
-	sh1add	a1, a1, a1
-.else
-	# Base ISA: n - (n >> 2) = 0.75n
+
+	# n - (n >> 2) = 0.75n
 	srli	a2, a0, 2
 	sub	a1, a0, a2
-.endif
-	
+
 	# Continue series expansion...
 	srli	a2, a1, 4
 	add	a1, a1, a2	# q += q >> 4
@@ -557,20 +534,14 @@ div10u:
 	add	a1, a1, a2	# q += q >> 16
 .if CPU_BITS == 64
 	srli	a2, a1, 32
-	add	a1, a1, a2
+	add	a1, a1, a2	# q += q >> 32
 .endif
-	
+
 	# Final adjustment: (n * 0.8) / 8 = n / 10
 	srli	a1, a1, 3
 
 	# Phase 2: Calculate r = n - 10*q
-	slli	a2, a1, 1	# a2 = 2q
-.if HAS_ZBA
-	sh2add	a2, a2, a2	# a2 = 2q + 4(2q) = 10q
-.else	
-	slli	a3, a2, 2	# a3 = 8q
-	add	a2, a2, a3	# a2 = 10q
-.endif
+	mul10	a2, a1, a3	# a2 = 10q
 	sub	a3, a0, a2	# a3 = r
 
 	# Phase 3: Correction
@@ -609,28 +580,20 @@ div11u:
 .if CPU_BITS == 64
 	srli	a2, a1, 40	# a2 = (q >> 40)
 	add	a1, a1, a2	# a1 = q = q + (q >> 40)
-.endif	
+.endif
 
 	srli	a2, a1, 3	# a2 = q = (q >> 3) (note: a1 = q << 3)
 
 	# compute remainder
-.if HAS_ZBA
-	sh3add	a1, a2, a2
-	sh1add	a1, a2, a1
-.else
-	slli	a1, a2, 4
-	slli	a3, a2, 2
-	sub	a1, a1, a3
-	sub	a1, a1, a2
-.endif
-	sub	a1, a0, a1	# a1 = r = n - q8*11
+	mul11	a1, a2, a3	# a1 = q * 11
+	sub	a1, a0, a1	# a1 = r = n - q * 11
 
 	sltiu	a3, a1, 11	# a3 = 1 if r < 11, else 0
 	xori	a3, a3, 1	# a3 = 1 if r >= 11, else 0
 	add	a0, a2, a3	# a0 = q = q + correction
 	ret
 
-.size div11u, .-div11u	
+.size div11u, .-div11u
 
 ################################################################################
 # routine: div12u
@@ -648,16 +611,11 @@ div11u:
 ################################################################################	
 div12u:
 	# compute approximate quotient
-.if HAS_ZBA
-	# 5 * (n >> 3) = 5/8 * n = 0.625n
-	srli	a1, a0, 3
-	sh2add	a1, a1, a1	# a1 = a1 + 4*a1 = 5*a1
-.else	
 	# n/2 + n/8 = 0.625n
 	srli	a1, a0, 1	# a1 = (n >> 1)
 	srli	a2, a0, 3	# a2 = (n >> 3)
 	add	a1, a1, a2	# a1 = q = (n >> 1) + (n >> 3)
-.endif
+	# continue series expansion
 	srli	a2, a1, 4	# a2 = (q >> 4)
 	add	a1, a1, a2	# a1 = q = q + (q >> 4)
 	srli	a2, a1, 8	# a2 = (q >> 8)
@@ -667,17 +625,11 @@ div12u:
 .if CPU_BITS == 64
 	srli	a2, a1, 32	# a2 = (q >> 32)
 	add	a1, a1, a2	# a1 = q + (q >> 32)
-.endif	
+.endif
 	srli	a1, a1, 3
 
 	# compute remainder
-.if HAS_ZBA
-	sh1add	a2, a1, a1
-.else
-	slli	a2, a1, 1
-	add	a2, a2, a1
-.endif
-	slli	a2, a2, 2	# a2 = q*12
+	mul12	a2, a1, a2	# a2 = q*12
 	sub	a2, a0, a2	# a1 = r = n - q*12
 
 	# correct approximate quotient
@@ -686,7 +638,7 @@ div12u:
 	add	a0, a1, a3	# a0 = q = q + correction
 	ret
 
-.size div12u, .-div12u	
+.size div12u, .-div12u
 
 ################################################################################
 # routine: div13u
@@ -704,16 +656,11 @@ div12u:
 ################################################################################	
 div13u:
 	# estimate quotient
-.if HAS_ZBA
-	# 9 * (n >> 4) == 9/16 * n
-	srli	a1, a0, 4	# / 16
-	sh3add	a1, a1, a1	# a1 = a1 + 8 * a1 = 9 * a1
-.else
 	# n / 2 + n / 16 = 9/16 * n
 	srli	a1, a0, 1	# a1 = (n >> 1)
 	srli	a2, a0, 4	# a2 = (n >> 4)
 	add	a1, a1, a2	# a1 = q = (n >> 1) + (n >> 4)
-.endif
+
 	srli	a2, a1, 4	# a2 = (q >> 4) 
 	add	a1, a1, a2	# a1 = q + (q >> 4)
 	srli	a2, a2, 1	# a2 = (q >> 5) parallel addition
@@ -730,31 +677,18 @@ div13u:
 	srli	a1, a1, 3	# a1 = q = q >> 3
 
 	# compute remainder
-.if HAS_ZBA
-	sh3add	a2, a1, a1	# a2 = 9q
-	sh2add	a2, a1, a2	# a2 = 4q + 9q = q*13
-.else
-	slli	a2, a1, 4
-	slli	a3, a1, 2
-	sub	a2, a2, a3
-	add	a2, a2, a1	# a2 = q*13
-.endif
+	mul13	a2, a1, a2
 	sub	a2, a0, a2	# a2 = r = n - q*13
 
 	# correct estimated quotient
 	# compute corr = floor(r / 13) using (r * 5) >> 6
-.if HAS_ZBA
-	sh2add	a3, a2, a2
-.else
-	slli	a3, a2, 2	# a3 = r * 4
-	add	a3, a3, a2	# a3 = r * 5
-.endif
+	mul5	a3, a2, a3
 	srli	a3, a3, 6	# (approx r / 12.8)
 	add	a0, a1, a3	# a0 = q + correction
 
 	ret
 
-.size div13u, .-div13u	
+.size div13u, .-div13u
 
 ################################################################################
 # routine: div100u
@@ -772,14 +706,9 @@ div13u:
 ################################################################################	
 div100u:
 	# estimate quotient
-.if HAS_ZBA
-	srli	a1, a0, 3
-	sh2add	a1, a1, a1 	# a1 = a1 + 4a1 = 5a1
-.else
 	srli	a1, a0, 1	# a1 = (n >> 1)
 	srli	a2, a0, 3	# a2 = (n >> 3)
 	add	a1, a1, a2	# a1 = (n >> 1) + (n >> 3)
-.endif
 
 # Series Expansion: q *= 1.01587... (Target 0.6349)
 	srli	a2, a1, 6
@@ -805,22 +734,8 @@ div100u:
 	srli	a1, a1, 6	# a1 = q_approx
 
 	# Compute remainder from estimated quotient
-.if HAS_ZBA
-	sh1add	a2, a1, a1	# a2 = 3q
-	sh3add	a2, a2, a1	# a2 = 24q + q = 25q
-	slli	a2, a2, 2	# a2 = 100q
-.else	
-	# n * 100
-	slli	a2, a1, 1	# 2q
-	slli	a3, a1, 3	# 8q
-	add	a2, a2, a3	# a2 = 10q
-	
-	slli	a3, a2, 1	# 20q
-	slli	a2, a2, 3	# 80q
-	add	a2, a2, a3	# a2 = 100q
-.endif
-	sub     a2, a0, a2  	# a2 = r = n - q_est * 100
-
+	mul100	a2, a1, a2
+	sub	a2, a0, a2	# a2 = r = n - q_est * 100
 
 	# compute correction to estimated quotient
 	sltiu	a3, a2, 100	# a3 = 1 if r < 100, else 0
@@ -828,7 +743,8 @@ div100u:
 	add	a0, a1, a3	# a0 = q = q + correction
 	ret
 
-.size div100u, .-div100u	
+.size div100u, .-div100u
+
 
 ################################################################################
 # routine: div1000u
@@ -845,70 +761,70 @@ div100u:
 # a0 = quotient (unsigned)
 ################################################################################	
 div1000u:
-        # This routine calculates q = (n * (2^9 / 1000)) >> 9
-        # The approximation is q_est = (n * 0.512)
-        # The 32-bit sequence is a high-precision fixed-point multiply.
-        # q = [ (n>>1) + t + (n>>15) + (t>>11) + (t>>14) ] >> 9
-        # where t = (n>>7) + (n>>8) + (n>>12)
+	# This routine calculates q = (n * (2^9 / 1000)) >> 9
+	# The approximation is q_est = (n * 0.512)
+	# The 32-bit sequence is
+	# q = [ (n>>1) + t + (n>>15) + (t>>11) + (t>>14) ] >> 9
+	# where t = (n>>7) + (n>>8) + (n>>12)
 
-        # Compute t = (n>>7) + (n>>8) + (n>>12)
-        srli    a2, a0, 7
-        srli    a3, a0, 8
-        add     a2, a2, a3
-        srli    a3, a0, 12
-        add     a2, a2, a3      # a2 = t
+	# Compute t = (n>>7) + (n>>8) + (n>>12)
+	srli	a2, a0, 7
+	srli	a3, a0, 8
+	add	a2, a2, a3
+	srli	a3, a0, 12
+	add	a2, a2, a3	# a2 = t
 
-        # Compute q = (n>>1) + (n>>15)
-        srli    a1, a0, 1
-        srli    a3, a0, 15
-        add     a1, a1, a3
+	# Compute q = (n>>1) + (n>>15)
+	srli	a1, a0, 1
+	srli	a3, a0, 15
+	add	a1, a1, a3
 
-        # Add t and its shifted terms to q
-        add     a1, a1, a2      # q = q + t
-        srli    a3, a2, 11
-        add     a1, a1, a3      # q = q + (t>>11)
-        srli    a3, a2, 14
-        add     a1, a1, a3      # q = q + (t>>14)
+	# Add t and its shifted terms to q
+	add	a1, a1, a2	# q = q + t
+	srli	a3, a2, 11
+	add	a1, a1, a3	# q = q + (t>>11)
+	srli	a3, a2, 14
+	add	a1, a1, a3	# q = q + (t>>14)
 
 .if CPU_BITS == 64
-        # 64-bit specific approximation steps (extend the series)
-        srli    a3, a2, 22
-        add     a1, a1, a3      # q = q + (t>>22)
-        srli    a3, a2, 28
-        add     a1, a1, a3      # q = q + (t>>28)
-        srli    a3, a2, 44
-        add     a1, a1, a3      # q = q + (t>>44)
-        srli    a3, a2, 56
-        add     a1, a1, a3      # q = q + (t>>56)
+	# 64-bit specific approximation steps (extend the series)
+	srli	a3, a2, 22
+	add	a1, a1, a3	# q = q + (t>>22)
+	srli	a3, a2, 28
+	add	a1, a1, a3	# q = q + (t>>28)
+	srli	a3, a2, 44
+	add	a1, a1, a3	# q = q + (t>>44)
+	srli	a3, a2, 56
+	add	a1, a1, a3	# q = q + (t>>56)
 .endif
 
-        # Common final shift for the quotient
-        srli    a1, a1, 9       # a1 = q_est = (approximation >> 9)
+	# Common final shift for the quotient
+	srli	a1, a1, 9	# a1 = q_est = (approximation >> 9)
 
-        # Compute remainder from estimated quotient (XLEN-agnostic)
-        # n*1000 = (n << 10) - (n << 4) - (n << 3)
-        #        = 1024*n - 16*n - 8*n = 1000*n
-        slli    a2, a1, 10      # a2 = q_est * 1024
-        slli    a3, a1, 4       # a3 = q_est * 16
-        sub     a2, a2, a3      # a2 = q_est * 1008
-        slli    a3, a1, 3       # a3 = q_est * 8
-        sub     a2, a2, a3      # a2 = q_est * 1000
-        sub     a2, a0, a2      # a2 = r = n - q_est * 1000
+	# Compute remainder from estimated quotient (XLEN-agnostic)
+	# n*1000 = (n << 10) - (n << 4) - (n << 3)
+	#	 = 1024*n - 16*n - 8*n = 1000*n
+	slli	a2, a1, 10	# a2 = q_est * 1024
+	slli	a3, a1, 4	# a3 = q_est * 16
+	sub	a2, a2, a3	# a2 = q_est * 1008
+	slli	a3, a1, 3	# a3 = q_est * 8
+	sub	a2, a2, a3	# a2 = q_est * 1000
+	sub	a2, a0, a2	# a2 = r = n - q_est * 1000
 
-        # Compute correction to estimated quotient (XLEN-agnostic)
-        # The approximation is designed to be floor(n/1000), so the
-        # remainder 'r' can be in the range [0, 1999].
-        # If r >= 1000, we must add 1 to the quotient.
+	# Compute correction to estimated quotient (XLEN-agnostic)
+	# The approximation is designed to be floor(n/1000), so the
+	# remainder 'r' can be in the range [0, 1999].
+	# If r >= 1000, we must add 1 to the quotient.
 
-        # Compare remainder 'a2'
-        sltiu   a3, a2, 1000    # a3 = 1 if r < 1000, else 0
+	# Compare remainder 'a2'
+	sltiu	a3, a2, 1000	# a3 = 1 if r < 1000, else 0
 
-        # Invert logic: a3 = 1 if r >= 1000, else 0
-        xori    a3, a3, 1       # a3 = correction factor (0 or 1)
+	# Invert logic: a3 = 1 if r >= 1000, else 0
+	xori	a3, a3, 1	# a3 = correction factor (0 or 1)
 
-        # Add correction 'a3' to quotient 'a1'
-        add     a0, a1, a3      # a0 = q_final = q_est + correction
-        ret
+	# Add correction 'a3' to quotient 'a1'
+	add	a0, a1, a3	# a0 = q_final = q_est + correction
+	ret
 
 .size div1000u, .-div1000u
 
@@ -930,59 +846,59 @@ div3:
 
 # Preamble: Compute sign mask (t0) and abs(n) (a1)
 .if CPU_BITS == 32
-        srai    t0, a0, 31              # t0 = (n < 0) ? -1 : 0
+	srai	t0, a0, 31		# t0 = (n < 0) ? -1 : 0
 .else
-        srai    t0, a0, 63              # t0 = (n < 0) ? -1 : 0
+	srai	t0, a0, 63		# t0 = (n < 0) ? -1 : 0
 .endif
-        xor     a1, a0, t0              # a1 = n ^ sign
-        sub     a1, a1, t0              # a1 = (n ^ sign) - sign = abs(n)
+	xor	a1, a0, t0		# a1 = n ^ sign
+	sub	a1, a1, t0		# a1 = (n ^ sign) - sign = abs(n)
 
-        # Core: Unsigned divide by 3 (div3u) operating on a1 (abs(n))
-        # We use a0 as a temporary copy of abs(n) for the remainder calc.
-        mv      a0, a1                  # a0 = abs(n)
-        srli    a1, a1, 2               # a1: q = abs(n) >> 2
-        srli    a2, a0, 4               # a2: abs(n) >> 4
-        add     a1, a2, a1              # a1: q = q + (abs(n) >> 4)
-        srli    a2, a1, 4               # a2: q >> 4
-        add     a1, a2, a1              # a1: q = q + (q >> 4)
-        srli    a2, a1, 8               # a2: q >> 8
-        add     a1, a2, a1              # a1: q = q + (q >> 8)
-        srli    a2, a1, 16              # a2: q >> 16
-        add     a1, a2, a1              # a1: q = q + (q >> 16)
+	# Core: Unsigned divide by 3 (div3u) operating on a1 (abs(n))
+	# We use a0 as a temporary copy of abs(n) for the remainder calc.
+	mv	a0, a1			# a0 = abs(n)
+	srli	a1, a1, 2		# a1: q = abs(n) >> 2
+	srli	a2, a0, 4		# a2: abs(n) >> 4
+	add	a1, a2, a1		# a1: q = q + (abs(n) >> 4)
+	srli	a2, a1, 4		# a2: q >> 4
+	add	a1, a2, a1		# a1: q = q + (q >> 4)
+	srli	a2, a1, 8		# a2: q >> 8
+	add	a1, a2, a1		# a1: q = q + (q >> 8)
+	srli	a2, a1, 16		# a2: q >> 16
+	add	a1, a2, a1		# a1: q = q + (q >> 16)
 .if CPU_BITS == 64
-        srli    a2, a1, 32              # a2: q >> 32
-        add     a1, a2, a1              # a1: q = q + (q >> 32)
+	srli	a2, a1, 32		# a2: q >> 32
+	add	a1, a2, a1		# a1: q = q + (q >> 32)
 .endif
 
-        # Remainder calculation
-        # a1 = q_est, a0 = abs(n)
-        slli    a2, a1, 1               # a2: q_est * 2
-        add     a2, a2, a1              # a2: q_est * 3
-        sub     a2, a0, a2              # a2: r = abs(n) - q_est * 3
+	# Remainder calculation
+	# a1 = q_est, a0 = abs(n)
+	slli	a2, a1, 1		# a2: q_est * 2
+	add	a2, a2, a1		# a2: q_est * 3
+	sub	a2, a0, a2		# a2: r = abs(n) - q_est * 3
 
-        # Correction step (calculates correction in a0)
+	# Correction step (calculates correction in a0)
 .if CPU_BITS == 64
-        # Correction step for 64-bit (5 instructions)
-        slli    a0, a2, 3               # a0: r * 8
-        add     a0, a0, a2              # a0: r * 9
-        slli    a2, a2, 1               # a2: r * 2
-        add     a0, a0, a2              # a0: r * 11
-        srli    a0, a0, 5               # a0: correction amount
+	# Correction step for 64-bit (5 instructions)
+	slli	a0, a2, 3		# a0: r * 8
+	add	a0, a0, a2		# a0: r * 9
+	slli	a2, a2, 1		# a2: r * 2
+	add	a0, a0, a2		# a0: r * 11
+	srli	a0, a0, 5		# a0: correction amount
 .else
-        # Correction step for 32-bit (4 instructions)
-        addi    a0, a2, 5               # a0: r + 5
-        slli    a2, a2, 2               # a2: r << 2
-        add     a0, a0, a2              # a0: (r + 5) + (r << 2)
-        srli    a0, a0, 4               # a0: correction amount
+	# Correction step for 32-bit (4 instructions)
+	addi	a0, a2, 5		# a0: r + 5
+	slli	a2, a2, 2		# a2: r << 2
+	add	a0, a0, a2		# a0: (r + 5) + (r << 2)
+	srli	a0, a0, 4		# a0: correction amount
 .endif
-        add     a1, a1, a0              # a1 = q_est + correction = abs(n)/3
+	add	a1, a1, a0		# a1 = q_est + correction = abs(n)/3
 
-        # Postamble: Re-apply the original sign (from t0)
-        # a1 has the unsigned quotient `q`, t0 has the sign mask
-        xor     a0, a1, t0              # a0 = q ^ sign
-        sub     a0, a0, t0              # a0 = (q ^ sign) - sign
+	# Postamble: Re-apply the original sign (from t0)
+	# a1 has the unsigned quotient `q`, t0 has the sign mask
+	xor	a0, a1, t0		# a0 = q ^ sign
+	sub	a0, a0, t0		# a0 = (q ^ sign) - sign
 
-        ret	
+	ret
 .size div3, .-div3
 
 
@@ -1005,51 +921,51 @@ div3:
 ################################################################################
 
 div5:
-        # Estimate quotient. This is a stable, XLEN-agnostic approximation
-        # of n * 0.2. q_est = (n>>2) - (n>>4) + (n>>6)
-        srai    a1, a0, 2
-        srai    a2, a0, 4
-        sub     a1, a1, a2      # a1 = (n>>2) - (n>>4)
-        srai    a2, a0, 6
-        add     a1, a1, a2      # a1 = q_est
+	# Estimate quotient. This is a stable, XLEN-agnostic approximation
+	# of n * 0.2. q_est = (n>>2) - (n>>4) + (n>>6)
+	srai	a1, a0, 2
+	srai	a2, a0, 4
+	sub	a1, a1, a2	# a1 = (n>>2) - (n>>4)
+	srai	a2, a0, 6
+	add	a1, a1, a2	# a1 = q_est
 
-        # Compute remainder r = n - (q_est * 5)
-        # We can use (q_est * 4) + q_est
-        slli    a2, a1, 2       # a2 = q_est * 4
-        add     a2, a2, a1      # a2 = q_est * 5
-        sub     a2, a0, a2      # a2 = r = n - (q_est * 5)
+	# Compute remainder r = n - (q_est * 5)
+	# We can use (q_est * 4) + q_est
+	slli	a2, a1, 2	# a2 = q_est * 4
+	add	a2, a2, a1	# a2 = q_est * 5
+	sub	a2, a0, a2	# a2 = r = n - (q_est * 5)
 
-        # Branch-free correction.
-        # Division truncates toward zero, so q must be:
-        #   q_est + 1, if r > 4
-        #   q_est - 1, if r < -4
-        #   q_est,     otherwise
+	# Branch-free correction.
+	# Division truncates toward zero, so q must be:
+	#   q_est + 1, if r > 4
+	#   q_est - 1, if r < -4
+	#   q_est,     otherwise
 
 	# t0 = correction for case 1: (n >= 0 && r < 0) ? 1 : 0
-        slti    t0, a0, 0       # t0 = (n < 0) ? 1 : 0
-        xori    t0, t0, 1       # t0 = (n >= 0) ? 1 : 0
-        slti    t1, a2, 0       # t1 = (r < 0) ? 1 : 0
-        and     t0, t0, t1      # t0 = 1 if (n >= 0) AND (r < 0)
+	slti	t0, a0, 0	# t0 = (n < 0) ? 1 : 0
+	xori	t0, t0, 1	# t0 = (n >= 0) ? 1 : 0
+	slti	t1, a2, 0	# t1 = (r < 0) ? 1 : 0
+	and	t0, t0, t1	# t0 = 1 if (n >= 0) AND (r < 0)
 
-        # t1 = correction for case 2: (n < 0 && r > 0) ? 1 : 0
-        slti    t1, a0, 0       # t1 = (n < 0) ? 1 : 0
-        slt    a0, x0, a2      	# a0 = (r > 0) ? 1 : 0
-        and     t1, t1, a0      # t1 = 1 if (n < 0) AND (r > 0)
+	# t1 = correction for case 2: (n < 0 && r > 0) ? 1 : 0
+	slti	t1, a0, 0	# t1 = (n < 0) ? 1 : 0
+	slt    a0, x0, a2		# a0 = (r > 0) ? 1 : 0
+	and	t1, t1, a0	# t1 = 1 if (n < 0) AND (r > 0)
 
-        # Apply corrections
-        add     a1, a1, t1      # a1 = q_est + (correction 2)
-        sub     a0, a1, t0      # a0 = q_final = a1 - (correction 1)
+	# Apply corrections
+	add	a1, a1, t1	# a1 = q_est + (correction 2)
+	sub	a0, a1, t0	# a0 = q_final = a1 - (correction 1)
 
-        ret
+	ret
 
 .size div5, .-div5
 
 ################################################################################
 # routine: divtst3
 #
-# 
+#
 # Check if a0 (signed) is divisible by 3
-# 
+#
 # RV32I, RV32E, and RV64I.
 #
 # # input registers:
@@ -1063,21 +979,21 @@ div5:
 divtst3:
 	# --- Absolute Value (Signed -> Unsigned) ---
 .if CPU_BITS == 64
-	srai    t0, a0, 63      # t0 = -1 if neg, 0 if pos
+	srai	t0, a0, 63	# t0 = -1 if neg, 0 if pos
 .else
-	srai    t0, a0, 31
+	srai	t0, a0, 31
 .endif
-	xor     a0, a0, t0      # Flip bits
-	sub     a0, a0, t0      # Add 1 (Complete Abs Val)
+	xor	a0, a0, t0	# Flip bits
+	sub	a0, a0, t0	# Add 1 (Complete Abs Val)
 
 	# FALLTHROUGH to divtst3u
 
 ################################################################################
 # routine: divtst3u
 #
-# 
+#
 # Check if a0 (unsigned) is divisible by 3
-# 
+#
 # RV32I, RV32E, and RV64I.
 #
 # # input registers:
@@ -1091,32 +1007,32 @@ divtst3u:
 .if CPU_BITS == 64
 	# RV64 Optimization: Fold top 32 bits into bottom.
 	# 2^32 = 1 (mod 3). We want (Upper + Lower).
-	srli    a2, a0, 32      # a2 = Upper
+	srli	a2, a0, 32	# a2 = Upper
 .if HAS_ZBA == 1
 	zext.w	a0, a0
 .else
-	slli    a0, a0, 32      # \ Clear Upper bits from a0
-	srli    a0, a0, 32      # / (Zero Extend)
+	slli	a0, a0, 32	# \ Clear Upper bits from a0
+	srli	a0, a0, 32	# / (Zero Extend)
 .endif
-	add     a0, a0, a2      # a0 = Lower + Upper
+	add	a0, a0, a2	# a0 = Lower + Upper
 .endif
 
-	li      a1, 15          # Invariant: Mask 0xF and Loop Limit
+	li	a1, 15		# Invariant: Mask 0xF and Loop Limit
 
 loop3:
-	and     a2, a0, a1      # digit = n & 15
-	srli    a0, a0, 4       # n = n >> 4
-	add     a0, a0, a2      # n = n + digit
-	bltu    a1, a0, loop3   # Continue while n > 15
+	and	a2, a0, a1	# digit = n & 15
+	srli	a0, a0, 4	# n = n >> 4
+	add	a0, a0, a2	# n = n + digit
+	bltu	a1, a0, loop3	# Continue while n > 15
 
 	# Final Check: n is 0..15. Valid: 0, 3, 6, 9, 12, 15
 	# Bitmask: 1001 0010 0100 1001 = 0x9249
-	li      a1, 0x9249
+	li	a1, 0x9249
 .if HAS_ZBS == 1
 	bext	a0, a1, a0	# a0 = (a1 >> a0) & 1
 .else
-	srl     a0, a1, a0      # Shift mask by remaining n
-	andi    a0, a0, 1       # Isolate bit 0
+	srl	a0, a1, a0	# Shift mask by remaining n
+	andi	a0, a0, 1	# Isolate bit 0
 .endif
 	ret
 
@@ -1131,24 +1047,24 @@ divtst5:
     # RV64 Optimization: Bulk fold the top 32 bits.
     # Since 2^32 = (2^4)^8 = 16^8 = 1^8 = 1 (mod 5).
     srli    a2, a0, 32
-    add     a0, a0, a2      # n = n_low + n_high
+    add	    a0, a0, a2	    # n = n_low + n_high
 .endif
 
-    li      a1, 15          # Invariant: Mask 0xF and Loop Limit
-                            # We fold 4 bits at a time (16 = 1 mod 5)
+    li	    a1, 15	    # Invariant: Mask 0xF and Loop Limit
+			    # We fold 4 bits at a time (16 = 1 mod 5)
 
 # loops ~8 times on 32 bit, ~9 times on 64 bit machines.
 loop5:
-    and     a2, a0, a1      # digit = n & 15
-    srli    a0, a0, 4       # n = n >> 4
-    add     a0, a0, a2      # n = n + digit
+    and	    a2, a0, a1	    # digit = n & 15
+    srli    a0, a0, 4	    # n = n >> 4
+    add	    a0, a0, a2	    # n = n + digit
     bltu    a1, a0, loop5   # Continue while n > 15
 
     # Final Check: n is 0..15. Valid: 0, 5, 10, 15
     # Bitmask: 1000 0100 0010 0001 = 0x8421
-    li      a1, 0x8421
-    srl     a0, a1, a0      # Shift mask by remaining n
-    andi    a0, a0, 1       # Isolate bit 0
+    li	    a1, 0x8421
+    srl	    a0, a1, a0	    # Shift mask by remaining n
+    andi    a0, a0, 1	    # Isolate bit 0
     ret
 
 .size divtst5, .-divtst5
@@ -1161,13 +1077,13 @@ loop5:
 #   n = (n & 7) + (n >> 3) preserves n % 7.
 # -----------------------------------------------------------------------
 divtst7:
-    li      a1, 7           # Invariant: Mask 0x7 and Limit
-                            # We fold 3 bits at a time.
+    li	    a1, 7	    # Invariant: Mask 0x7 and Limit
+			    # We fold 3 bits at a time.
 # 11 iterations max on 32-bit, 22 on 64-bit
 loop7:
-    and     a2, a0, a1      # digit = n & 7
-    srli    a0, a0, 3       # n = n >> 3
-    add     a0, a0, a2      # n = n + digit
+    and	    a2, a0, a1	    # digit = n & 7
+    srli    a0, a0, 3	    # n = n >> 3
+    add	    a0, a0, a2	    # n = n + digit
     bltu    a1, a0, loop7   # Continue while n > 7
     
     # Final Check: n is 0..7
@@ -1175,9 +1091,9 @@ loop7:
     # We need a bitmask with bits 0 and 7 set.
     # Binary: 1000 0001
     # Hex:    0x81
-    li      a1, 0x81        # Load Look-up Table
-    srl     a0, a1, a0      # Shift bit to position 0
-    andi    a0, a0, 1       # Isolate result
+    li	    a1, 0x81	    # Load Look-up Table
+    srl	    a0, a1, a0	    # Shift bit to position 0
+    andi    a0, a0, 1	    # Isolate result
     ret
 
 .size divtst7, .-divtst7
@@ -1192,27 +1108,27 @@ divtst9:
     # RV64 Pre-Fold Optimization
     # Reduces 64-bit input to ~35 bits instantly.
     # Logic: 2^32 = 4 (mod 9). 
-    #        n = Lower32 + (Upper32 * 4)
+    #	     n = Lower32 + (Upper32 * 4)
     # ---------------------------------------------------------
-    srli    a1, a0, 32      # a1 = Upper 32 bits
-    slli    a2, a1, 2       # a2 = Upper * 4
+    srli    a1, a0, 32	    # a1 = Upper 32 bits
+    slli    a2, a1, 2	    # a2 = Upper * 4
     
-    slli    a0, a0, 32      # \ 
-    srli    a0, a0, 32      # / Zero-extend Lower 32 bits
+    slli    a0, a0, 32	    # \ 
+    srli    a0, a0, 32	    # / Zero-extend Lower 32 bits
     
-    add     a0, a0, a2      # n = Lower + (Upper * 4)
+    add	    a0, a0, a2	    # n = Lower + (Upper * 4)
 .endif
 
     # ---------------------------------------------------------
     # Main Folding Loop
     # Stride: 6 bits. (2^6 = 64 == 1 mod 9)
     # ---------------------------------------------------------
-    li      a1, 63          # Mask 0x3F (6 bits)
+    li	    a1, 63	    # Mask 0x3F (6 bits)
 
 loop9:
-    and     a2, a0, a1      # digit = n & 63
-    srli    a0, a0, 6       # n = n >> 6
-    add     a0, a0, a2      # n = remaining + digit
+    and	    a2, a0, a1	    # digit = n & 63
+    srli    a0, a0, 6	    # n = n >> 6
+    add	    a0, a0, a2	    # n = remaining + digit
     bltu    a1, a0, loop9   # Keep folding if n > 63
 
     # ---------------------------------------------------------
@@ -1220,11 +1136,11 @@ loop9:
     # At this point, n is in [0, 63].
     # n is divisible by 9 iff (n & 7) == (n >> 3).
     # ---------------------------------------------------------
-    srli    a1, a0, 3       # a1 = Upper 3 bits (n >> 3)
-    andi    a0, a0, 7       # a0 = Lower 3 bits (n & 7)
+    srli    a1, a0, 3	    # a1 = Upper 3 bits (n >> 3)
+    andi    a0, a0, 7	    # a0 = Lower 3 bits (n & 7)
     
-    xor     a0, a0, a1      # XOR is 0 if halves are equal
-    sltiu   a0, a0, 1       # Return 1 if result is 0, else 0
+    xor	    a0, a0, a1	    # XOR is 0 if halves are equal
+    sltiu   a0, a0, 1	    # Return 1 if result is 0, else 0
     ret
 
 .size divtst9, .-divtst9
@@ -1244,13 +1160,13 @@ divtst11:
     # Property: 2^32 = 4 (mod 11).
     # n = Lower32 + (Upper32 * 4)
     # ---------------------------------------------------------
-    srli    a1, a0, 32      # a1 = Upper
-    slli    a2, a1, 2       # a2 = Upper * 4
+    srli    a1, a0, 32	    # a1 = Upper
+    slli    a2, a1, 2	    # a2 = Upper * 4
     
-    slli    a0, a0, 32      # \ 
-    srli    a0, a0, 32      # / Zero-extend Lower
+    slli    a0, a0, 32	    # \ 
+    srli    a0, a0, 32	    # / Zero-extend Lower
     
-    add     a0, a0, a2      # n = Lower + (Upper * 4)
+    add	    a0, a0, a2	    # n = Lower + (Upper * 4)
 .endif
 
     # ---------------------------------------------------------
@@ -1258,22 +1174,22 @@ divtst11:
     # Property: 2^10 = 1024 = 1 (mod 11).
     # We sum 10-bit chunks until n <= 1023.
     # ---------------------------------------------------------
-    li      a1, 1023        # Mask 0x3FF
+    li	    a1, 1023	    # Mask 0x3FF
 
 loop11_stage1:
-    and     a2, a0, a1      # digit = n & 1023
-    srli    a0, a0, 10      # n = n >> 10
-    add     a0, a0, a2      # n += digit
+    and	    a2, a0, a1	    # digit = n & 1023
+    srli    a0, a0, 10	    # n = n >> 10
+    add	    a0, a0, a2	    # n += digit
     bltu    a1, a0, loop11_stage1
 
     # ---------------------------------------------------------
     # Stage 2: 5-bit Alternating Fold
     # At this point, n is 0..1023.
     # Property: 2^5 = 32 = -1 (mod 11).
-    # n = 32*High + Low  =>  n (mod 11) = Low - High
+    # n = 32*High + Low	 =>  n (mod 11) = Low - High
     # ---------------------------------------------------------
-    srli    a1, a0, 5       # a1 = High (n >> 5)
-    andi    a0, a0, 31      # a0 = Low  (n & 31)
+    srli    a1, a0, 5	    # a1 = High (n >> 5)
+    andi    a0, a0, 31	    # a0 = Low	(n & 31)
 
     # We calculate (Low - High).
     # Range of Low: 0..31, Range of High: 0..31.
@@ -1281,7 +1197,7 @@ loop11_stage1:
     # We add a bias of 33 (3 * 11) to keep the result positive.
     # n_new = Low - High + 33. Range: [2, 64].
     
-    sub     a0, a0, a1
+    sub	    a0, a0, a1
     addi    a0, a0, 33
 
     # ---------------------------------------------------------
@@ -1289,11 +1205,11 @@ loop11_stage1:
     # n is now in [2, 64]. We check if it is a multiple of 11.
     # We can use a tiny subtraction loop (max 5 iterations).
     # ---------------------------------------------------------
-    li      a1, 11
+    li	    a1, 11
 sub11:
     bltu    a0, a1, check11
-    sub     a0, a0, a1
-    j       sub11
+    sub	    a0, a0, a1
+    j	    sub11
 
 check11:
     # If remainder is 0, original n was divisible by 11.
@@ -1314,23 +1230,23 @@ divtst13:
     # ---------------------------------------------------------
     # RV64 Pre-Fold Optimization
     # Logic: 2^32 mod 13 calculation:
-    #        2^12 = 1 (mod 13)
-    #        2^24 = 1 (mod 13)
-    #        2^32 = 2^24 * 2^8 = 1 * 256 = 256.
-    #        256 = 19 * 13 + 9.
-    #        So, 2^32 = 9 (mod 13).
+    #	     2^12 = 1 (mod 13)
+    #	     2^24 = 1 (mod 13)
+    #	     2^32 = 2^24 * 2^8 = 1 * 256 = 256.
+    #	     256 = 19 * 13 + 9.
+    #	     So, 2^32 = 9 (mod 13).
     # Formula: n = Lower32 + (Upper32 * 9)
     # ---------------------------------------------------------
-    srli    a1, a0, 32      # a1 = Upper
+    srli    a1, a0, 32	    # a1 = Upper
     
     # Calculate a1 * 9 using shifts (a1*8 + a1)
-    slli    a2, a1, 3       # a2 = Upper * 8
-    add     a2, a2, a1      # a2 = Upper * 9
+    slli    a2, a1, 3	    # a2 = Upper * 8
+    add	    a2, a2, a1	    # a2 = Upper * 9
     
-    slli    a0, a0, 32      # \
-    srli    a0, a0, 32      # / Zero-extend Lower
+    slli    a0, a0, 32	    # \
+    srli    a0, a0, 32	    # / Zero-extend Lower
     
-    add     a0, a0, a2      # n = Lower + (Upper * 9)
+    add	    a0, a0, a2	    # n = Lower + (Upper * 9)
 .endif
 
     # ---------------------------------------------------------
@@ -1338,29 +1254,29 @@ divtst13:
     # Property: 2^12 = 4096 = 1 (mod 13).
     # We sum 12-bit chunks until n <= 4095.
     # ---------------------------------------------------------
-    li      a1, 4095        # Mask 0xFFF
+    li	    a1, 4095	    # Mask 0xFFF
 
 loop13_stage1:
-    and     a2, a0, a1      # digit = n & 0xFFF
-    srli    a0, a0, 12      # n = n >> 12
-    add     a0, a0, a2      # n += digit
+    and	    a2, a0, a1	    # digit = n & 0xFFF
+    srli    a0, a0, 12	    # n = n >> 12
+    add	    a0, a0, a2	    # n += digit
     bltu    a1, a0, loop13_stage1
 
     # ---------------------------------------------------------
     # Stage 2: 6-bit Alternating Fold (Subtraction)
     # At this point, n is 0..4095 (12 bits).
     # Property: 2^6 = 64 = -1 (mod 13).
-    # n = 64*High + Low  =>  n (mod 13) = Low - High
+    # n = 64*High + Low	 =>  n (mod 13) = Low - High
     # ---------------------------------------------------------
-    srli    a1, a0, 6       # a1 = High (n >> 6)
-    andi    a0, a0, 63      # a0 = Low  (n & 63)
+    srli    a1, a0, 6	    # a1 = High (n >> 6)
+    andi    a0, a0, 63	    # a0 = Low	(n & 63)
 
     # We calculate (Low - High).
     # Range of Low: 0..63, Range of High: 0..63.
     # Range of (Low - High): -63 to +63.
     # Bias: 65 (5 * 13) to ensure result is positive [2, 128].
     
-    sub     a0, a0, a1
+    sub	    a0, a0, a1
     addi    a0, a0, 65
 
     # ---------------------------------------------------------
@@ -1368,11 +1284,11 @@ loop13_stage1:
     # n is now in [2, 128].
     # Use a tiny subtract loop (max ~9 iterations).
     # ---------------------------------------------------------
-    li      a1, 13
+    li	    a1, 13
 sub13:
     bltu    a0, a1, check13
-    sub     a0, a0, a1
-    j       sub13
+    sub	    a0, a0, a1
+    j	    sub13
 
 check13:
     # If remainder is 0, original n was divisible by 13.
@@ -1390,7 +1306,7 @@ divtst100:
     # 1. Fast Modulo 4 Check
     # If the last 2 bits are not 0, it's not divisible by 4 (or 100).
     # ---------------------------------------------------------
-    andi    t0, a0, 3       # Extract last 2 bits
+    andi    t0, a0, 3	    # Extract last 2 bits
     bnez    t0, fail_div100 # If not 00, return 0
 
     # ---------------------------------------------------------
@@ -1409,20 +1325,20 @@ divtst100:
     # --- Stage 1: 20-bit Fold (Addition) ---
     # Property: 2^20 = 1 (mod 25).
     # We sum 20-bit chunks.
-    li      a1, 0xFFFFF     # Mask 20 bits
+    li	    a1, 0xFFFFF	    # Mask 20 bits
 
 loop100_stage1:
-    and     a2, a0, a1      # digit = n & 0xFFFFF
-    srli    a0, a0, 20      # n = n >> 20
-    add     a0, a0, a2      # n += digit
+    and	    a2, a0, a1	    # digit = n & 0xFFFFF
+    srli    a0, a0, 20	    # n = n >> 20
+    add	    a0, a0, a2	    # n += digit
     bltu    a1, a0, loop100_stage1
     # Result is now <= ~21 bits (approx 2 million)
 
     # --- Stage 2: 10-bit Alternating Fold (Subtraction) ---
     # Property: 2^10 = 1024 = -1 (mod 25).
     # n = High*1024 + Low  =>  n (mod 25) = Low - High
-    srli    a1, a0, 10      # a1 = High (n >> 10)
-    andi    a0, a0, 1023    # a0 = Low  (n & 1023)
+    srli    a1, a0, 10	    # a1 = High (n >> 10)
+    andi    a0, a0, 1023    # a0 = Low	(n & 1023)
 
     # Calculate Low - High.
     # High can be up to ~2048 (from stage 1 result).
@@ -1430,17 +1346,17 @@ loop100_stage1:
     # Result can be negative. We add a Bias.
     # Bias = 2500 (100 * 25). Keeps result positive.
     
-    sub     a0, a0, a1
-# XXXXX    addi    a0, a0, 2500
+    sub	    a0, a0, a1
+# XXXXX	   addi	   a0, a0, 2500
 
     # --- Stage 3: Tiny Cleanup Loop ---
     # n is now in range [0, ~3500].
     # We subtract 25 until n < 25.
-    li      a1, 25
+    li	    a1, 25
 sub25:
     bltu    a0, a1, check25
-    sub     a0, a0, a1
-    j       sub25
+    sub	    a0, a0, a1
+    j	    sub25
 
 check25:
     # If n == 0, it is divisible by 25.
@@ -1449,7 +1365,7 @@ check25:
     ret
 
 fail_div100:
-    li      a0, 0
+    li	    a0, 0
     ret
 
 .size divtst100, .-divtst100
@@ -1463,7 +1379,7 @@ divtst1000:
     # 1. Fast Modulo 8 Check
     # If the last 3 bits are not 0, it fails immediately.
     # ---------------------------------------------------------
-    andi    t0, a0, 7       # Extract last 3 bits
+    andi    t0, a0, 7	    # Extract last 3 bits
     bnez    t0, fail_div1000
 
     # ---------------------------------------------------------
@@ -1478,21 +1394,21 @@ divtst1000:
     # Property: 2^10 = 1024 = 24 (mod 125).
     # Rule: Next_N = (High * 24) + Low
     # ---------------------------------------------------------
-    li      a1, 1023        # Mask 0x3FF (10 bits)
+    li	    a1, 1023	    # Mask 0x3FF (10 bits)
 
 loop1000:
     # Split N into High (remaining) and Low (digit)
-    and     a2, a0, a1      # a2 = Low (digit)
-    srli    a0, a0, 10      # a0 = High
+    and	    a2, a0, a1	    # a2 = Low (digit)
+    srli    a0, a0, 10	    # a0 = High
     
     # Calculate High * 24
     # 24 = 16 + 8, so High*24 = (High << 4) + (High << 3)
-    slli    t0, a0, 4       # t0 = High * 16
-    slli    t1, a0, 3       # t1 = High * 8
-    add     a0, t0, t1      # a0 = High * 24
+    slli    t0, a0, 4	    # t0 = High * 16
+    slli    t1, a0, 3	    # t1 = High * 8
+    add	    a0, t0, t1	    # a0 = High * 24
     
     # Add Low
-    add     a0, a0, a2      # n = (High * 24) + Low
+    add	    a0, a0, a2	    # n = (High * 24) + Low
     
     # Continue if n > 1023 (Safe threshold where fold shrinks n)
     bltu    a1, a0, loop1000
@@ -1503,11 +1419,11 @@ loop1000:
     # (Worst case fold: 1023*24 + 1023 approx 25k, shrinks fast in next iter)
     # We subtract 125 until n < 125.
     # ---------------------------------------------------------
-    li      a1, 125
+    li	    a1, 125
 sub125:
     bltu    a0, a1, check125
-    sub     a0, a0, a1
-    j       sub125
+    sub	    a0, a0, a1
+    j	    sub125
 
 check125:
     # If n == 0, it is divisible by 125 (and thus original was by 1000).
@@ -1515,7 +1431,8 @@ check125:
     ret
 
 fail_div1000:
-    li      a0, 0
+    li	    a0, 0
     ret
 
 .size divtst1000, .-divtst1000
+
