@@ -343,8 +343,6 @@ test10_fail:
 	call	result
 
 test11:
-
-	# 11. hashtable test
 	# Expected Result: Quotient = 4, Remainder = 21
 
 	la	a1, test11s
@@ -352,9 +350,9 @@ test11:
 	call	title
 
 	li	a0, 433
-	li	a1, HASHENTRIES	# 103
+	li	a1, 103
 
-	jal	divremu		# Call divremu
+	jal	divremu
 
 	# Check results
 	# a0 (quotient) should be 4

@@ -14,31 +14,7 @@
 
 .equ 	DIVREMU_UNROLLED, 1	# 1 = unrolled 4x version, 0 = compact version
 
-
-
-# XXX: move this stuff to rvhash
-
-# hash table stuff
-.equ KEYSIZE, CPU_BYTES
-.equ VALSIZE, CPU_BYTES
-.equ HASHENTRIES, 103	# prime
-
-.equ _ACTUAL_FLAG_DATA_SIZE, 2      // Actual size of flag data (for documentation)
-.equ FLAGS_STORAGE_SIZE, CPU_BYTES  // Flags stored in a CPU_BYTES slot for alignment
-
-.equ FLAGSOFFSET, 0                 // Flags at the start of the element
-.equ KEYOFFSET, FLAGS_STORAGE_SIZE    // Key starts after allocated space for flags
-.equ VALOFFSET, FLAGS_STORAGE_SIZE + KEYSIZE // Value starts after flags and key
-.equ ELEMENTLEN, FLAGS_STORAGE_SIZE + KEYSIZE + VALSIZE // Total element length, ensures alignment
-
-# bitmasks
-.equ FLAG_INUSE,	0x01
-.equ FLAG_TOMBSTONE,	0x02
-# end hash table stuff
-
-
-
-
+# stack frames
 
 .macro PUSH reg_to_save, offset_val
 .if CPU_BITS == 64

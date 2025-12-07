@@ -43,7 +43,7 @@ isqrt:
 	# Fall through to main loop directly
 	j	isqrt_main_loop
 .else
-	# Standard: Start at max power of 4 and shift down
+	# Base ISA: Start at max power of 4 and shift down
 	li	a3, 1
 .if CPU_BITS == 64
 	slli	a3, a3, 62
@@ -51,7 +51,7 @@ isqrt:
 	slli	a3, a3, 30
 .endif
 
-# Adjust 'place' down until place <= n
+	# Adjust 'place' down until place <= n
 isqrt_adjust_place_loop:
 	# Note: bltu is unsigned compare.
 	# If place > n, shift down.
