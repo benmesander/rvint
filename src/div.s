@@ -72,10 +72,10 @@ divremu:
 .endif
 
 divremu_loop:
-	# Step 1: Extract MSB
+	# Extract MSB
 	srli	t0, a2, MSB_SHIFT
 
-	# Step 2: Shift Remainder and Merge new bit
+	# Shift Remainder and Merge new bit
 .if HAS_ZBA
 	# sh1add rd, rs1, rs2  ->  rd = rs2 + (rs1 << 1)
 	sh1add	a0, a0, t0
@@ -84,13 +84,13 @@ divremu_loop:
 	or	a0, a0, t0
 .endif
 
-	# Step 3: Shift Dividend left
+	# Shift Dividend left
 	slli	a2, a2, 1
 
-	# Step 4: Compare Remainder vs Divisor
+	# Compare Remainder vs Divisor
 	sltu	t1, a0, a1		# t1 = 1 if Rem < Div (Fail)
 
-	# Step 5: Branchless Subtract
+	# Branchless Subtract
 .if HAS_ZICOND
 	# If t1 (Fail) is set, subtract 0. If clear, subtract Divisor.
 	czero.nez t2, a1, t1
@@ -110,13 +110,12 @@ divremu_loop:
 	bnez	a3, divremu_loop
 
 	# Fall through to 'COMMON EPILOGUE'
-
 .else
 
 ###### UNROLLED VERSION (4x Speed) #############################################
 
 .macro DIV_STEP
-	# --- 1. Shift Remainder & Merge MSB ---
+	# Shift Remainder & Merge MSB
 	srli	t0, a2, MSB_SHIFT
 
 .if HAS_ZBA == 1
@@ -126,22 +125,22 @@ divremu_loop:
 	or	a0, a0, t0
 .endif
 
-	# --- 2. Prepare Dividend/Quotient ---
+	# Prepare Dividend/Quotient
 	slli	a2, a2, 1
 
-	# --- 3. Compare ---
-	sltu	t0, a0, a1		# t0 = 1 if Rem < Div (Fail)
+	# Compare
+	sltu	t0, a0, a1	# t0 = 1 if Rem < Div (Fail)
 
-	# --- 4. Branchless Subtraction Logic ---
+	# Branchless Subtraction Logic
 .if HAS_ZICOND == 1
-	czero.nez t2, a1, t0
+	czero.nez t2, a1, t0	# this makes me so happy
 .else
-	addi	t1, t0, -1		# Mask
-	and	t2, a1, t1		# Filter
+	addi	t1, t0, -1	# Mask
+	and	t2, a1, t1	# Filter
 .endif
 	sub	a0, a0, t2
 
-	# --- 5. Update Quotient Bit ---
+	# Update Quotient Bit
 	xori	t0, t0, 1
 	or	a2, a2, t0
 .endm
@@ -149,9 +148,9 @@ divremu_loop:
 divremu:
 	beqz	a1, divremu_zero
 
-	mv	a2, a0			# a2 = Dividend
-	mv	a0, zero		# a0 = Remainder
-	li	a3, (CPU_BITS / 4)	# Loop counter (8 or 16)
+	mv	a2, a0		# a2 = Dividend
+	mv	a0, zero	# a0 = Remainder
+	li	a3, (CPU_BITS/4)# Loop counter (8 or 16)
 
 div_loop_4x:
 	DIV_STEP
@@ -185,7 +184,7 @@ divremu_zero:
 # Handles 32-bit or 64-bit based on CPU_BITS.
 #
 # Constraints:
-# - Relies on divremu NOT clobbering t4 or t5 (ABI deviation for speed).
+# Relies on divremu NOT clobbering t4 or t5 (ABI deviation for speed).
 #
 # input:  a0 = dividend (N), a1 = divisor (D)
 # output: a0 = quotient (Q), a1 = remainder (R)
@@ -801,7 +800,7 @@ div1000u:
 	# Common final shift for the quotient
 	srli	a1, a1, 9	# a1 = q_est = (approximation >> 9)
 
-	# Compute remainder from estimated quotient (XLEN-agnostic)
+	# Compute remainder from estimated quotient
 	# n*1000 = (n << 10) - (n << 4) - (n << 3)
 	#	 = 1024*n - 16*n - 8*n = 1000*n
 	slli	a2, a1, 10	# a2 = q_est * 1024
@@ -811,7 +810,7 @@ div1000u:
 	sub	a2, a2, a3	# a2 = q_est * 1000
 	sub	a2, a0, a2	# a2 = r = n - q_est * 1000
 
-	# Compute correction to estimated quotient (XLEN-agnostic)
+	# Compute correction to estimated quotient
 	# The approximation is designed to be floor(n/1000), so the
 	# remainder 'r' can be in the range [0, 1999].
 	# If r >= 1000, we must add 1 to the quotient.
@@ -906,14 +905,14 @@ div3:
 # routine: div5
 #
 # Signed fast division by 5 without using M extension.
-# This routine provides a single, XLEN-agnostic implementation for
+# This routine provides a single, implementation for
 # RV32I, RV32E, and RV64I.
 #
 # It uses a fast approximation, followed by a remainder calculation
 # and a two-way branch-free correction to handle truncation toward zero.
 #
 # input registers:
-#   a0 = signed dividend (32 or 64 bits, matching XLEN)
+#   a0 = signed dividend (32 or 64 bits)
 #
 # output registers:
 #   a0 = quotient (signed, a0 / 5)
@@ -921,7 +920,7 @@ div3:
 ################################################################################
 
 div5:
-	# Estimate quotient. This is a stable, XLEN-agnostic approximation
+	# Estimate quotient.
 	# of n * 0.2. q_est = (n>>2) - (n>>4) + (n>>6)
 	srai	a1, a0, 2
 	srai	a2, a0, 4
@@ -1340,14 +1339,13 @@ loop100_stage1:
     srli    a1, a0, 10	    # a1 = High (n >> 10)
     andi    a0, a0, 1023    # a0 = Low	(n & 1023)
 
-    # Calculate Low - High.
-    # High can be up to ~2048 (from stage 1 result).
-    # Low is < 1024.
-    # Result can be negative. We add a Bias.
-    # Bias = 2500 (100 * 25). Keeps result positive.
-    
-    sub	    a0, a0, a1
-# XXXXX	   addi	   a0, a0, 2500
+	# Calculate Low - High.
+	# High can be up to ~1024 (from stage 1 result).
+	# Low is < 1024.
+	# Result can be negative. We add a Bias. Must be multiple of 24
+	# 1250 (50 * 25) is sufficient and fits in 12-bit immediate
+	sub	a0, a0, a1
+	addi	a0, a0, 1250
 
     # --- Stage 3: Tiny Cleanup Loop ---
     # n is now in range [0, ~3500].
