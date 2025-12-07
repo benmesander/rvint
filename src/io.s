@@ -1,4 +1,5 @@
 .include "config.s"
+.include "mul-macs.s"
 
 .globl to_hex
 .globl to_bin
@@ -324,9 +325,7 @@ from_decu_digit:
 	bgtu	a5, t1, from_decu_done
 
 	li	a2, 1
-	slli	a3, a1, 1	# a3 = a1 * 2
-	slli	a4, a1, 3	# a4 = a1 * 8
-	add	a1, a3, a4	# a1 = a1 * 10
+	mul10	a1, a1, a3
 	add	a1, a1, a5	# add in new digit
 	addi	a0, a0, 1
 	j	from_decu_digit

@@ -709,7 +709,7 @@ div100u:
 	srli	a2, a0, 3	# a2 = (n >> 3)
 	add	a1, a1, a2	# a1 = (n >> 1) + (n >> 3)
 
-# Series Expansion: q *= 1.01587... (Target 0.6349)
+	# Series Expansion: q *= 1.01587... (Target 0.6349)
 	srli	a2, a1, 6
 	add	a1, a1, a2	# q += q >> 6
 
