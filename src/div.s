@@ -301,38 +301,19 @@ div3u:
 	add     a1, a2, a1     	# a1: q = q + (q >> 32)
 .endif
 	# Remainder calculation
-.if HAS_ZBA == 1
-	sh1add	a2, a1, a1	# a2 = (a1 << 1) + a1 = q * 3
-.else
-	slli    a2, a1, 1      	# a2: q * 2
-	add     a2, a2, a1     	# a2: q * 3
-.endif
+	mul3	a2, a1, a2
 	sub     a2, a0, a2     	# a2: r = n - q * 3
 
 .if CPU_BITS == 64
         # Correction step for 64-bit
         # Handles errors up to 6+. Calculates floor(r*11/32).
-.if HAS_ZBA == 1
-	sh3add	a0, a2, a2	# a0 = (r << 3) + r = r * 9
-	sh1add	a0, a2, a0	# a0 = (r << 1) + a0 = 2r + 9r = 11r
-.else
-        slli    a0, a2, 3       # a0: r * 8
-        add     a0, a0, a2      # a0: r * 9
-        slli    a2, a2, 1       # a2: r * 2
-        add     a0, a0, a2      # a0: r * 11
-.endif
-        srli    a0, a0, 5       # a0: correction amount
+	mul11	a0, a2, a0	# a0 = r * 11
+        srli    a0, a0, 5       # a0 = 11r/32: correction amoutn
 .else
         # Correction step for 32-bit
         # Sufficient for errors up to 5. Calculates floor((5r+5)/16).
-.if HAS_ZBA == 1
-	sh2add	a0, a2, a2	# a0 = (r << 2) + r = 5r
-	addi	a0, a0, 5	# a0 = 5r + 5
-.else
-        addi    a0, a2, 5       # a0: r + 5
-        slli    a2, a2, 2       # a2: r << 2
-        add     a0, a0, a2      # a0: (r + 5) + (r << 2)
-.endif
+	mul5	a0, a2, a0
+	addi	a0, a0, 5
         srli    a0, a0, 4       # a0/16: correction amount
 .endif
 
@@ -357,9 +338,8 @@ div3u:
 # a0 = quotient (unsigned)
 ################################################################################
 div5u:
-	srli	a1, a0, 1	# a1 = (n >> 1)
-	srli	a2, a0, 2	# a2 = (n >> 2)
-	add	a1, a1, a2	# a1 = q = (n >> 1) + (n >> 2)
+	srli	a2, a0, 2
+	sub	a1, a0, a2
 	srli	a2, a1, 4	# a2 = (q >> 4)
 	add	a1, a1, a2	# a1 = q + (q >> 4)
 	srli	a2, a1, 8	# a2 = (q >> 8)
@@ -373,18 +353,13 @@ div5u:
 	srli	a1, a1, 2	# a1 = q = q >> 2 (Final approximate quotient)
 
 	# Calculate r = n - q*5
-.if HAS_ZBA
-	sh2add	a2, a1, a1
-.else
-	slli	a2, a1, 2	# a2 = q*4
-	add	a2, a2, a1	# a2 = q*4 + q = q*5
-.endif
+	mul5	a2, a1, a2	# a2 = q * 5
 	sub	a2, a0, a2	# a2 = r = n - q*5
 
 	# Add correction q + (7*r >> 5)
 	slli	a3, a2, 3	# a3 = r*8
-	sub	a3, a3, a2	# a2 = (r*8) - r = r*7
-	srli	a3, a2, 5	# a2 = 7*r >> 5
+	sub	a3, a3, a2	# a3 = (r*8) - r = r*7
+	srli	a3, a3, 5	# a3 = 7*r >> 5
 	add	a0, a1, a3	# a0 = q + (7*r >> 5)
 	ret
 .size div5u, .-div5u
@@ -421,7 +396,7 @@ div6u:
 	srli	a1, a1, 2	# q = q >> 2
 
 	# Phase 2: Calculate remainder r = n - 6*q
-	mul6	a1, a2, a3		# a2 = q * 6
+	mul6	a2, a1, a3	# a2 = q * 6
 	sub	a2, a0, a2	# a2 = r = n - q * 6
 
 	# Phase 3: Correction
@@ -434,7 +409,7 @@ div6u:
 	# For 64-bit, we use a fast magic number multiplication to find
 	# the correction amount, which is floor(r * 11 / 64).
 	# This single step is sufficient to produce the correct result.
-	mul11	a2, a3, a3
+	mul11	a3, a2, a3
 	srli	a3, a3, 6	# a3 = floor((r * 11) / 64) -> correction amount
 .endif
 	add	a0, a1, a3	# a0 = q_approx + correction
@@ -565,7 +540,7 @@ div10u:
 	# Target: q_accum = n * 0.8
 .if HAS_ZBA
 	# ZBA: 3 * (n >> 2) = 0.75n
-	srli	a1, a0, 2
+	srli	a1, a0, 2	# XXX: seems like no advantage to zba here
 	sh1add	a1, a1, a1
 .else
 	# Base ISA: n - (n >> 2) = 0.75n
