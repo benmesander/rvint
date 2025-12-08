@@ -101,3 +101,18 @@
 	slli	\dest, \dest, 2
 .endif
 .endm
+
+.macro mul1000 dest src scratch0
+.if HAS_ZBA
+	sh2add	\scratch0, \src, \src		# *5
+	sh2add	\scratch0, \scratch0, \scratch0	# *25
+	sh2add	\dest, \scratch0, \scratch0	# *125
+	slli	\dest, \dest, 3			# *1000
+.else
+	slli	\scratch0, \src, 1		# *2
+	add	\scratch0, \scratch0, \src	# *3
+	slli	\scratch0, \scratch0, 3		# *24
+	slli	\dest, \src, 10			# *1024
+	sub	\dest, \dest, \scratch0		# *1024 - *24 = *1000
+.endif
+.endm

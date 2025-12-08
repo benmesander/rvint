@@ -307,7 +307,7 @@ div3u:
 	# Correction step for 64-bit
 	# Handles errors up to 6+. Calculates floor(r*11/32).
 	mul11	a0, a2, a0	# a0 = r * 11
-	srli	a0, a0, 5	# a0 = 11r/32: correction amoutn
+	srli	a0, a0, 5	# a0 = 11r/32: correction amount
 .else
 	# Correction step for 32-bit
 	# Sufficient for errors up to 5. Calculates floor((5r+5)/16).
@@ -524,7 +524,7 @@ div10u:
 	srli	a2, a0, 2
 	sub	a1, a0, a2
 
-	# Continue series expansion...
+	# series expansion
 	srli	a2, a1, 4
 	add	a1, a1, a2	# q += q >> 4
 	srli	a2, a1, 8
@@ -541,12 +541,12 @@ div10u:
 
 	# Phase 2: Calculate r = n - 10*q
 	mul10	a2, a1, a3	# a2 = 10q
-	sub	a3, a0, a2	# a3 = r
+	sub	a2, a2, a0	# negative remainder
 
-	# Phase 3: Correction
-	sltiu	a3, a3, 10
-	xori	a3, a3, 1
+	# Phase 3: Correction - Diff < -9 implies remainder >= 10
+	slti	a3, a2, -9
 	add	a0, a1, a3
+
 	ret
 .size div10u, .-div10u
 
@@ -753,78 +753,122 @@ div100u:
 # It uses a fast multiply/shift/add/correct algorithm.
 # Suitable for use on RV32E architectures.
 #
+# The series approximation for 64-bit numbers results in large errors in the
+# estimated quotient. We use a macro, estimate_q, to refine the 64-bit estimate.
+# While we need to do three passes worst case, we make each pass use successively
+# fewer terms, so the 2nd and 3rd passes are faster than the first.
+#
+# Approximate cycle count:
+# RV32I/RV32E: 25
+# RV32I w/ZBA: 24
+# RV64I:       66
+# RV54I w/ZBA: 57
+#
 # input registers:
 # a0 = unsigned dividend (32 or 64 bits)
 #
 # output registers:
 # a0 = quotient (unsigned)
 ################################################################################	
-div1000u:
-	# This routine calculates q = (n * (2^9 / 1000)) >> 9
-	# The approximation is q_est = (n * 0.512)
-	# The 32-bit sequence is
-	# q = [ (n>>1) + t + (n>>15) + (t>>11) + (t>>14) ] >> 9
-	# where t = (n>>7) + (n>>8) + (n>>12)
 
-	# Compute t = (n>>7) + (n>>8) + (n>>12)
-	srli	a2, a0, 7
-	srli	a3, a0, 8
-	add	a2, a2, a3
-	srli	a3, a0, 12
-	add	a2, a2, a3	# a2 = t
 
-	# Compute q = (n>>1) + (n>>15)
-	srli	a1, a0, 1
-	srli	a3, a0, 15
-	add	a1, a1, a3
+# Macro: estimate_q
+# Args: dest register, src register, and 2 scratch registers.
+# + LEVEL (0=Tiny, 1=Medium, 2=Full)
+.macro estimate_q dest src scr1 scr2 LEVEL
+	# Calculate t
+	# t = (3n >> 8) + (n >> 12)
+	# Level 2 (Full) must use shifts to avoid 64-bit overflow of (3*n).
+	# Levels 0/1 (Med/Tiny) can use Zba sh1add for speed.
+.if \LEVEL < 2 && HAS_ZBA
+	sh1add	\scr1, \src, \src
+	srli	\scr1, \scr1, 8
+.else
+	srli	\scr1, \src, 7
+	srli	\scr2, \src, 8
+	add	\scr1, \scr1, \scr2
+.endif
+	srli	\scr2, \src, 12
+	add	\scr1, \scr1, \scr2	# scr1 = t
 
-	# Add t and its shifted terms to q
-	add	a1, a1, a2	# q = q + t
-	srli	a3, a2, 11
-	add	a1, a1, a3	# q = q + (t>>11)
-	srli	a3, a2, 14
-	add	a1, a1, a3	# q = q + (t>>14)
-
-.if CPU_BITS == 64
-	# 64-bit specific approximation steps (extend the series)
-	srli	a3, a2, 22
-	add	a1, a1, a3	# q = q + (t>>22)
-	srli	a3, a2, 28
-	add	a1, a1, a3	# q = q + (t>>28)
-	srli	a3, a2, 44
-	add	a1, a1, a3	# q = q + (t>>44)
-	srli	a3, a2, 56
-	add	a1, a1, a3	# q = q + (t>>56)
+	# Calculate Base q
+	srli	\dest, \src, 1		# q = n >> 1
+.if \LEVEL >= 1
+	srli	\scr2, \src, 15
+	add	\dest, \dest, \scr2	# q += n >> 15
 .endif
 
-	# Common final shift for the quotient
-	srli	a1, a1, 9	# a1 = q_est = (approximation >> 9)
+	# Add t Terms
+	add	\dest, \dest, \scr1	# q += t
 
-	# Compute remainder from estimated quotient
-	# n*1000 = (n << 10) - (n << 4) - (n << 3)
-	#	 = 1024*n - 16*n - 8*n = 1000*n
-	slli	a2, a1, 10	# a2 = q_est * 1024
-	slli	a3, a1, 4	# a3 = q_est * 16
-	sub	a2, a2, a3	# a2 = q_est * 1008
-	slli	a3, a1, 3	# a3 = q_est * 8
-	sub	a2, a2, a3	# a2 = q_est * 1000
-	sub	a2, a0, a2	# a2 = r = n - q_est * 1000
+.if \LEVEL >= 1
+	# Medium/Full Terms
+	srli	\scr2, \scr1, 11
+	add	\dest, \dest, \scr2
+	srli	\scr2, \scr1, 14
+	add	\dest, \dest, \scr2
+	
+	# Partial 64-bit Extension (Bits 22, 28)
+.if CPU_BITS == 64
+	srli	\scr2, \scr1, 22
+	add	\dest, \dest, \scr2
+	srli	\scr2, \scr1, 28
+	add	\dest, \dest, \scr2
+.endif
+.endif
 
-	# Compute correction to estimated quotient
-	# The approximation is designed to be floor(n/1000), so the
-	# remainder 'r' can be in the range [0, 1999].
-	# If r >= 1000, we must add 1 to the quotient.
+.if \LEVEL == 2 && CPU_BITS == 64
+	# Full 64-bit Extension (Bits 44, 56)
+	srli	\scr2, \scr1, 44
+	add	\dest, \dest, \scr2
+	srli	\scr2, \scr1, 56
+	add	\dest, \dest, \scr2
+.endif
 
-	# Compare remainder 'a2'
-	sltiu	a3, a2, 1000	# a3 = 1 if r < 1000, else 0
+	# Final Shift
+	srli	\dest, \dest, 9
+.endm
 
-	# Invert logic: a3 = 1 if r >= 1000, else 0
-	xori	a3, a3, 1	# a3 = correction factor (0 or 1)
+##### CODE BEGINS HERE #####
 
-	# Add correction 'a3' to quotient 'a1'
-	add	a0, a1, a3	# a0 = q_final = q_est + correction
+div1000u:
+	# [PASS 1] Full Precision (Level 2) - for 32-bit this is all that is needed
+	# Input: a0. Output: a1.
+	estimate_q a1, a0, a2, a3, 2
+	mul1000	a2, a1, a3
+	sub	a2, a0, a2	# a2 = r1
+
+.if CPU_BITS == 64
+	# [PASS 2] Medium Precision (Level 1)
+	# Input: a2 (r1). Output: a3.
+	estimate_q a3, a2, a4, a5, 1
+	mul1000	a4, a3, a5
+	sub	a4, a2, a4	# a4 = r2
+
+	# [PASS 3] Tiny Precision (Level 0)
+	# Input: a4 (r2). Output: a5.
+	estimate_q a5, a4, a2, a0, 0
+	mul1000	a2, a5, a0
+	sub	a2, a4, a2	# a2 = r3
+
+	# combine
+	add	a0, a1, a3
+	add	a0, a0, a5
+
+	# correct
+	slti	a5, a2, 1000
+	xori	a5, a5, 1
+	add	a0, a0, a5
 	ret
 
+.else
+	# 32-bit path
+	sub	a2, zero, a2
+	sltiu	a3, a2, 1000
+	xori	a3, a3, 1
+	add	a0, a1, a3
+	ret
+.endif
 .size div1000u, .-div1000u
 
 ################################################################################
