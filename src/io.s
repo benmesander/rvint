@@ -163,7 +163,7 @@ to_decu_loop:
 	mul10	t0, t0, t1		# t0 = 10 * c (c is 0 or 1, so this is 0 or 10)
 	sub	a5, a5, t0		# a5 = Final Remainder (Digit 0-9)
 
-	# store decimal digig & loop
+	# store decimal digit & loop
 	addi	a5, a5, '0'		# Convert to ASCII
 	sb	a5, 0(a2)		# Store digit
 	
