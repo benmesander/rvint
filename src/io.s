@@ -109,71 +109,78 @@ to_bin_no_space:
 # routine: to_decu
 #
 # Convert unsigned integer to ASCII decimal string.
+# Optimizations:
+# - Inlined div10u logic with optimized remainder calculation.
+# - Removed expensive mul10 correction for the remainder.
 #
 # Input:  a0 = unsigned number
 # Output: a0 = address of string buffer
 #         a1 = length of string
 ################################################################################
 to_decu:
-	# Setup Buffer Pointers. We work backwards from the end of the buffer.
+	# Setup Buffer (Work backwards)
 	la	a2, iobuf
 	addi	a2, a2, IOBUF_CAPACITY
-	mv	a1, a2			# Save End Pointer for length calculation
-	sb	zero, 0(a2)		# Null-terminate the string
+	mv	a1, a2			# Save End Pointer
+	sb	zero, 0(a2)		# Nul-terminate
 
-	# 2. Setup Loop
+	# Setup Loop
 	mv	a3, a0			# a3 = Current 'n'
 
 to_decu_loop:
-	addi	a2, a2, -1		# Decrement buffer pointer
+	addi	a2, a2, -1		# Decrement pointer
 
-	# inline division by 10 (Output: a4=Quotient, a5=Remainder)
-	
-	# Approximate Quotient (q_est = n * 0.1) via n * 0.75 * (series) / 8
+	# Inline Division: q = n / 10
+
+	# Estimator: n * 0.75 * (series) / 8
 	srli	t0, a3, 2
-	sub	a4, a3, t0		# a4 = 0.75n
+	sub	a4, a3, t0		# a4 = n * 0.75
 
 	srli	t0, a4, 4
-	add	a4, a4, t0		# q += q >> 4
+	add	a4, a4, t0
 	srli	t0, a4, 8
-	add	a4, a4, t0		# q += q >> 8
+	add	a4, a4, t0
 	srli	t0, a4, 16
-	add	a4, a4, t0		# q += q >> 16
+	add	a4, a4, t0
 .if CPU_BITS == 64
 	srli	t0, a4, 32
 	add	a4, a4, t0
 .endif
 	srli	a4, a4, 3		# a4 = q_est
 
-	# Diff = (10 * q_est) - n
-	# If Diff < -9, we underestimated q by 1.
-	mul10	a5, a4, t0		# a5 = 10 * q_est (Using Macro)
-	sub	a5, a5, a3		# a5 = Diff (Value is -Remainder or -Remainder-10)
-	slti	t0, a5, -9		# t0 = 1 if Diff < -9 (Correction Needed)
-	
-	# correct quotient
+	# Correction & Remainder
+
+	# Calculate diff = 10*q_est - n
+	# Range of diff is [-19, 0]
+	mul10	a5, a4, t0		# a5 = 10 * q_est
+	sub	a5, a5, a3		# a5 = diff
+
+	# Threshold: Is diff <= -10?
+	slti	t0, a5, -9		# t0 = correction (0 or 1)
 	add	a3, a4, t0		# n_new = q_est + correction
 
-	# correct remainder
-	# Logic: Remainder = n - 10(q_final)
-	#        Remainder = n - 10(q_est + c)
-	#        Remainder = (n - 10q_est) - 10c
-	#        Remainder = -Diff - 10c
-	sub	a5, zero, a5		# a5 = -Diff
-	mul10	t0, t0, t1		# t0 = 10 * c (c is 0 or 1, so this is 0 or 10)
-	sub	a5, a5, t0		# a5 = Final Remainder (Digit 0-9)
-
-	# store decimal digit & loop
-	addi	a5, a5, '0'		# Convert to ASCII
-	sb	a5, 0(a2)		# Store digit
+	# Calculate Remainder Digit
+	# r_raw = -diff (Range 0..19)
+	sub	a5, zero, a5
 	
-	bnez	a3, to_decu_loop	# If n != 0, repeat
+	# If correction happened (t0=1), r_raw is 10..19. We need r_raw - 10.
+	# If correction didn't happen (t0=0), r_raw is 0..9.
+	
+	slli	t1, t0, 3		# t1 = 8*t0
+	add	t1, t1, t0		# t1 = 9*t0
+	add	t1, t1, t0		# t1 = 10*t0
+	sub	a5, a5, t1		# digit = r_raw - 10*correction
 
-	# 3. Finalize Return Values
-	mv	a0, a2			# Return Address = Current Ptr
-	sub	a1, a1, a2		# Return Length = EndPtr - CurrentPtr
+	# Store Digit
+	addi	a5, a5, '0'
+	sb	a5, 0(a2)
+
+	bnez	a3, to_decu_loop	# Loop if n != 0
+
+	# 3. Finalize
+	mv	a0, a2			# a0 = Start Pointer
+	sub	a1, a1, a2		# a1 = Length
 	ret
-
 .size to_decu, .-to_decu
 
 ################################################################################

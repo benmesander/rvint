@@ -28,6 +28,15 @@ where those two goals clash, I went with concise.
 - Fast 32-bit unsigned division by 1000 (no tests)
 - Fast 32-bit signed division by 3 (no tests)
 - Fast 32-bit signed division by 5 (no tests)
+- Fast 32-bit signed division by 6 (no tests)
+- Fast 32-bit signed division by 7 (no tests)
+- Fast 32-bit signed division by 9 (no tests)
+- Fast 32-bit signed division by 10 (no tests)
+- Fast 32-bit signed division by 11 (no tests)
+- Fast 32-bit signed division by 12 (no tests)
+- Fast 32-bit signed division by 13 (no tests)
+- Fast 32-bit signed division by 100 (no tests)
+- Fast 32-bit signed division by 1000 (no tests)
 ### On 64-bit processors
 - 64-bit by 64-bit signed and unsigned division with 64-bit result and remainder. (unsigned division is RV64E compatible)
 - Fast 64-bit unsigned division by 3
@@ -42,7 +51,16 @@ where those two goals clash, I went with concise.
 - Fast 64-bit unsigned division by 100 (no tests)
 - Fast 64-bit unsigned division by 1000 (no tests)
 - Fast 64-bit signed division by 3 (no tests)
-- Fast 32-bit signed division by 5 (no tests)
+- Fast 64-bit signed division by 5 (no tests)
+- Fast 64-bit signed division by 6 (no tests)
+- Fast 64-bit signed division by 7 (no tests)
+- Fast 64-bit signed division by 9 (no tests)
+- Fast 64-bit signed division by 10 (no tests)
+- Fast 64-bit signed division by 11 (no tests)
+- Fast 64-bit signed division by 12 (no tests)
+- Fast 64-bit signed division by 13 (no tests)
+- Fast 64-bit signed division by 100 (no tests)
+- Fast 64-bit signed division by 1000 (no tests)
 
 ## Multiplication
 

@@ -16,7 +16,15 @@
 .globl div1000u
 .globl div3
 .globl div5
+.globl div6
 .globl div7
+.globl div9
+.globl div10
+.globl div11	
+.globl div12
+.globl div13
+.globl div100
+.globl div1000
 .globl mod3u
 .globl mod3
 
@@ -301,24 +309,17 @@ div3u:
 	srli	a2, a1, 32		# a2: q >> 32
 	add	a1, a2, a1		# a1: q = q + (q >> 32)
 .endif
-	# Remainder calculation
-	mul3	a2, a1, a2
-	sub	a2, a0, a2		# a2: r = n - q * 3
+	# no final shift needed (series converges directly to 1/3)
 
-.if CPU_BITS == 64
-	# Correction step for 64-bit
-	# Handles errors up to 6+. Calculates floor(r*11/32).
-	mul11	a0, a2, a0	# a0 = r * 11
-	srli	a0, a0, 5	# a0 = 11r/32: correction amount
-.else
-	# Correction step for 32-bit
-	# Sufficient for errors up to 5. Calculates floor((5r+5)/16).
-	mul5	a0, a2, a0
-	addi	a0, a0, 5
-	srli	a0, a0, 4	# a0/16: correction amount
-.endif
+	# negative remainder correction
+	# diff = 3q - n
+	mul3	a2, a1, a2	# a2 = 3 * q
+	sub	a2, a2, a0	# a2 = 3q - n
 
-	add	a0, a1, a0	# a0: q + correction
+	# threshold check: is diff <= -3?
+	# -3 < -2 -> 1 (correction needed)
+	slti	a3, a2, -2
+	add	a0, a1, a3	# q + correction
 	ret
 
 .size div3u, .-div3u
@@ -363,41 +364,54 @@ div5u:
 ################################################################################
 # routine: div6u
 #
-# Unsigned fast division by 6 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
+# Unsigned fast division by 6.
+# Algorithm: Series expansion + Dual Threshold Correction.
 #
-# input registers:
-# a0 = unsigned dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (unsigned)
+# input:  a0 = unsigned dividend
+# output: a0 = unsigned quotient
 ################################################################################
 div6u:
-	# Calculate approximate quotient q_est.
-	srli	a1, a0, 1	# a1 = (n >> 1)
-	srli	a2, a0, 3	# a2 = (n >> 3)
-	add	a1, a1, a2	# q = (n >> 1) + (n >> 3)
-	srli	a2, a1, 4	# a2 = (q >> 4)
-	add	a1, a1, a2	# q = q + (q >> 4)
-	srli	a2, a1, 8	# a2 = (q >> 8)
-	add	a1, a1, a2	# q = q + (q >> 8)
-	srli	a2, a1, 16	# a2 = (q >> 16)
-	add	a1, a1, a2	# q = q + (q >> 16)
-.if CPU_BITS == 64
-	srli	a2, a1, 32	# a2 = (q >> 32)
-	add	a1, a1, a2	# q = q + (q >> 32)
-.endif
-	srli	a1, a1, 2	# q = q >> 2
+	# estimate quotient: q = n / 6
+	# base: n * (1/2 + 1/8) = n * 0.625
+	srli	a1, a0, 1
+	srli	a2, a0, 3
+	add	a1, a1, a2
 
-	# Calculate negative remainder r = n - 6*q
-	mul6	a2, a1, a2	# a2 = q * 6
-	sub	a2, a2, a0
-	slti	a3, a2, -5	# calculate correction
-	add	a0, a1, a3	# apply correction
+	# series expansion (converges to 0.666...)
+	srli	a2, a1, 4
+	add	a1, a1, a2
+	srli	a2, a1, 8
+	add	a1, a1, a2
+	srli	a2, a1, 16
+	add	a1, a1, a2
+.if CPU_BITS == 64
+	srli	a2, a1, 32
+	add	a1, a1, a2
+.endif
+
+	# final shift: q_est = q_accum / 4
+	srli	a1, a1, 2
+
+	# negative remainder calculation
+	# diff = 6q - n
+	mul6	a2, a1, a2	# a2 = 6 * q
+	sub	a2, a2, a0	# a2 = 6q - n
+
+	# threshold 1: diff <= -6 (i.e. < -5)
+	# handles estimation error of 1
+	slti	a3, a2, -5
+	add	a1, a1, a3	# q += 1
+
+.if CPU_BITS == 64
+	# threshold 2: diff <= -12 (i.e. < -11)
+	# handles estimation error of 2 (possible for >60-bit inputs)
+	slti	a3, a2, -11
+	add	a1, a1, a3	# q += 1
+.endif
+
+	mv	a0, a1
 	ret
-.size	div6u, .-div6u
+.size div6u, .-div6u
 
 ################################################################################
 # routine: div7u
@@ -434,6 +448,12 @@ div7u:
 	sub	a2, a2, a0	# negative remainder
 	slti	a3, a2, -6
 	add	a0, a1, a3	# correct quotient
+.if CPU_BITS == 64
+	# Correction Step 2 (64-bit only): Add another 1 if diff <= -14
+	# We reuse the original diff in a2
+	slti	a3, a2, -13
+	add	a0, a0, a3
+.endif
 	ret
 
 .size	div7u, .-div7u
@@ -451,11 +471,11 @@ div7u:
 # output: a0 = quotient
 ################################################################################    
 div9u:
-	# Approximate Quotient: q_accum = n * (8/9)
-	# Start with n * (7/8)
+	# approximate quotient: q_accum = n * (8/9)
+	# start with n * (7/8)
 	srli	a2, a0, 3	# a2 = n >> 3
 	sub	a1, a0, a2	# a1 = n - (n >> 3) = n * 0.875
-	# Series expansion: Multiply by (1 + 1/64 + 1/4096...)
+	# series expansion: multiply by (1 + 1/64 + 1/4096...)
 	srli	a2, a1, 6
 	add	a1, a1, a2	# q += q >> 6
 	srli	a2, a1, 12
@@ -467,12 +487,12 @@ div9u:
 	add	a1, a1, a2	# q += q >> 48
 .endif
 
-	# Final adjustment: q = (n * 8/9) / 8 = n / 9
+	# final adjustment: q = (n * 8/9) / 8 = n / 9
 	srli	a1, a1, 3	# a1 = q_approx
 
-	# Negative Remainder -9 < -8 -> 1 (correction), -8 < -8 -> 0 (no corr)
+	# negative remainder -9 < -8 -> 1 (correction), -8 < -8 -> 0 (no corr)
 	mul9	a3, a1, a2
-	sub	a2, a2, a0
+	sub	a2, a3, a0
 	slti	a3, a2, -8
 	add	a0, a1, a3	# q = q + correction
 
@@ -494,9 +514,7 @@ div9u:
 # a0 = quotient (unsigned)
 ################################################################################
 div10u:
-	# Phase 1: Calculate approximate quotient
-	# Target: q_accum = n * 0.8
-
+	# calculate approximate quotient q_accum = n * 0.8
 	# n - (n >> 2) = 0.75n
 	srli	a2, a0, 2
 	sub	a1, a0, a2
@@ -513,14 +531,14 @@ div10u:
 	add	a1, a1, a2	# q += q >> 32
 .endif
 
-	# Final adjustment: (n * 0.8) / 8 = n / 10
+	# final adjustment: (n * 0.8) / 8 = n / 10
 	srli	a1, a1, 3
 
-	# Phase 2: Calculate r = n - 10*q
+	# calculate r = n - 10*q
 	mul10	a2, a1, a3	# a2 = 10q
 	sub	a2, a2, a0	# negative remainder
 
-	# Phase 3: Correction - Diff < -9 implies remainder >= 10
+	# correction - diff < -9 implies remainder >= 10
 	slti	a3, a2, -9
 	add	a0, a1, a3
 
@@ -530,48 +548,46 @@ div10u:
 ################################################################################
 # routine: div11u
 #
-# Unsigned fast division by 11 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
+# Unsigned fast division by 11.
+# Base: 3 * (n/4 - n/128) = n * 93/128.
 #
-# input registers:
-# a0 = unsigned dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (unsigned)
+# input:  a0 = unsigned dividend
+# output: a0 = quotient
 ################################################################################	
 div11u:
-	srli	a1, a0, 1	# a1 = (n >> 1)
-	srli	a2, a0, 2	# a2 = (n >> 2)
-	add	a1, a1, a2	# a1 = (n >> 1) + (n >> 2)
-	srli	a2, a0, 5	# a2 = (n >> 5)
-	sub	a1, a1, a2	# a1 = (n >> 1) + (n >> 2) - (n >> 5)
-	srli	a2, a0, 7	# a2 = (n >> 7)
-	add	a1, a1, a2	# a1 = q = (n >> 1) + (n >> 2) - (n >> 5) + (n >> 7)
-	srli	a2, a1, 10	# a2 = (q >> 10)
-	add	a1, a1, a2	# a1 = q = q + (q >> 10)
-	srli	a2, a1, 20	# a2 = (q >> 20)
-	add	a1, a1, a2	# a1 = q = q + (q >> 20)
+	# estimator: q = n * (1/11)
+	# base: n * 93/128
+	# calc: 3 * (n >> 2 - n >> 7)
+	srli	a1, a0, 2
+	srli	a2, a0, 7
+	sub	a1, a1, a2	# a1 = n/4 - n/128
+	mul3	a1, a1, a2	# a1 = 3 * a1 (uses a2 as scratch)
+
+	# series expansion (1 + 2^-10 + ...)
+	# factor 93/128 matches the required 10-bit period of 1/11
+	srli	a2, a1, 10
+	add	a1, a1, a2
+	srli	a2, a1, 20
+	add	a1, a1, a2
 .if CPU_BITS == 64
-	srli	a2, a1, 40	# a2 = (q >> 40)
-	add	a1, a1, a2	# a1 = q = q + (q >> 40)
+	srli	a2, a1, 40
+	add	a1, a1, a2
 .endif
 
-	srli	a2, a1, 3	# a2 = q = (q >> 3) (note: a1 = q << 3)
+	# final shift: q_est = q_accum / 8
+	srli	a1, a1, 3
 
-	# compute remainder
-	mul11	a1, a2, a3	# a1 = q_est * 11
-	sub	a1, a1, a0	# negative remainder
-	# Threshold Check: Is Diff < -10?
-	# -11 < -10 -> 1 (Correction needed)
-	# -10 < -10 -> 0 (No correction)
-	slti	a3, a1, -10
-	add	a0, a2, a3	# a0 = q = q_est + correction
-	ret
+	# negative remainder & correction
+	mul11	a2, a1, a2	# a2 = 11 * q
+	sub	a2, a2, a0	# a2 = 11q - n (negative remainder)
 
+	# threshold: if diff <= -11 (i.e. < -10), add 1
+	slti	a3, a2, -10
+	add	a0, a1, a3	# q + correction
+
+	ret	
 .size div11u, .-div11u
-
+	
 ################################################################################
 # routine: div12u
 #
@@ -618,290 +634,211 @@ div12u:
 ################################################################################
 # routine: div13u
 #
-# Unsigned fast division by 13 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
+# Unsigned fast division by 13.
+# Optimizations: 
+# - Robust Estimator (Max Error 1) to support 64-bit inputs.
+# - Negative Remainder Trick to minimize correction instructions.
 #
-# input registers:
-# a0 = unsigned dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (unsigned)
+# input:  a0 = dividend
+# output: a0 = quotient
 ################################################################################	
 div13u:
-	# estimate quotient
-	# n / 2 + n / 16 = 9/16 * n
-	srli	a1, a0, 1	# a1 = (n >> 1)
-	srli	a2, a0, 4	# a2 = (n >> 4)
-	add	a1, a1, a2	# a1 = q = (n >> 1) + (n >> 4)
+	# estimator: q = n * (1/13)
+	# base: n * 5/8 * 63/64 approx n * 0.6152...
+	# target: n * 8/13 = n * 0.6153...
+	srli	a1, a0, 1
+	srli	a2, a0, 3
+	add	a1, a1, a2	# a1 = n * 0.625
 
-	srli	a2, a1, 4	# a2 = (q >> 4) 
-	add	a1, a1, a2	# a1 = q + (q >> 4)
-	srli	a2, a2, 1	# a2 = (q >> 5) parallel addition
-	add	a1, a1, a2	# a1 = q + (q >> 4) + (q >> 5)
-	srli	a2, a1, 12	# a2 = (q >> 12)
-	add	a1, a1, a2	# a1 = q + (q >> 12)
-	srli	a2, a2, 12	# a2 = (q >> 24) parallel addition
-	add	a1, a1, a2	# a1 = q + (q >> 12) + (q >> 24)
+	srli	a2, a1, 6
+	sub	a1, a1, a2	# a1 = n * 0.61523...
+
+	# series expansion (1 + 2^-12 + ...)
+	srli	a2, a1, 12
+	add	a1, a1, a2
+	srli	a2, a1, 24
+	add	a1, a1, a2
 .if CPU_BITS == 64
-	# refine quotient for 64 bit values
-	srli	a2, a2, 24
+	srli	a2, a1, 48
 	add	a1, a1, a2
 .endif
-	srli	a1, a1, 3	# a1 = q = q >> 3
 
-	# compute remainder
-	mul13	a2, a1, a2
-	sub	a2, a0, a2	# a2 = r = n - q*13
+	srli	a1, a1, 3	# q_est = q_accum / 8
 
-	# correct estimated quotient
-	# compute corr = floor(r / 13) using (r * 5) >> 6
-	mul5	a3, a2, a3
-	srli	a3, a3, 6	# (approx r / 12.8)
-	add	a0, a1, a3	# a0 = q + correction
+	# negative remainder & correction
+	mul13	a2, a1, a2	# a2 = 13 * q
+	sub	a2, a2, a0	# a2 = 13q - n (Negative Remainder)
 
-	ret
+	# threshold: if diff <= -13 (i.e. < -12), add 1
+	slti	a3, a2, -12
+	add	a0, a1, a3	# q + correction
 
+	ret	
 .size div13u, .-div13u
 
 ################################################################################
 # routine: div100u
 #
-# Unsigned fast division by 100 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
+# Unsigned fast division by 100.
+# Algorithm: Direct series expansion for 0.64.
+# Base: 0.5 + 0.125 + 0.015625 = 0.640625.
+# Series: 1 - 1/1024 + 1/2^20...
 #
-# input registers:
-# a0 = unsigned dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (unsigned)
+# input:  a0 = unsigned dividend
+# output: a0 = quotient
 ################################################################################	
 div100u:
-	# estimate quotient
-	srli	a1, a0, 1	# a1 = (n >> 1)
-	srli	a2, a0, 3	# a2 = (n >> 3)
-	add	a1, a1, a2	# a1 = (n >> 1) + (n >> 3)
+	# estimator: q = n * 0.64
+	# base: n * (1/2 + 1/8 + 1/64)
+	srli	a1, a0, 1
+	srli	a2, a0, 3
+	add	a1, a1, a2
+	srli	a2, a0, 6
+	add	a1, a1, a2	# a1 = n * 0.640625
 
-	# Series Expansion: q *= 1.01587... (Target 0.6349)
-	srli	a2, a1, 6
-	add	a1, a1, a2	# q += q >> 6
-	srli	a2, a1, 12
-	add	a1, a1, a2	# q += q >> 12
-	srli	a2, a1, 24
-	add	a1, a1, a2	# q += q >> 24
+	# series expansion
+	# correct 0.640625 -> 0.64 (factor is approx 1 - 1/1024)
+	srli	a2, a1, 10
+	sub	a1, a1, a2
+
+	# refine (factor 1 + 1/2^20)
+	srli	a2, a1, 20
+	add	a1, a1, a2
+
 .if CPU_BITS == 64
-	srli	a2, a1, 48
-	add	a1, a1, a2	# q += q >> 48
+	# refine (factor 1 + 1/2^40)
+	srli	a2, a1, 40
+	add	a1, a1, a2
 .endif
 
-	# Precision Correction: q *= 1.0078... (Target 0.64)
-	# Current: 0.6349. Target 0.64. Gap is ~1/128.
-	srli	a2, a1, 7
-	add	a1, a1, a2	# q += q >> 7
+	# final shift: (n * 0.64) / 64 = n / 100
+	srli	a1, a1, 6	# q_est
 
-	# Final shift: (n * 0.64) / 64 = n / 100
-	srli	a1, a1, 6	# a1 = q_approx
+	# correction
+	# calculate negative remainder: diff = 100q - n
+	mul100	a2, a1, a3	# a2 = 100 * q
+	sub	a2, a2, a0	# a2 = 100q - n
 
-	# Compute remainder from estimated quotient
-	mul100	a2, a1, a2
-	sub	a2, a2, a0	# negative remainder
+	# threshold: if diff <= -100 (i.e. < -99), add 1
 	slti	a3, a2, -99
-	add	a0, a1, a3	# a0 = q = q + correction
+	add	a0, a1, a3	# q + correction
+
 	ret
-
 .size div100u, .-div100u
-
 
 ################################################################################
 # routine: div1000u
 #
-# Unsigned fast division by 1000 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
+# Unsigned fast division by 1000 without M extension.
+# Algorithm: Chained Division (n / 10) / 100.
 #
-# The series approximation for 64-bit numbers results in large errors in the
-# estimated quotient. We use a macro, estimate_q, to refine the 64-bit estimate.
-# While we need to do three passes worst case, we make each pass use successively
-# fewer terms, so the 2nd and 3rd passes are faster than the first.
-#
-# Approximate cycle count:
-# RV32I/RV32E: 25
-# RV32I w/ZBA: 24
-# RV64I:       66
-# RV54I w/ZBA: 57
-#
-# input registers:
-# a0 = unsigned dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (unsigned)
+# input:  a0 = unsigned dividend
+# output: a0 = quotient
 ################################################################################	
-
-
-# Macro: estimate_q
-# Args: dest register, src register, and 2 scratch registers.
-# + LEVEL (0=Tiny, 1=Medium, 2=Full)
-.macro estimate_q dest src scr1 scr2 LEVEL
-	# Calculate t
-	# t = (3n >> 8) + (n >> 12)
-	# Level 2 (Full) must use shifts to avoid 64-bit overflow of (3*n).
-	# Levels 0/1 (Med/Tiny) can use Zba sh1add for speed.
-.if \LEVEL < 2 && HAS_ZBA
-	sh1add	\scr1, \src, \src
-	srli	\scr1, \scr1, 8
-.else
-	srli	\scr1, \src, 7
-	srli	\scr2, \src, 8
-	add	\scr1, \scr1, \scr2
-.endif
-	srli	\scr2, \src, 12
-	add	\scr1, \scr1, \scr2	# scr1 = t
-
-	# Calculate Base q
-	srli	\dest, \src, 1		# q = n >> 1
-.if \LEVEL >= 1
-	srli	\scr2, \src, 15
-	add	\dest, \dest, \scr2	# q += n >> 15
-.endif
-
-	# Add t Terms
-	add	\dest, \dest, \scr1	# q += t
-
-.if \LEVEL >= 1
-	# Medium/Full Terms
-	srli	\scr2, \scr1, 11
-	add	\dest, \dest, \scr2
-	srli	\scr2, \scr1, 14
-	add	\dest, \dest, \scr2
-	
-	# Partial 64-bit Extension (Bits 22, 28)
-.if CPU_BITS == 64
-	srli	\scr2, \scr1, 22
-	add	\dest, \dest, \scr2
-	srli	\scr2, \scr1, 28
-	add	\dest, \dest, \scr2
-.endif
-.endif
-
-.if \LEVEL == 2 && CPU_BITS == 64
-	# Full 64-bit Extension (Bits 44, 56)
-	srli	\scr2, \scr1, 44
-	add	\dest, \dest, \scr2
-	srli	\scr2, \scr1, 56
-	add	\dest, \dest, \scr2
-.endif
-
-	# Final Shift
-	srli	\dest, \dest, 9
-.endm
-
-##### CODE BEGINS HERE #####
-
 div1000u:
-	# [PASS 1] Full Precision (Level 2) - for 32-bit this is all that is needed
-	# Input: a0. Output: a1.
-	estimate_q a1, a0, a2, a3, 2
-	mul1000	a2, a1, a3
-	sub	a2, a0, a2	# a2 = r1
+	# calculate q = n / 10
+	# estimator: n * 0.8
+	srli	a2, a0, 2
+	sub	a1, a0, a2	# a1 = n * 0.75
 
+	# series for 0.8
+	srli	a2, a1, 4
+	add	a1, a1, a2
+	srli	a2, a1, 8
+	add	a1, a1, a2
+	srli	a2, a1, 16
+	add	a1, a1, a2
 .if CPU_BITS == 64
-	# [PASS 2] Medium Precision (Level 1)
-	# Input: a2 (r1). Output: a3.
-	estimate_q a3, a2, a4, a5, 1
-	mul1000	a4, a3, a5
-	sub	a4, a2, a4	# a4 = r2
-
-	# [PASS 3] Tiny Precision (Level 0)
-	# Input: a4 (r2). Output: a5.
-	estimate_q a5, a4, a2, a0, 0
-	mul1000	a2, a5, a0
-	sub	a2, a4, a2	# a2 = r3
-
-	# combine
-	add	a0, a1, a3
-	add	a0, a0, a5
-
-	# correct
-	slti	a5, a2, 1000
-	xori	a5, a5, 1
-	add	a0, a0, a5
-	ret
-
-.else
-	# 32-bit path
-	sub	a2, zero, a2
-	sltiu	a3, a2, 1000
-	xori	a3, a3, 1
-	add	a0, a1, a3
-	ret
+	srli	a2, a1, 32
+	add	a1, a1, a2
 .endif
-.size div1000u, .-div1000u
+	srli	a1, a1, 3	# a1 = q_est (n/10)
 
+	# correction for div10
+	mul10	a2, a1, a3	# a2 = 10 * q
+	sub	a2, a2, a0	# a2 = 10q - n
+	slti	a3, a2, -9
+	add	a0, a1, a3	# a0 = result of n/10
+
+	# calculate q = a0 / 100
+	# estimator: n * 0.64 (optimized series)
+	# base: n * (1/2 + 1/8 + 1/64) = n * 0.640625
+	srli	a1, a0, 1
+	srli	a2, a0, 3
+	add	a1, a1, a2
+	srli	a2, a0, 6
+	add	a1, a1, a2	# a1 = n * 0.640625
+
+	# series for 0.64
+	srli	a2, a1, 10
+	sub	a1, a1, a2	# correct 0.6406 -> 0.64
+	srli	a2, a1, 20
+	add	a1, a1, a2	# refine
+.if CPU_BITS == 64
+	srli	a2, a1, 40
+	add	a1, a1, a2
+.endif
+	srli	a1, a1, 6	# a1 = q_est (n/1000)
+
+	# correction for div100
+	mul100	a2, a1, a3	# a2 = 100 * q
+	sub	a2, a2, a0	# a2 = 100q - n
+	slti	a3, a2, -99
+	add	a0, a1, a3	# a0 = final result
+
+	ret
+.size div1000u, .-div1000u
+	
 ################################################################################
 # routine: div3
 #
-# Signed fast division by 3 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
+# Signed fast division by 3.
+# Algorithm: Abs(n) -> Unsigned Div -> Restore Sign.
+# Suitable for RV32I, RV32I, RV64I	
 #
-# input registers:
-# a0 = signed dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (signed)
+# input:  a0 = signed dividend
+# output: a0 = signed quotient
 ################################################################################
 div3:
-
-# Preamble: Compute sign mask (t0) and abs(n) (a1)
-	srai	t0, a0, CPU_BITS-1	# t0 = (n < 0) ? -1 : 0
+	# compute sign mask (t0) and abs(n) (a0)
+	srai	t0, a0, CPU_BITS-1	# t0 = -1 if n < 0, else 0
 	xor	a0, a0, t0		# a0 = n ^ sign
 	sub	a0, a0, t0		# a0 = (n ^ sign) - sign = abs(n)
 
-	srli	a1, a0, 2		# a1: q = abs(n) >> 2
-	srli	a2, a0, 4		# a2: abs(n) >> 4
-	add	a1, a2, a1		# a1: q = q + (abs(n) >> 4)
-	srli	a2, a1, 4		# a2: q >> 4
-	add	a1, a2, a1		# a1: q = q + (q >> 4)
-	srli	a2, a1, 8		# a2: q >> 8
-	add	a1, a2, a1		# a1: q = q + (q >> 8)
-	srli	a2, a1, 16		# a2: q >> 16
-	add	a1, a2, a1		# a1: q = q + (q >> 16)
+	# estimate quotient: q = abs(n) * (1/3)
+	# series: 1/4 + 1/16 + 1/64 ...
+	srli	a1, a0, 2
+	srli	a2, a0, 4
+	add	a1, a2, a1		# q = (n >> 2) + (n >> 4)
+	srli	a2, a1, 4
+	add	a1, a2, a1		# q += q >> 4
+	srli	a2, a1, 8
+	add	a1, a2, a1		# q += q >> 8
+	srli	a2, a1, 16
+	add	a1, a2, a1		# q += q >> 16
 .if CPU_BITS == 64
-	srli	a2, a1, 32		# a2: q >> 32
-	add	a1, a2, a1		# a1: q = q + (q >> 32)
+	srli	a2, a1, 32
+	add	a1, a2, a1		# q += q >> 32
 .endif
 
-	# Remainder calculation
-	# a1 = q_est, a0 = abs(n)
-	mul3	a2, a1, a2		# a2 = q_est * 3
-	sub	a2, a0, a2		# a2: r = abs(n) - q_est * 3
+# no final shift needed (series converges directly to 1/3)
 
-	# Correction step (calculates correction in a0)
-.if CPU_BITS == 64
-	# Correction step for 64-bit (5 instructions)
-	mul11	a0, a2, a0		# a0 = r * 11
-	srli	a0, a0, 5		# a0: correction amount
-.else
-	# Correction step for 32-bit (4 instructions)
-	mul5	a3, a2, a3
-	addi	a3, a3, 5
-	srli	a0, a3, 4
-.endif
-	add	a1, a1, a0		# a1 = q_est + correction = abs(n)/3
+	# negative remainder correction
+	# diff = 3q - abs(n)
+	mul3	a2, a1, a2	# a2 = 3 * q
+	sub	a2, a2, a0	# a2 = 3q - abs(n)
 
-	# Postamble: Re-apply the original sign (from t0)
-	# a1 has the unsigned quotient `q`, t0 has the sign mask
-	xor	a0, a1, t0		# a0 = q ^ sign
-	sub	a0, a0, t0		# a0 = (q ^ sign) - sign
+	# threshold check: is diff <= -3?
+	# -3 < -2 -> 1 (correction needed)
+	slti	a3, a2, -2
+	add	a1, a1, a3	# q_final = q + correction
+
+	# postamble: restore sign
+	xor	a0, a1, t0
+	sub	a0, a0, t0
 
 	ret
 .size div3, .-div3
-
 
 ################################################################################
 # routine: div5
@@ -910,8 +847,7 @@ div3:
 # This routine provides a single, implementation for
 # RV32I, RV32E, and RV64I.
 #
-# It uses a fast approximation, followed by a remainder calculation
-# and a two-way branch-free correction to handle truncation toward zero.
+# Algorithm: abs(n) / 5 -> restore sign.
 #
 # input registers:
 #   a0 = signed dividend (32 or 64 bits)
@@ -969,36 +905,87 @@ div5:
 .size div5, .-div5
 
 ################################################################################
+# routine: div6
+#
+# Signed fast division by 6.
+# Algorithm: abs(n) / 6 -> restore sign.
+#
+# input:  a0 = signed dividend
+# output: a0 = signed quotient
+################################################################################
+div6:
+	# preamble: compute sign mask (t0) and abs(n) (a0)
+	srai	t0, a0, CPU_BITS-1
+	xor	a0, a0, t0
+	sub	a0, a0, t0	# a0 = abs(n)
+
+	# estimate quotient: q = abs(n) / 6
+	# base: n * (1/2 + 1/8) = n * 0.625
+	# target: n * 4/6 = n * 0.666...
+	srli	a1, a0, 1
+	srli	a2, a0, 3
+	add	a1, a1, a2
+
+	# series expansion (converges to 0.666...)
+	srli	a2, a1, 4
+	add	a1, a1, a2
+	srli	a2, a1, 8
+	add	a1, a1, a2
+	srli	a2, a1, 16
+	add	a1, a1, a2
+.if CPU_BITS == 64
+	srli	a2, a1, 32
+	add	a1, a1, a2
+.endif
+
+	# final shift: q_est = q_accum / 4
+	srli	a1, a1, 2
+
+	# negative remainder calculation
+	# diff = 6q - abs(n)
+	mul6	a2, a1, a2	# a2 = 6 * q
+	sub	a2, a2, a0	# a2 = 6q - abs(n)
+
+	# threshold 1: diff <= -6 (i.e. < -5)
+	slti	a3, a2, -5
+	add	a1, a1, a3	# q += 1
+
+.if CPU_BITS == 64
+	# threshold 2: diff <= -12 (i.e. < -11)
+	# handles max 63-bit error (2)
+	slti	a3, a2, -11
+	add	a1, a1, a3	# q += 1
+.endif
+
+	# postamble: restore sign
+	xor	a0, a1, t0
+	sub	a0, a0, t0
+
+	ret
+.size div6, .-div6
+
+################################################################################
 # routine: div7
 #
 # Signed fast division by 7.
-# Optimizations: Optimized register flow, Negative Remainder Trick.
+# RV32I, RV32E, RV64I
 #
 # Input:  a0 = dividend (signed)
 # Output: a0 = quotient (signed)
 ################################################################################
 div7:
-	# t0 = Sign Mask (-1 if neg, 0 if pos)
-.if CPU_BITS == 64
-	srai	t0, a0, 63
-.else
-	srai	t0, a0, 31
-.endif
-	
-	# Compute abs(n) in place
+	# preamble: compute sign mask (t0) and abs(n) (a0)
+	srai	t0, a0, CPU_BITS-1
 	xor	a0, a0, t0
-	sub	a0, a0, t0
-	# Now a0 = abs(n)
+	sub	a0, a0, t0	# a0 = abs(n)
 
-	# Unsigned Division (q = abs(n) / 7)
-	
-	# Initial Estimate: q = n * 0.5625 (9/16)
-	# n/2 + n/16
+	# estimate quotient: q = abs(n) / 7
+	# base: n * 0.5625 (9/16)
 	srli	a1, a0, 1
 	srli	a2, a0, 4
-	add	a1, a1, a2	# a1 = n * 0.5625
+	add	a1, a1, a2
 
-	# Series Expansion: Converge 0.5625 -> 0.5714... (4/7)
+	# series expansion: converge 0.5625 -> 0.5714...
 	srli	a2, a1, 6
 	add	a1, a1, a2	# q += q >> 6
 	srli	a2, a1, 12
@@ -1010,35 +997,436 @@ div7:
 	add	a1, a1, a2	# q += q >> 48
 .endif
 
-	# Final Shift: q_est = (n * 4/7) / 4 = n / 7
+	# final shift: q_est = (n * 4/7) / 4 = n / 7
 	srli	a1, a1, 2
 
-	# Check & Correct (Negative Remainder)
-	
-	# Calculate 7 * q
-	# 7x = 8x - x
+	# negative remainder calculation
+	# diff = 7q - abs(n)
 	slli	a2, a1, 3	# a2 = 8q
 	sub	a2, a2, a1	# a2 = 7q
-	
-	# Diff = 7q - abs(n)
-	# If exact: Diff = -r (0..-6)
-	# If under: Diff = -r - 7 (-7..-13)
-	sub	a2, a2, a0
+	sub	a2, a2, a0	# a2 = diff
 
-	# Threshold Check: Is Diff <= -7?
-	# -7 < -6 -> 1 (Correction needed)
+	# threshold check 1: diff <= -7 (i.e. < -6)
 	slti	a3, a2, -6
+	add	a1, a1, a3	# q += 1
 
-	# Apply Correction
-	add	a1, a1, a3	# a1 = q_abs
+.if CPU_BITS == 64
+	# threshold check 2: diff <= -14 (i.e. < -13)
+	# This handles the rare cases where estimation error is 2.
+	slti	a3, a2, -13
+	add	a1, a1, a3	# q += 1
+.endif
 
-	# Restore Sign
+	# postamble: restore sign
+	xor	a0, a1, t0
+	sub	a0, a0, t0
+	ret
+
+.size div7, .-div7
+
+################################################################################
+# routine: div9
+#
+# Signed fast division by 9.
+# Algorithm: abs(n) / 9 -> restore sign.
+# Core Logic: Reuses the efficient div9u series (n * 7/8 * geometric_series).
+#
+# input:  a0 = signed dividend (32 or 64 bits)
+# output: a0 = signed quotient
+################################################################################
+div9:
+	# preamble: compute sign mask (t0) and abs(n) (a0)
+	srai	t0, a0, CPU_BITS-1
+	xor	a0, a0, t0
+	sub	a0, a0, t0	# a0 = abs(n)
+
+	# estimate quotient: q = abs(n) / 9
+	# target: q_accum = n * (8/9)
+	# start with n * (7/8)
+	srli	a2, a0, 3	# a2 = n >> 3
+	sub	a1, a0, a2	# a1 = n - (n >> 3) = n * 0.875
+
+	# series expansion: multiply by (1 + 1/64 + 1/4096...)
+	srli	a2, a1, 6
+	add	a1, a1, a2	# q += q >> 6
+	srli	a2, a1, 12
+	add	a1, a1, a2	# q += q >> 12
+	srli	a2, a1, 24
+	add	a1, a1, a2	# q += q >> 24
+.if CPU_BITS == 64
+	srli	a2, a1, 48
+	add	a1, a1, a2	# q += q >> 48
+.endif
+
+	# final adjustment: q = (n * 8/9) / 8 = n / 9
+	srli	a1, a1, 3	# a1 = q_approx
+
+	# negative remainder correction
+	# diff = 9q - abs(n)
+	mul9	a3, a1, a2	# a3 = 9 * q
+	sub	a2, a3, a0	# a2 = 9q - abs(n)
+
+	# threshold check: is diff <= -9?
+	# -9 < -8 -> 1 (correction needed)
+	slti	a3, a2, -8
+	add	a1, a1, a3	# q_final = q + correction
+
+	# postamble: restore sign
 	xor	a0, a1, t0
 	sub	a0, a0, t0
 
 	ret
-	.size div7, .-div7
+.size div9, .-div9
 
+################################################################################
+# routine: div10
+#
+# Signed fast division by 10.
+# Algorithm: abs(n) / 10 -> restore sign.
+# Core Logic: Uses the div10u series (n * 0.8 / 8).
+#
+# input:  a0 = signed dividend
+# output: a0 = signed quotient
+################################################################################
+div10:
+	# preamble: compute sign mask (t0) and abs(n) (a0)
+	srai	t0, a0, CPU_BITS-1
+	xor	a0, a0, t0
+	sub	a0, a0, t0	# a0 = abs(n)
+
+	# estimate quotient: q = abs(n) / 10
+	# target: q_accum = n * 0.8
+	# start with n * 0.75
+	srli	a2, a0, 2
+	sub	a1, a0, a2
+
+	# series expansion: converge 0.75 -> 0.8
+	srli	a2, a1, 4
+	add	a1, a1, a2	# q += q >> 4
+	srli	a2, a1, 8
+	add	a1, a1, a2	# q += q >> 8
+	srli	a2, a1, 16
+	add	a1, a1, a2	# q += q >> 16
+.if CPU_BITS == 64
+	srli	a2, a1, 32
+	add	a1, a1, a2	# q += q >> 32
+.endif
+
+	# final adjustment: q = (n * 0.8) / 8 = n / 10
+	srli	a1, a1, 3	# a1 = q_approx
+
+	# negative remainder correction
+	# diff = 10q - abs(n)
+	mul10	a2, a1, a3	# a2 = 10 * q
+	sub	a2, a2, a0	# a2 = 10q - abs(n)
+
+	# threshold check: is diff <= -10?
+	# -10 < -9 -> 1 (correction needed)
+	slti	a3, a2, -9
+	add	a1, a1, a3	# q_final = q + correction
+
+	# postamble: restore sign
+	xor	a0, a1, t0
+	sub	a0, a0, t0
+
+	ret
+.size div10, .-div10
+
+################################################################################
+# routine: div11
+#
+# Signed fast division by 11.
+# Algorithm: abs(n) / 11 -> restore sign.
+# Estimator: 3 * (n/4 - n/128) = n * 93/128.
+#
+# input:  a0 = signed dividend
+# output: a0 = signed quotient
+################################################################################
+div11:
+	# preamble: compute sign mask (t0) and abs(n) (a0)
+	srai	t0, a0, CPU_BITS-1
+	xor	a0, a0, t0
+	sub	a0, a0, t0	# a0 = abs(n)
+
+	# estimate quotient: q = abs(n) / 11
+	# base: n * 93/128 (matches previous n * 0.7265...)
+	# calc: 3 * (n/4 - n/128)
+	srli	a1, a0, 2
+	srli	a2, a0, 7
+	sub	a1, a1, a2	# a1 = n/4 - n/128
+	mul3	a1, a1, a2	# a1 = 3 * a1 (uses a2 as scratch)
+
+	# series expansion: refine to 8/11 (period 10 bits)
+	srli	a2, a1, 10
+	add	a1, a1, a2
+	srli	a2, a1, 20
+	add	a1, a1, a2
+.if CPU_BITS == 64
+	srli	a2, a1, 40
+	add	a1, a1, a2
+.endif
+
+	# final shift: q_est = q_accum / 8
+	srli	a1, a1, 3
+
+	# negative remainder correction
+	# diff = 11q - abs(n)
+	mul11	a2, a1, a2	# a2 = 11 * q
+	sub	a2, a2, a0	# a2 = 11q - abs(n)
+
+	# threshold check: is diff <= -11?
+	# -11 < -10 -> 1 (correction needed)
+	slti	a3, a2, -10
+	add	a1, a1, a3	# q_final = q + correction
+
+	# postamble: restore sign
+	xor	a0, a1, t0
+	sub	a0, a0, t0
+
+	ret
+.size div11, .-div11
+	
+################################################################################
+# routine: div12
+#
+# Signed fast division by 12.
+# Algorithm: abs(n) / 12 -> restore sign.
+# Optimization: Defers correction until after the divide-by-4 shift, 
+#               allowing a simple threshold check instead of mul11.
+#
+# input:  a0 = signed dividend
+# output: a0 = signed quotient
+################################################################################
+div12:
+	# preamble: compute sign mask (t0) and abs(n) (a0)
+	srai	t0, a0, CPU_BITS-1
+	xor	a0, a0, t0
+	sub	a0, a0, t0	# a0 = abs(n)
+
+	# estimate quotient q3 = abs(n) / 3
+	# series: 1/4 + 1/16 + 1/64 ...
+	srli	a1, a0, 2
+	srli	a2, a0, 4
+	add	a1, a1, a2	# q = (n >> 2) + (n >> 4)
+	srli	a2, a1, 4
+	add	a1, a1, a2	# q += q >> 4
+	srli	a2, a1, 8
+	add	a1, a1, a2	# q += q >> 8
+	srli	a2, a1, 16
+	add	a1, a1, a2	# q += q >> 16
+.if CPU_BITS == 64
+	srli	a2, a1, 32
+	add	a1, a1, a2	# q += q >> 32
+.endif
+
+	# final shift: q12 = q3 / 4
+	srli	a1, a1, 2	# a1 = q_est (n/12)
+
+	# negative remainder correction
+	# diff = 12q - abs(n)
+	mul12	a2, a1, a3	# a2 = 12 * q (uses mul3 + slli 2)
+	sub	a2, a2, a0	# a2 = 12q - abs(n)
+
+	# threshold check: is diff <= -12?
+	# -12 < -11 -> 1 (correction needed)
+	slti	a3, a2, -11
+	add	a1, a1, a3	# q_final = q + correction
+
+	# postamble: restore sign
+	xor	a0, a1, t0
+	sub	a0, a0, t0
+
+	ret
+.size div12, .-div12
+
+################################################################################
+# routine: div13
+#
+# Signed fast division by 13.
+# Algorithm: abs(n) / 13 -> restore sign.
+# Core Logic: Uses the optimized div13u series (Max Error 1).
+#
+# input:  a0 = signed dividend
+# output: a0 = signed quotient
+################################################################################
+div13:
+	# preamble: compute sign mask (t0) and abs(n) (a0)
+	srai	t0, a0, CPU_BITS-1
+	xor	a0, a0, t0
+	sub	a0, a0, t0	# a0 = abs(n)
+
+	# estimate quotient: q = abs(n) / 13
+	# base: n * 5/8 * 63/64
+	srli	a1, a0, 1
+	srli	a2, a0, 3
+	add	a1, a1, a2	# a1 = n * 0.625
+
+	srli	a2, a1, 6
+	sub	a1, a1, a2	# a1 = n * 0.61523...
+
+	# series expansion
+	srli	a2, a1, 12
+	add	a1, a1, a2
+	srli	a2, a1, 24
+	add	a1, a1, a2
+.if CPU_BITS == 64
+	srli	a2, a1, 48
+	add	a1, a1, a2
+.endif
+
+	# final shift: q_est = q_accum / 8
+	srli	a1, a1, 3
+
+	# negative remainder correction
+	# diff = 13q - abs(n)
+	mul13	a2, a1, a2	# a2 = 13 * q
+	sub	a2, a2, a0	# a2 = 13q - abs(n)
+
+	# threshold check: is diff <= -13?
+	# -13 < -12 -> 1 (correction needed)
+	slti	a3, a2, -12
+	add	a1, a1, a3	# q_final = q + correction
+
+	# postamble: restore sign
+	xor	a0, a1, t0
+	sub	a0, a0, t0
+
+	ret
+.size div13, .-div13
+
+################################################################################
+# routine: div100
+#
+# Signed fast division by 100.
+# Algorithm: abs(n) / 100 -> restore sign.
+# Core Logic: Reuses the optimized div100u series (n * 0.64).
+#
+# input:  a0 = signed dividend
+# output: a0 = signed quotient
+################################################################################
+div100:
+	# preamble: compute sign mask (t0) and abs(n) (a0)
+	srai	t0, a0, CPU_BITS-1
+	xor	a0, a0, t0
+	sub	a0, a0, t0	# a0 = abs(n)
+
+	# estimate quotient: q = abs(n) / 100
+	# base: n * 0.640625 (1/2 + 1/8 + 1/64)
+	srli	a1, a0, 1
+	srli	a2, a0, 3
+	add	a1, a1, a2
+	srli	a2, a0, 6
+	add	a1, a1, a2	# a1 = n * 0.640625
+
+	# series expansion
+	# correct 0.6406 -> 0.64 (factor approx 1 - 1/1024)
+	srli	a2, a1, 10
+	sub	a1, a1, a2
+
+	# refine (factor 1 + 1/2^20)
+	srli	a2, a1, 20
+	add	a1, a1, a2
+
+.if CPU_BITS == 64
+	# refine (factor 1 + 1/2^40)
+	srli	a2, a1, 40
+	add	a1, a1, a2
+.endif
+
+	# final shift: (n * 0.64) / 64 = n / 100
+	srli	a1, a1, 6	# a1 = q_est
+
+	# correction
+	# diff = 100q - abs(n)
+	mul100	a2, a1, a3	# a2 = 100 * q
+	sub	a2, a2, a0	# a2 = 100q - abs(n)
+
+	# threshold check: is diff <= -100?
+	# -100 < -99 -> 1 (correction needed)
+	slti	a3, a2, -99
+	add	a1, a1, a3	# q_final = q + correction
+
+	# postamble: restore sign
+	xor	a0, a1, t0
+	sub	a0, a0, t0
+
+	ret
+.size div100, .-div100
+
+################################################################################
+# routine: div1000
+#
+# Signed fast division by 1000.
+# Algorithm: abs(n) / 1000 -> restore sign.
+# Core Logic: Reuses the optimized div1000u chained division (n/10)/100.
+#
+# input:  a0 = signed dividend
+# output: a0 = signed quotient
+################################################################################
+div1000:
+	# preamble: compute sign mask (t0) and abs(n) (a0)
+	srai	t0, a0, CPU_BITS-1
+	xor	a0, a0, t0
+	sub	a0, a0, t0	# a0 = abs(n)
+
+	# -------------------------------------------------------------
+	# step 1: calculate q1 = abs(n) / 10
+	# -------------------------------------------------------------
+	# estimator: n * 0.8
+	srli	a2, a0, 2
+	sub	a1, a0, a2	# a1 = n * 0.75
+
+	# series for 0.8
+	srli	a2, a1, 4
+	add	a1, a1, a2
+	srli	a2, a1, 8
+	add	a1, a1, a2
+	srli	a2, a1, 16
+	add	a1, a1, a2
+
+	srli	a1, a1, 3	# a1 = q_est (n/10)
+
+	# correction for div10
+	mul10	a2, a1, a3	# a2 = 10 * q
+	sub	a2, a2, a0	# a2 = 10q - n
+	slti	a3, a2, -9
+	add	a0, a1, a3	# a0 = result of n/10
+
+	# -------------------------------------------------------------
+	# step 2: calculate q = q1 / 100
+	# -------------------------------------------------------------
+	# estimator: n * 0.64 (optimized series)
+	# base: n * (1/2 + 1/8 + 1/64) = n * 0.640625
+	srli	a1, a0, 1
+	srli	a2, a0, 3
+	add	a1, a1, a2
+	srli	a2, a0, 6
+	add	a1, a1, a2	# a1 = n * 0.640625
+
+	# series for 0.64
+	srli	a2, a1, 10
+	sub	a1, a1, a2	# correct 0.6406 -> 0.64
+	srli	a2, a1, 20
+	add	a1, a1, a2	# refine
+.if CPU_BITS == 64
+	srli	a2, a1, 40
+	add	a1, a1, a2
+.endif
+	srli	a1, a1, 6	# a1 = q_est (n/1000)
+
+	# correction for div100
+	mul100	a2, a1, a3	# a2 = 100 * q
+	sub	a2, a2, a0	# a2 = 100q - n
+	slti	a3, a2, -99
+	add	a1, a1, a3	# q_final = q + correction
+
+	# postamble: restore sign
+	xor	a0, a1, t0
+	sub	a0, a0, t0
+
+	ret
+.size div1000, .-div1000	
+	
 ################################################################################
 # routine: mod3
 #
