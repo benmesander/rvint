@@ -110,29 +110,36 @@ to_bin_no_space:
 #
 # Convert unsigned integer to ASCII decimal string.
 # Optimizations:
-# - Inlined div10u logic with optimized remainder calculation.
-# - Removed expensive mul10 correction for the remainder.
+# - HAS_M: Uses hardware div/rem (Fastest).
+# - HAS_ZBA: Uses optimal sh2add/sh3add for corrections (via mul10 macro)
+# - Base: Uses robust series expansion for div10u.
 #
 # Input:  a0 = unsigned number
 # Output: a0 = address of string buffer
 #         a1 = length of string
 ################################################################################
 to_decu:
-	# Setup Buffer (Work backwards)
+	# 1. setup buffer (work backwards)
 	la	a2, iobuf
 	addi	a2, a2, IOBUF_CAPACITY
-	mv	a1, a2			# Save End Pointer
-	sb	zero, 0(a2)		# Nul-terminate
+	mv	a1, a2			# end pointer
+	sb	zero, 0(a2)		# null-terminate
 
-	# Setup Loop
-	mv	a3, a0			# a3 = Current 'n'
+	# 2. loop setup
+	mv	a3, a0			# a3 = n
 
 to_decu_loop:
-	addi	a2, a2, -1		# Decrement pointer
+	addi	a2, a2, -1		# decrement buffer ptr
 
-	# Inline Division: q = n / 10
+.if HAS_M
+	# path 1: hardware division
+	li	t0, 10
+	remu	a5, a3, t0		# a5 = n % 10 (digit)
+	divu	a3, a3, t0		# a3 = n / 10 (next n)
 
-	# Estimator: n * 0.75 * (series) / 8
+.else
+	# path 2: series expansion
+	# estimate q = n * 0.1
 	srli	t0, a3, 2
 	sub	a4, a3, t0		# a4 = n * 0.75
 
@@ -148,41 +155,33 @@ to_decu_loop:
 .endif
 	srli	a4, a4, 3		# a4 = q_est
 
-	# Correction & Remainder
-
-	# Calculate diff = 10*q_est - n
-	# Range of diff is [-19, 0]
-	mul10	a5, a4, t0		# a5 = 10 * q_est
+	# correction check: diff = 10*q - n
+	mul10	a5, a4, t0		# a5 = 10 * q (uses t0 as scratch)
 	sub	a5, a5, a3		# a5 = diff
 
-	# Threshold: Is diff <= -10?
+	# threshold: diff <= -10
 	slti	t0, a5, -9		# t0 = correction (0 or 1)
-	add	a3, a4, t0		# n_new = q_est + correction
+	add	a3, a4, t0		# a3 = n_new
 
-	# Calculate Remainder Digit
-	# r_raw = -diff (Range 0..19)
-	sub	a5, zero, a5
-	
-	# If correction happened (t0=1), r_raw is 10..19. We need r_raw - 10.
-	# If correction didn't happen (t0=0), r_raw is 0..9.
-	
-	slli	t1, t0, 3		# t1 = 8*t0
-	add	t1, t1, t0		# t1 = 9*t0
-	add	t1, t1, t0		# t1 = 10*t0
-	sub	a5, a5, t1		# digit = r_raw - 10*correction
+	# remainder calculation
+	# digit = -diff - 10*correction
+	sub	a5, zero, a5		# a5 = -diff
+	mul10	t1, t0, t2		# t1 = 10 * c (uses t2 as scratch)
+	sub	a5, a5, t1		# a5 = digit
+.endif
 
-	# Store Digit
+	# store digit
 	addi	a5, a5, '0'
 	sb	a5, 0(a2)
 
-	bnez	a3, to_decu_loop	# Loop if n != 0
+	bnez	a3, to_decu_loop
 
-	# 3. Finalize
-	mv	a0, a2			# a0 = Start Pointer
-	sub	a1, a1, a2		# a1 = Length
+	# 3. finalize
+	mv	a0, a2			# return start ptr
+	sub	a1, a1, a2		# return length
 	ret
 .size to_decu, .-to_decu
-
+	
 ################################################################################
 # routine: to_dec
 #
