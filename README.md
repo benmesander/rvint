@@ -827,7 +827,7 @@ a1 = length of string
 
 Convert an ASCII Hexadecimal string to binary. RV32E/RV32I/RV64I
 
-Cycle count, assuming Hexadecimal string is half digits, half leters.
+Cycle count, assuming Hexadecimal string is half digits, half letters.
 
 | Cycles (32) | Cycles (64) |
 |-------------|-------------|
@@ -838,6 +838,24 @@ a0 = pointer to ASCII Hexadecimal string, terminated with a non-hex char.
 
 ##### Output
 a0 = pointer (advanced to point to non-hex char)<br>
+a1 = number<br>
+a2 = error check: 0 if no digits found, otherwise 1
+
+---
+
+#### from_bin
+
+Convert an ASCII binary string to binary. RV32E/RV32I/RV64I
+
+| Cycles (32) | Cycles (64) |
+|-------------|-------------|
+| 331         | 651         |
+
+##### Input
+a0 = pointer to ASCII binary string, terminated with a non-binary char (not 0 or 1)
+
+##### Output
+a0 = pointer (advanced to point to non-binary char)<br>
 a1 = number<br>
 a2 = error check: 0 if no digits found, otherwise 1
 
