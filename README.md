@@ -908,6 +908,28 @@ a2 = error check: 0 if no digits found, otherwise 1
 
 ### Multiplication [mul.s](src/mul.s)
 
+#### nmul
+
+Native word length multiplication (32 on RV32I/E, 64 on RV64I). Intended for
+CPUs without M extension.
+
+| Configuration | Cycles (32) | Cycles (64) | Notes |
+|---------------|-------------|-------------|-------|
+| Base ISA      | ~270        | ~540        | Scales via bit width |
+| Zbb           | ~170        | ~330        | Scales with popcount |
+
+##### Input
+
+a0 = multiplicand<br>
+a1 = multiplier
+
+##### Output
+
+a0 = product (low order)
+
+----
+
+
 ```riscv
 ################################################################################
 # routine: nmul
