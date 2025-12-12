@@ -785,6 +785,7 @@ a1 = length of string
 #### to_decu
 
 Convert a value in a register to an ASCII unsigned decimal string. RV32E/RV32I/RV64I/RV128I
+This routine has an inline implemention of the div10u series expansion in it.
 
 
 | Configuration | Cycles (32) | Cycles (64) | Cycles (128) |
@@ -794,13 +795,36 @@ Convert a value in a register to an ASCII unsigned decimal string. RV32E/RV32I/R
 | Base + M      | ~410        | ~850        | Not recommended|
 
 ##### Input
-a0 = number to convert to ascii decimal
+a0 = unsigned number to convert to ascii decimal
 
 ##### Output
 a0 = address of nul (\0)-terminated buffer with output<br>
 a1 = length of string
 
 ---
+
+#### to_dec
+
+Convert a value in a register to an ASCII signed decimal string. RV32E/RV32I/RV64I/RV128I
+This routine is a wrapper around to_decu.
+
+| Configuration | Cycles (32) | Cycles (64) | Cycles (128) |
+|---------------|-------------|-------------|--------------|
+| Base ISA      | ~245        | ~605        | ~1,465       |
+| Base + Zba    | ~209        | ~510        | ~1,235       |
+| Base + M      | ~425        | ~865        | Not recommended|
+
+##### Input
+a0 = signed number to convert to ascii decimal
+
+##### Output
+a0 = address of nul (\0)-terminated buffer with output<br>
+a1 = length of string
+
+---
+
+
+
 
 
 

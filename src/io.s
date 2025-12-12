@@ -210,66 +210,47 @@ to_decu_loop:
 ################################################################################
 # routine: to_dec
 #
-# Convert a value in a register to a signed ASCII decimal string.
+# Convert a signed integer to an ASCII decimal string.
+# Wrapper strategy:
+#   if (n >= 0) return to_decu(n);
+#   else        return prepend('-', to_decu(-n));
 #
-# input registers:
-# a0 = signed number to convert to ascii signed decimal
-#
-# output registers:
-# a0 = address of nul-terminated (\0) buffer with output
-# a1 = length of string
+# Usage:
+#   Input:  a0 = signed number
+#   Output: a0 = address of string
+#           a1 = length of string
 ################################################################################
 
+.globl to_dec
 to_dec:
-	FRAME	3
-	PUSH	ra, 0
-	PUSH	s0, 1
-	PUSH	s1, 2
+    # Case 1: Positive (or Zero)
+    # Optimization: Tail-call to_decu (no stack frame needed).
 
-	mv	s1, a0
+    bgez    a0, to_decu     # If a0 >= 0, just jump to to_decu
 
-	la	s0, iobuf
-	addi	s0, s0, IOBUF_CAPACITY
-	sb	zero, 0(s0)
-
-	mv	a2, zero		# a2 will be a flag: 1 if original number was negative and non-zero
-					# For MIN_INT, it will become negative.
-	bgez	s1, to_dec_abs_done	# If s1 >= 0, skip negation
-	li	a2, 1			# Set negative flag
-	sub	s1, zero, s1
-to_dec_abs_done:
-	# s1 now holds the absolute value (or MIN_INT if original was MIN_INT, which is treated as 2^(N-1) unsigned)
-	# a2 holds 1 if a minus sign is needed, 0 otherwise.
-
-to_dec_loop:
-	addi	s0, s0, -1
-	mv	a0, s1
-	li	a1, 10
-	call	divremu			# Output: a0=quotient, a1=remainder XXX: call div10u? need remainder
-	addi	a1, a1, '0'
-	sb	a1, 0(s0)
-	mv	s1, a0
-	bnez	s1, to_dec_loop
-
-	# After loop, s0 points to the most significant digit.
-	# Now, if the number was negative (a2 == 1), prepend '-'
-	beqz	a2, to_dec_retval
-	addi	s0, s0, -1
-	li	a2, '-'
-	sb	a2, 0(s0)
-
-to_dec_retval:
-	mv	a0, s0
-	la	a2, iobuf
-	addi	a2, a2, IOBUF_CAPACITY
-	sub	a1, a2, a0
-	POP	s1, 2
-	POP	s0, 1
-	POP	ra, 0
-	EFRAME	3
-	ret
-
+    # Case 2: Negative
+    # We must save ra because we make a standard call to to_decu.
+    
+    # ABI Note: We allocate 4 words (16 bytes) to ensure 16-byte
+    # stack alignment on RV32. On RV64, this allocates 32 bytes,
+    # which is also aligned.
+    FRAME   4
+    PUSH    ra, 3           # Save RA at the top of the frame
+    neg     a0, a0          # a0 = -a0 (Negate input)
+    call    to_decu         # Returns: a0=ptr, a1=len
+    # Prepend '-'
+    # to_decu fills the buffer backwards, so we have space 
+    # before the returned pointer.
+    li      t0, '-'
+    addi    a0, a0, -1      # Back up pointer by 1 byte
+    sb      t0, 0(a0)       # Store minus sign
+    addi    a1, a1, 1       # Increment length
+    # Restore and Return
+    POP     ra, 3           # Restore RA
+    EFRAME  4
+    ret
 .size to_dec, .-to_dec
+
 
 ################################################################################
 # routine: from_hex
