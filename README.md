@@ -203,11 +203,11 @@ Restoring division algorithm. Available in ROLLED (compact) and UNROLLED (faster
 | With Extensions (Rolled)   | 391         | 775         |
 | With Extensions (Unrolled) | 287         | 567         |
 
-#### Input
+##### Input
 a0 = dividend
 a1 = divisor
 
-#### Output
+##### Output
 a0 = quotient
 a1 = remainder
 
@@ -226,11 +226,11 @@ that routine is used in ROLLED or UNROLLED form. Worst case performance:
 | With Extensions (Rolled)   | 430         | 814         |
 | With Extensions (Unrolled) | 326         | 606         |
 
-#### Input
+##### Input
 a0 = dividend
 a1 = divisor
 
-#### Output
+##### Output
 a0 = quotient
 a1 = remainder
 
@@ -242,11 +242,13 @@ suitable for cryptographic applications.
 
 Initial implementation was done from Hacker's Delight, 2nd edition. The
 algorithms were extended to 64 bits, and agressively optimized using the
-peculiar features of the RISC-V ISA to minimize the cycle count.
+peculiar features of the RISC-V ISA to minimize the cycle count. The
+algorithmic approach is to use a series expansion to estimate the quotient,
+then an estimated remainder is calculated, and the quotient is corrected.
 
 ---
 
-### div3u 
+#### div3u 
 
 Unsigned integer divide by 3.
 
@@ -255,15 +257,15 @@ Unsigned integer divide by 3.
 | Base ISA        | 15          | 17          |
 | With Extensions | 14          | 16          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div5u 
+#### div5u 
 
 Unsigned integer divide by 5.
 
@@ -272,15 +274,15 @@ Unsigned integer divide by 5.
 | Base ISA        | 15          | 17          |
 | With Extensions | 14          | 16          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div6u 
+#### div6u 
 
 Unsigned integer divide by 6. You may be better off calling div3u and
 shifting the result.
@@ -290,15 +292,15 @@ shifting the result.
 | Base ISA        | 18          | 22          |
 | With Extensions | 17          | 21          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div7u 
+#### div7u 
 
 Unsigned integer divide by 7. Note that only the base ISA is used here, so there
 is no accelleration from ISA extensions.
@@ -307,15 +309,15 @@ is no accelleration from ISA extensions.
 |-----------------|-------------|-------------|
 | Base ISA        | 16          | 20          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div9u
+#### div9u
 
 Unsigned integer divide by 9. 
 
@@ -324,15 +326,15 @@ Unsigned integer divide by 9.
 | Base ISA        | 15          | 17          |
 | With Extensions | 14          | 16          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div10u
+#### div10u
 
 Unsigned integer divide by 10. 
 
@@ -341,15 +343,15 @@ Unsigned integer divide by 10.
 | Base ISA        | 16          | 18          |
 | With Extensions | 15          | 17          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div11u
+#### div11u
 
 Unsigned integer divide by 11. 
 
@@ -358,15 +360,15 @@ Unsigned integer divide by 11.
 | Base ISA        | 18          | 20          |
 | With Extensions | 15          | 17          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div12u
+#### div12u
 
 Unsigned integer divide by 12. 
 
@@ -375,15 +377,15 @@ Unsigned integer divide by 12.
 | Base ISA        | 17          | 19          |
 | With Extensions | 16          | 18          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div13u
+#### div13u
 
 Unsigned integer divide by 13.
 
@@ -392,15 +394,15 @@ Unsigned integer divide by 13.
 | Base ISA        | 18          | 20          |
 | With Extensions | 16          | 18          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div100u
+#### div100u
 
 Unsigned integer divide by 100.
 
@@ -409,15 +411,15 @@ Unsigned integer divide by 100.
 | Base ISA        | 10          | 21          |
 | With Extensions | 17          | 19          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div1000u
+#### div1000u
 
 Unsigned integer divide by 1000. This basically divides by 10, then by 100.
 
@@ -426,15 +428,15 @@ Unsigned integer divide by 1000. This basically divides by 10, then by 100.
 | Base ISA        | 37          | 41          |
 | With Extensions | 35          | 39          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div3
+#### div3
 
 Signed integer divide by 3.
 
@@ -443,15 +445,15 @@ Signed integer divide by 3.
 | Base ISA        | 24          | 26          |
 | With Extensions | 23          | 25          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div5
+#### div5
 
 Signed integer divide by 5.
 
@@ -460,15 +462,15 @@ Signed integer divide by 5.
 | Base ISA        | 24          | 26          |
 | With Extensions | 23          | 25          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div6
+#### div6
 
 Signed integer divide by 6.
 
@@ -477,15 +479,15 @@ Signed integer divide by 6.
 | Base ISA        | 27          | 31          |
 | With Extensions | 26          | 30          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div7
+#### div7
 
 Signed integer divide by 7. Note that ISA extensions are not used by this routine.
 
@@ -493,15 +495,15 @@ Signed integer divide by 7. Note that ISA extensions are not used by this routin
 |-----------------|-------------|-------------|
 | Base ISA        | 25          | 29          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div9
+#### div9
 
 Signed integer divide by 9.
 
@@ -510,15 +512,15 @@ Signed integer divide by 9.
 | Base ISA        | 24          | 26          |
 | With Extensions | 23          | 25          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div10
+#### div10
 
 Signed integer divide by 10.
 
@@ -527,15 +529,15 @@ Signed integer divide by 10.
 | Base ISA        | 25          | 27          |
 | With Extensions | 24          | 26          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div11
+#### div11
 
 Signed integer divide by 11.
 
@@ -544,15 +546,15 @@ Signed integer divide by 11.
 | Base ISA        | 27          | 29          |
 | With Extensions | 24          | 26          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div12
+#### div12
 
 Signed integer divide by 12.
 
@@ -561,15 +563,15 @@ Signed integer divide by 12.
 | Base ISA        | 26          | 28          |
 | With Extensions | 25          | 27          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div13
+#### div13
 
 Signed integer divide by 13.
 
@@ -578,15 +580,15 @@ Signed integer divide by 13.
 | Base ISA        | 27          | 31          |
 | With Extensions | 25          | 29          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div100
+#### div100
 
 Signed integer divide by 100.
 
@@ -595,15 +597,15 @@ Signed integer divide by 100.
 | Base ISA        | 24          | 26          |
 | With Extensions | 22          | 24          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### div1000
+#### div1000
 
 Signed integer divide by 1000. I was able to slightly change the
 series expansion for 63 bit numbers (one bit reserved for sign), thus
@@ -615,10 +617,10 @@ divide by 1000 on 64-bit architectures!
 | Base ISA        | 39          | 41          |
 | With Extensions | 36          | 38          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
@@ -637,7 +639,7 @@ These routines run in constant time and are branchless.
 
 ---
 
-### mod3u
+#### mod3u
 
 unsigned integer remainder after division by 3.
 
@@ -646,15 +648,15 @@ unsigned integer remainder after division by 3.
 | Base ISA        | 21          | 23          |
 | With Extensions | 19          | 21          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 ---
 
-### mod3
+#### mod3
 
 signed integer remainder after division by 3.
 
@@ -663,14 +665,26 @@ signed integer remainder after division by 3.
 | Base ISA        | 24          | 26          |
 | With Extensions | 22          | 24          |
 
-#### Input
+##### Input
 a0 = dividend
 
-#### Output
+##### Output
 a0 = quotient
 
 
 ### Algorithms: [gcd.s](src/gcd.s)
+
+---
+
+These routines calculate the greatest common divisor (gcd) and least
+common multiple (lcm) of two numbers. They can take advantage of the M
+and Zbb extensions, if available.
+
+---
+
+
+
+
 
 ```riscv
 ################################################################################
