@@ -175,12 +175,19 @@ a0 = count of leading zeroes
 
 ### Division - [div.s](src/div.s):
 
+Signed and unsigned division for CPUs without dividers.
+
+The initial implementation of divremu came from the division routine in the rvmon monitor.
+I believe this code originally came from Bruce Hout on reddit. It has been heavily extended
+to minimize the number of cycles by using ISA extensions and restructuring the code by
+selectively unrolling parts. The divrem routine is a wrapper which enables signed division.
+
 ---
 
 #### divremu
 
 Unsigned integer division for CPUs without M extension. RV32E/RV32I/RV64I compatible.
-Restoring division algorithm. Available in ROLLED (compact) and UNROLLED (fast) versions
+Restoring division algorithm. Available in ROLLED (compact) and UNROLLED (faster) versions
 (this is selected in config.s with the DIVREMU_UNROLLED flag). Worst-case performance:
 
 | Metric                     | Cycles (32) | Cycles (64) |
@@ -223,6 +230,16 @@ a1 = remainder
 
 ---
 
+The following division routines are branchless, straight line code
+that execute in a fixed number of cycles for all inputs, and thus are
+suitable for cryptographic applications.
+
+Initial implementation was done from Hacker's Delight, 2nd edition. The
+algorithms were extended to 64 bits, and agressively optimized using the
+peculiar features of the RISC-V ISA to minimize the cycle count.
+
+---
+
 ### div3u 
 
 Unsigned integer divide by 3.
@@ -239,6 +256,417 @@ a0 = dividend
 a0 = quotient
 
 ---
+
+### div5u 
+
+Unsigned integer divide by 5.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 15          | 17          |
+| With Extensions | 14          | 16          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div6u 
+
+Unsigned integer divide by 6. You may be better off calling div3u and
+shifting the result.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 18          | 22          |
+| With Extensions | 17          | 21          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div7u 
+
+Unsigned integer divide by 7. Note that only the base ISA is used here, so there
+is no accelleration from ISA extensions.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 16          | 20          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div9u
+
+Unsigned integer divide by 9. 
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 15          | 17          |
+| With Extensions | 14          | 16          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div10u
+
+Unsigned integer divide by 10. 
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 16          | 18          |
+| With Extensions | 15          | 17          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div11u
+
+Unsigned integer divide by 11. 
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 18          | 20          |
+| With Extensions | 15          | 17          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div12u
+
+Unsigned integer divide by 12. 
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 17          | 19          |
+| With Extensions | 16          | 18          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div13u
+
+Unsigned integer divide by 13.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 18          | 20          |
+| With Extensions | 16          | 18          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div100u
+
+Unsigned integer divide by 100.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 10          | 21          |
+| With Extensions | 17          | 19          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div1000u
+
+Unsigned integer divide by 1000. This basically divides by 10, then by 100.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 37          | 41          |
+| With Extensions | 35          | 39          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div3
+
+Signed integer divide by 3.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 24          | 26          |
+| With Extensions | 23          | 25          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div5
+
+Signed integer divide by 5.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 24          | 26          |
+| With Extensions | 23          | 25          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div6
+
+Signed integer divide by 6.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 27          | 31          |
+| With Extensions | 26          | 30          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div7
+
+Signed integer divide by 7. Note that ISA extensions are not used by this routine.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 25          | 29          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div9
+
+Signed integer divide by 9.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 24          | 26          |
+| With Extensions | 23          | 25          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div10
+
+Signed integer divide by 10.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 25          | 27          |
+| With Extensions | 24          | 26          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div11
+
+Signed integer divide by 11.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 27          | 29          |
+| With Extensions | 24          | 26          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div12
+
+Signed integer divide by 12.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 26          | 28          |
+| With Extensions | 25          | 27          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div13
+
+Signed integer divide by 13.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 27          | 31          |
+| With Extensions | 25          | 29          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div100
+
+Signed integer divide by 100.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 24          | 26          |
+| With Extensions | 22          | 24          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### div1000
+
+Signed integer divide by 1000.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 39          | 41          |
+| With Extensions | 36          | 38          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+The below remainder routines are based on Hacker's Delight 2nd Edition, but this 
+and the other remainder routines I didn't implement are of limited utility
+as it's faster to calculate the quotient and calculate the remainder from
+that.
+
+I could modify the above routines to also return the remainder in addition	
+to the quotient, which seems useful, but would likely cost 3-4
+instructions per routine. Not yet sure if I want to do this or not, I'm interested
+which approach library users would find most helpful.
+
+These routines run in constant time and are branchless.
+
+---
+
+### mod3u
+
+unsigned integer remainder after division by 3.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 21          | 23          |
+| With Extensions | 19          | 21          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
+
+### mod3
+
+signed integer remainder after division by 3.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 24          | 26          |
+| With Extensions | 22          | 24          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+
+
+
+
+
+
+
 
 ```riscv
 ################################################################################
