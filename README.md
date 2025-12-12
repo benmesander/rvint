@@ -137,6 +137,12 @@ syscall 64 is write and 93 is exit.
 
 ---
 
+These routines implement functionality in the ZBB ISA extension for CPUs which do not have
+this available. Despite being efficiently implemented (they run in O(log n) time), they are
+heavyweight enough that they are not useful in places like inner loops in division routines.
+
+---
+
 #### bits_ctz
 
 Count number of trailing zeroes on CPUs with no ZBB extension. O(log n). RV32E/RV32I/RV64I compatible.
@@ -599,7 +605,10 @@ a0 = quotient
 
 ### div1000
 
-Signed integer divide by 1000.
+Signed integer divide by 1000. I was able to slightly change the
+series expansion for 63 bit numbers (one bit reserved for sign), thus
+the signed divide by 1000 is one cycle shorter than the unsigned
+divide by 1000 on 64-bit architectures!
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -660,247 +669,6 @@ a0 = dividend
 #### Output
 a0 = quotient
 
-
-
-
-
-
-
-
-
-```riscv
-################################################################################
-# routine: divremu
-#
-# Unsigned integer division without using M extension.
-# RV32E compatible.
-# This division is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses the restoring division algorithm. It can be used to emulate
-# the RISC-V M extension divu, remu, divuw, and remuw instructions.
-#
-# input registers:
-# a0 = dividend
-# a1 = divisor
-#
-# output registers:
-# a0 = quotient
-# a1 = remainder
-################################################################################
-
-################################################################################
-# routine: divrem
-#
-# Signed integer division - rounds towards zero.
-# This division is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses the restoring division algorithm. It can be used to emulate
-# the RISC-V M extension div, rem, divw, and remw instructions.
-#
-# input registers:
-# a0 = dividend (N)
-# a1 = divisor (D)
-#
-# output registers:
-# a0 = quotient (Q)
-# a1 = remainder (R)
-################################################################################
-
-################################################################################
-# routine: div3u
-#
-# Unsigned fast division by 3 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Also suitable for use on RV32E architectures.
-#
-# input registers:
-# a0 = unsigned dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (unsigned)
-################################################################################
-
-################################################################################
-# routine: div5u
-#
-# Unsigned fast division by 5 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
-#
-# input registers:
-# a0 = unsigned dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (unsigned)
-################################################################################
-
-################################################################################
-# routine: div6u
-#
-# Unsigned fast division by 6 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
-#
-# input registers:
-# a0 = unsigned dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (unsigned)
-################################################################################
-
-################################################################################
-# routine: div7u WARNING - NO TESTS
-#
-# Unsigned fast division by 7 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
-#
-# input registers:
-# a0 = unsigned dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (unsigned)
-################################################################################
-
-################################################################################
-# routine: div9u WARNING - NO TESTS
-#
-# Unsigned fast division by 9 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
-#
-# input registers:
-# a0 = unsigned dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (unsigned)
-################################################################################	
-
-################################################################################
-# routine: div10u
-#
-# Unsigned fast division by 10 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
-#
-# input registers:
-# a0 = unsigned dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (unsigned)
-################################################################################
-
-################################################################################
-# routine: div11u WARNING - NO TESTS
-#
-# Unsigned fast division by 11 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
-#
-# input registers:
-# a0 = unsigned dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (unsigned)
-################################################################################	
-
-################################################################################
-# routine: div12u WARNING - NO TESTS
-#
-# Unsigned fast division by 12 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
-#
-# input registers:
-# a0 = unsigned dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (unsigned)
-################################################################################
-
-################################################################################
-# routine: div13u WARNING - NO TESTS
-#
-# Unsigned fast division by 13 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
-#
-# input registers:
-# a0 = unsigned dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (unsigned)
-################################################################################	
-
-
-################################################################################
-# routine: div100u WARNING - NO TESTS
-#
-# Unsigned fast division by 100 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
-#
-# input registers:
-# a0 = unsigned dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (unsigned)
-################################################################################	
-
-
-################################################################################
-# routine: div1000u WARNING - NO TESTS
-#
-# Unsigned fast division by 1000 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
-#
-# input registers:
-# a0 = unsigned dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (unsigned)
-################################################################################	
-
-################################################################################
-# routine: div3 WARNING - NO TESTS
-#
-# Signed fast division by 3 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
-#
-# input registers:
-# a0 = signed dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (signed)
-################################################################################
-
-################################################################################
-# routine: div5 WARNING - NO TESTS
-#
-# Signed fast division by 5 without using M extension.
-# This routine is 64-bit on 64-bit CPUs and 32-bit on 32-bit CPUs.
-# It uses a fast multiply/shift/add/correct algorithm.
-# Suitable for use on RV32E architectures.
-#
-# input registers:
-# a0 = signed dividend (32 or 64 bits)
-#
-# output registers:
-# a0 = quotient (signed)
-################################################################################
-```
 
 ### Algorithms: [gcd.s](src/gcd.s)
 
