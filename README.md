@@ -823,9 +823,25 @@ a1 = length of string
 
 ---
 
+#### from_hex
 
+Convert an ASCII Hexadecimal string to binary. RV32E/RV32I/RV64I
 
+Cycle count, assuming Hexadecimal string is half digits, half leters.
 
+| Cycles (32) | Cycles (64) |
+|-------------|-------------|
+| 90          | 170         |
+
+##### Input
+a0 = pointer to ASCII Hexadecimal string, terminated with a non-hex char.
+
+##### Output
+a0 = pointer (advanced to point to non-hex char)<br>
+a1 = number<br>
+a2 = error check: 0 if no digits found, otherwise 1
+
+---
 
 
 ```riscv
