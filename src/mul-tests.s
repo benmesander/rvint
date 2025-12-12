@@ -134,7 +134,7 @@ test17:
 	li	a2, -245
 	li	a3, 0x49273 # Expected Low
 	li	a4, 0       # Expected High
-	li	a5, 0
+	li	a5, 1
 	call	mul128_test
 
 .endif
