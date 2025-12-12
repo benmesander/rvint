@@ -699,7 +699,7 @@ Average cycle counts
 | With M        | ~100        | ~400        |
 
 ##### Input
-a0 = u
+a0 = u<br>
 a1 = v
 
 ##### Output
@@ -722,7 +722,7 @@ Average cycle counts
 | With M        | ~250        | ~500        |
 
 ##### Input
-a0 = u
+a0 = u<br>
 a1 = v
 
 ##### Output
