@@ -671,6 +671,7 @@ a0 = dividend
 ##### Output
 a0 = quotient
 
+---
 
 ### Algorithms: [gcd.s](src/gcd.s)
 
@@ -684,8 +685,9 @@ and Zbb extensions, if available.
 
 #### gcd
 
-Computes gcd(u,v). Can take advantage of M and Zbb extensions. With M extension
-it uses Euclid's algorithm. If M is not present, it computes The gcd via Stein's
+Computes greatest common divisor of two numbers, gcd(u,v). Can take
+advantage of M and Zbb extensions. With M extension it uses Euclid's
+algorithm. If M is not present, it computes the gcd via Stein's
 algorithm. O(log n). RV32E/RV32I/RV64I
 
 Average cycle counts
@@ -705,41 +707,32 @@ a0 = result
 
 ---
 
+#### lcm
 
+Computes the least common multiple of two numbers, lcm(u, v). Computes
+via lcm(u,v) = (u / gcd(u,v)) * v.  Can take advantage of M and Zbb
+extensions. O(log n). RV32E/RV32I/RV64I
 
+Average cycle counts
 
+| Configuration | Cycles (32) | Cycles (64) |
+|---------------|-------------|-------------|
+| Base ISA      | ~1200       | ~2500       |
+| With Zbb      | ~750        | ~1500       |
+| With M        | ~250        | ~500        |
 
-```riscv
-################################################################################
-# routine: gcd
-#
-# Compute the greatest common divisor (gcd) of two unsigned numbers.
-# 64 bit algorithm on 64-bit CPUs, 32-bit algorithm on 32-bit CPUs.
-#
-# input registers:
-# a0 = first number (u)
-# a1 = second number (v)
-#
-# output registers:
-# a0 = gcd(u, v)
-################################################################################
+##### Input
+a0 = u
+a1 = v
 
-################################################################################
-# routine: lcm
-#
-# Compute the least common multiple (lcm) of two unsigned numbers.
-# 64 bit algorithm on 64-bit CPUs, 32-bit algorithm on 32-bit CPUs.
-#
-# input registers:
-# a0 = u
-# a1 = v
-#
-# output registers:
-# a0 = lcm(u,v)
-################################################################################
-```
+##### Output
+a0 = result
+
+---
 
 ### I/O and Base Conversion [io.s](src/io.s)
+
+---
 
 ```riscv
 ################################################################################
