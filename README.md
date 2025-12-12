@@ -252,10 +252,10 @@ then an estimated remainder is calculated, and the quotient is corrected.
 
 Unsigned integer divide by 3. RV32E/RV32I/RV64I
 
-| Configuration          | Cycles (32) | Cycles (64) |
+| Configuration   | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
-| Base ISA        | 15          | 17          |
-| With Extensions | 14          | 16          |
+| Base ISA        | 20          | 22          |
+| With Extensions | 17          | 19          |
 
 ##### Input
 a0 = dividend
@@ -440,10 +440,10 @@ a0 = quotient
 
 Signed integer divide by 3. RV32E/RV32I/RV64I
 
-| Configuration          | Cycles (32) | Cycles (64) |
+| Configuration   | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
-| Base ISA        | 24          | 26          |
-| With Extensions | 23          | 25          |
+| Base ISA        | 25          | 27          |
+| With Extensions | 22          | 24          |
 
 ##### Input
 a0 = dividend

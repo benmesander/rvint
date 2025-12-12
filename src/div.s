@@ -298,35 +298,41 @@ divrem_overflow:
 # a0 = quotient (unsigned)
 ################################################################################
 div3u:
-	# a0 contains n
-	srli	a1, a0, 2		# a1: q = n >> 2
-	srli	a2, a0, 4		# a2: n >> 4
-	add	a1, a2, a1		# a1: q = (n >> 2) + (n >> 4)
-	srli	a2, a1, 4		# a2: q >> 4
-	add	a1, a2, a1		# a1: q = q + (q >> 4)
-	srli	a2, a1, 8		# a2: q >> 8
-	add	a1, a2, a1		# a1: q = q + (q >> 8)
-	srli	a2, a1, 16		# a2: q >> 16
-	add	a1, a2, a1		# a1: q = q + (q >> 16)
+	# 1. Series Expansion (Computes Q_est)
+	#    Generates an under-estimate of N/3
+	srli	a1, a0, 2		# a1 = n >> 2
+	srli	a2, a0, 4		# a2 = n >> 4
+	add	a1, a2, a1		# a1 = (n>>2) + (n>>4)
+	srli	a2, a1, 4		
+	add	a1, a2, a1		# a1 += a1 >> 4
+	srli	a2, a1, 8		
+	add	a1, a2, a1		# a1 += a1 >> 8
+	srli	a2, a1, 16		
+	add	a1, a2, a1		# a1 += a1 >> 16
 .if CPU_BITS == 64
-	srli	a2, a1, 32		# a2: q >> 32
-	add	a1, a2, a1		# a1: q = q + (q >> 32)
+	srli	a2, a1, 32		
+	add	a1, a2, a1		# a1 += a1 >> 32
 .endif
-	# no final shift needed (series converges directly to 1/3)
 
-	# negative remainder correction
-	# diff = 3q - n
-	mul3	a2, a1, a2	# a2 = 3 * q
-	sub	a2, a2, a0	# a2 = 3q - n
+	# 2. Calculate Remainder / Error Term
+	#    R = N - 3*Q_est
+	#    Reuses 'mul3' macro: mul3 dest, src, scratch
+	mul3	a2, a1, a2		# a2 = 3 * Q_est
+	sub	a2, a0, a2		# a2 = N - 3*Q_est (Remainder/Error)
 
-	# threshold check: is diff <= -3?
-	# -3 < -2 -> 1 (correction needed)
-	slti	a3, a2, -2
-	add	a0, a1, a3	# q + correction
+	# 3. Linear Correction (Branchless)
+	#    Correction = floor(R / 3) approx floor((R * 11) / 32)
+	mul11	a3, a2, a0		# a3 = R * 11
+
+	#    Correction = (R * 11) >> 5
+	srli	a3, a3, 5
+	
+	# 4. Final Addition
+	add	a0, a1, a3		# Q_final = Q_est + Correction
 	ret
 
 .size div3u, .-div3u
-
+	
 ################################################################################
 # routine: div5u
 #
@@ -803,13 +809,12 @@ div1000u:
 # output: a0 = signed quotient
 ################################################################################
 div3:
-	# compute sign mask (t0) and abs(n) (a0)
+	# 1. Preamble: Compute Sign Mask (t0) and Abs(n) (a0)
 	srai	t0, a0, CPU_BITS-1	# t0 = -1 if n < 0, else 0
 	xor	a0, a0, t0		# a0 = n ^ sign
 	sub	a0, a0, t0		# a0 = (n ^ sign) - sign = abs(n)
 
-	# estimate quotient: q = abs(n) * (1/3)
-	# series: 1/4 + 1/16 + 1/64 ...
+	# 2. Series Expansion (Approximates Q_abs = abs(n) / 3)
 	srli	a1, a0, 2
 	srli	a2, a0, 4
 	add	a1, a2, a1		# q = (n >> 2) + (n >> 4)
@@ -824,19 +829,18 @@ div3:
 	add	a1, a2, a1		# q += q >> 32
 .endif
 
-# no final shift needed (series converges directly to 1/3)
+	# 3. Calculate Remainder / Error
+	#    R = abs(n) - 3*Q_est
+	mul3	a2, a1, a2		# a2 = 3 * Q_est
+	sub	a2, a0, a2		# a2 = abs(n) - 3*Q_est (Remainder)
 
-	# negative remainder correction
-	# diff = 3q - abs(n)
-	mul3	a2, a1, a2	# a2 = 3 * q
-	sub	a2, a2, a0	# a2 = 3q - abs(n)
+	# 4. Branchless Correction
+	#    Correction = (R * 11) >> 5
+	mul11	a3, a2, a0		# a3 = R * 11
+	srli	a3, a3, 5
+	add	a1, a1, a3		# a1 = Q_abs (corrected)
 
-	# threshold check: is diff <= -3?
-	# -3 < -2 -> 1 (correction needed)
-	slti	a3, a2, -2
-	add	a1, a1, a3	# q_final = q + correction
-
-	# postamble: restore sign
+	# 5. Postamble: Restore Sign
 	xor	a0, a1, t0
 	sub	a0, a0, t0
 
