@@ -861,6 +861,33 @@ a2 = error check: 0 if no digits found, otherwise 1
 
 ---
 
+#### from_decu
+
+Read an ASCII unsigned decimal string into a register. The parsing of the value
+stops when we read the first non-decimal character. RV32E/RV32I/RV64I
+
+Assume 10 digits for 32 bit case, 20 digits for 64 bit case:
+
+| Configuration | Cycles (32) | Cycles (64) |
+|---------------|-------------|-------------|
+| Base ISA      | 131         | 251         |
+| With Zba      | 121         | 231         |
+
+##### Input
+a0 = pointer to number to convert from decimal, terminated with non-decimal char.
+
+##### Output
+a0 = pointer (advanced to point to non-decimal char)<br>
+a1 = number<br>
+a2 = error check: 0 if no digits found, otherwise 1
+
+---
+
+#### from_dec
+
+Read an ASCII signed decimal string into a register. The parsing of the value
+stops when we read the first non-decimal character.
+
 
 ```riscv
 ################################################################################
