@@ -135,6 +135,8 @@ syscall 64 is write and 93 is exit.
 
 ### Bit manipulation - [bits.s](src/bits.s):
 
+***
+
 #### bits_ctz
 
 Count number of trailing zeroes on machines with no ZBB extension. O(log n).
@@ -150,6 +152,8 @@ a0 = number
 
 ##### Output
 a0 = count of trailing zeroes
+
+---
 
 
 ```riscv
