@@ -111,7 +111,7 @@ mul32:
 	sub	a1, a1, t1
 
 	# 4. Swap for Optimization (Smallest as Multiplier)
-	bgeu	a1, a0, mul32_rv64_no_swap
+	bgeu	a0, a1, mul32_rv64_no_swap
 	mv	t1, a0
 	mv	a0, a1
 	mv	a1, t1
@@ -173,7 +173,7 @@ mul32_rv64_split:
 	sub	a1, a1, t0
 
 	# 3. Swap for Optimization
-	bgeu	a1, a0, mul32_rv32_no_swap
+	bgeu	a0, a1, mul32_rv32_no_swap
 	mv	t0, a0
 	mv	a0, a1
 	mv	a1, t0
@@ -261,7 +261,7 @@ m128:
 m128_setup_unsigned:
 	# --- 2. Swap Optimization ---
 	# Minimize iterations by making a1 the smaller value
-	bgeu	a1, a0, m128_no_swap
+	bgeu	a0, a1, m128_no_swap
 	mv	t0, a0
 	mv	a0, a1
 	mv	a1, t0
