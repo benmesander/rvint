@@ -190,9 +190,55 @@ Restoring division algorithm. Available in ROLLED (compact) and UNROLLED (fast) 
 | With Extensions (Rolled)   | 391         | 775         |
 | With Extensions (Unrolled) | 287         | 567         |
 
+#### Input
+a0 = dividend
+a1 = divisor
+
+#### Output
+a0 = quotient
+a1 = remainder
+
 ---
 
+#### divrem
 
+Signed integer division that rounds towards zero. RV32E/RV32I/RV64I compatible
+restoring division algorithm. Uses divremu, so performance depends upon whether
+that routine is used in ROLLED or UNROLLED form. Worst case performance:
+
+| Metric                     | Cycles (32) | Cycles (64) |
+|----------------------------|-------------|-------------|
+| Base ISA (Rolled)          | 496         | 944         |
+| Base ISA (Unrolled)        | 392         | 736         |
+| With Extensions (Rolled)   | 430         | 814         |
+| With Extensions (Unrolled) | 326         | 606         |
+
+#### Input
+a0 = dividend
+a1 = divisor
+
+#### Output
+a0 = quotient
+a1 = remainder
+
+---
+
+### div3u 
+
+Unsigned integer divide by 3.
+
+| Metric          | Cycles (32) | Cycles (64) |
+|-----------------|-------------|-------------|
+| Base ISA        | 15          | 17          |
+| With Extensions | 14          | 16          |
+
+#### Input
+a0 = dividend
+
+#### Output
+a0 = quotient
+
+---
 
 ```riscv
 ################################################################################
