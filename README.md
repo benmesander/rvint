@@ -250,7 +250,7 @@ then an estimated remainder is calculated, and the quotient is corrected.
 
 #### div3u 
 
-Unsigned integer divide by 3.
+Unsigned integer divide by 3. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -267,7 +267,7 @@ a0 = quotient
 
 #### div5u 
 
-Unsigned integer divide by 5.
+Unsigned integer divide by 5. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -285,7 +285,7 @@ a0 = quotient
 #### div6u 
 
 Unsigned integer divide by 6. You may be better off calling div3u and
-shifting the result.
+shifting the result. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -303,7 +303,7 @@ a0 = quotient
 #### div7u 
 
 Unsigned integer divide by 7. Note that only the base ISA is used here, so there
-is no accelleration from ISA extensions.
+is no accelleration from ISA extensions. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -319,7 +319,7 @@ a0 = quotient
 
 #### div9u
 
-Unsigned integer divide by 9. 
+Unsigned integer divide by 9. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -336,7 +336,7 @@ a0 = quotient
 
 #### div10u
 
-Unsigned integer divide by 10. 
+Unsigned integer divide by 10. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -353,7 +353,7 @@ a0 = quotient
 
 #### div11u
 
-Unsigned integer divide by 11. 
+Unsigned integer divide by 11.  RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -370,7 +370,7 @@ a0 = quotient
 
 #### div12u
 
-Unsigned integer divide by 12. 
+Unsigned integer divide by 12.  RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -387,7 +387,7 @@ a0 = quotient
 
 #### div13u
 
-Unsigned integer divide by 13.
+Unsigned integer divide by 13. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -404,7 +404,7 @@ a0 = quotient
 
 #### div100u
 
-Unsigned integer divide by 100.
+Unsigned integer divide by 100. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -421,7 +421,7 @@ a0 = quotient
 
 #### div1000u
 
-Unsigned integer divide by 1000. This basically divides by 10, then by 100.
+Unsigned integer divide by 1000. This basically divides by 10, then by 100. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -438,7 +438,7 @@ a0 = quotient
 
 #### div3
 
-Signed integer divide by 3.
+Signed integer divide by 3. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -455,7 +455,7 @@ a0 = quotient
 
 #### div5
 
-Signed integer divide by 5.
+Signed integer divide by 5. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -472,7 +472,7 @@ a0 = quotient
 
 #### div6
 
-Signed integer divide by 6.
+Signed integer divide by 6. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -489,7 +489,7 @@ a0 = quotient
 
 #### div7
 
-Signed integer divide by 7. Note that ISA extensions are not used by this routine.
+Signed integer divide by 7. Note that ISA extensions are not used by this routine. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -505,7 +505,7 @@ a0 = quotient
 
 #### div9
 
-Signed integer divide by 9.
+Signed integer divide by 9. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -522,7 +522,7 @@ a0 = quotient
 
 #### div10
 
-Signed integer divide by 10.
+Signed integer divide by 10. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -539,7 +539,7 @@ a0 = quotient
 
 #### div11
 
-Signed integer divide by 11.
+Signed integer divide by 11. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -556,7 +556,7 @@ a0 = quotient
 
 #### div12
 
-Signed integer divide by 12.
+Signed integer divide by 12. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -573,7 +573,7 @@ a0 = quotient
 
 #### div13
 
-Signed integer divide by 13.
+Signed integer divide by 13. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -590,7 +590,7 @@ a0 = quotient
 
 #### div100
 
-Signed integer divide by 100.
+Signed integer divide by 100. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -610,7 +610,7 @@ a0 = quotient
 Signed integer divide by 1000. I was able to slightly change the
 series expansion for 63 bit numbers (one bit reserved for sign), thus
 the signed divide by 1000 is one cycle shorter than the unsigned
-divide by 1000 on 64-bit architectures!
+divide by 1000 on 64-bit architectures! RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -641,7 +641,7 @@ These routines run in constant time and are branchless.
 
 #### mod3u
 
-unsigned integer remainder after division by 3.
+unsigned integer remainder after division by 3. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
@@ -658,7 +658,7 @@ a0 = quotient
 
 #### mod3
 
-signed integer remainder after division by 3.
+signed integer remainder after division by 3. RV32E/RV32I/RV64I
 
 | Metric          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
