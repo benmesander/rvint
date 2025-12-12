@@ -135,17 +135,17 @@ syscall 64 is write and 93 is exit.
 
 ### Bit manipulation - [bits.s](src/bits.s):
 
-***
+---
 
 #### bits_ctz
 
-Count number of trailing zeroes on machines with no ZBB extension. O(log n).
+Count number of trailing zeroes on CPUs with no ZBB extension. O(log n). RV32E/RV32I/RV64I compatible.
 
-| Metric       | Cycles |
-|--------------|--------|
-| Best Case    | 3      |
-| Average Case | ~25    |
-| Worst Case   | ~28    |
+| Metric       | Cycles (32) | Cycles (64) |
+|--------------|-------------|-------------|
+| Best Case    | 3           | 3           |
+| Average Case | ~21         | ~25         |
+| Worst Case   | 23          | 27          |
 
 ##### Input
 a0 = number
@@ -155,6 +155,23 @@ a0 = count of trailing zeroes
 
 ---
 
+#### bits_clz
+
+Count number of leading zeroes on CPUs with no ZBB extension. O(log n). RV32E/RV32I/RV64I compatible.
+
+| Metric       | Cycles (32) | Cycles (64) |
+|--------------|-------------|-------------|
+| Best Case    | 3           | 3           |
+| Average Case | ~21         | ~25         |
+| Worst Case   | 23          | 27          |
+
+##### Input
+a0 = number
+
+##### Output
+a0 = count of leading zeroes
+
+---
 
 ```riscv
 
