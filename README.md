@@ -734,6 +734,31 @@ a0 = result
 
 ---
 
+#### to_hex
+
+Convert a value in a register to an ASCII hexadecimal string. RV32E/RV32I/RV64I
+
+Cycle counts
+
+| Configuration | Prefix? (a2) | Cycle Count | Notes |
+|---------------|--------------|-------------|-------|
+| 8-bit (Byte)  | No           | 31          | 2 nibbles |
+| 32-bit (Word) | No           | 97          | 8 nibbles |
+| 32-bit (Word) | Yes (0x)     | 100         | Add prefix overhead |
+| 64-bit (Long) | No           | 185         | 16 nibbles (RV64 only) |
+ 
+##### Input
+a0 = number to convert to ASCII hex<br>
+a1 = number of bytes to convert (eg 1, 2, 4, 8)<br>
+a2 = 0 do not insert leading 0x, 1 insert leading 0x
+
+##### Output
+a0 = address of nul (\0) terminated buffer with output<br>
+a1 = length of string
+
+---
+
+
 ```riscv
 ################################################################################
 # routine: to_hex
