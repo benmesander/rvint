@@ -21,6 +21,7 @@ LDFLAGS	:=
 
 SRCS	:= div.s mul.s io.s div-tests.s mul-tests.s sqrt.s alg-tests.s gcd.s bits.s
 OBJS	:= $(SRCS:.s=.o)
+AROBJS	:= div.o mul.o io.o sqrt.o gcd.o bits.o
 EXES	:= div-tests.x mul-tests.x alg-tests.x 
 LIB	:= librvint.a
 
@@ -51,8 +52,8 @@ mul-tests.x: mul-tests.o $(LIB)
 alg-tests.x: alg-tests.o $(LIB)
 	$(LD) $(LDFLAGS) $^ -o $@
 
-$(LIB): $(OBJS)
-	$(AR) $(ARFLAGS) $(LIB) $(OBJS)
+$(LIB): $(AROBJS)
+	$(AR) $(ARFLAGS) $(LIB) $(AROBJS)
 
 clean:
 	rm -f $(OBJS) $(EXES) $(LIB)

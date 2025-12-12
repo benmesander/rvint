@@ -758,6 +758,30 @@ a1 = length of string
 
 ---
 
+#### to_bin
+
+Convert a value in a register to an ASCII binary string. RV32E/RV32I/RV64I
+
+Cycle counts
+
+| Configuration | Input Width | Cycle Count |
+|---------------|-------------|-------------| 
+| Base ISA      | 32          | 298         |
+| Base ISA      | 64          | 586         |
+| Zbs           | 32          | 266         |
+| Zbs           | 64          | 522         |
+
+##### Input
+a0 = number to convert to ascii binary<br>
+a1 = number of bytes to convert (eg 1, 2, 4, 8)<br>
+a2 = 0 do not insert spaces every 8 bits, 1 insert spaces every 8 bits
+
+##### Output
+a0 = address of nul (\0)-terminated buffer with output<br>
+a1 = length of string
+
+---
+
 
 ```riscv
 ################################################################################
