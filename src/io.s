@@ -109,6 +109,7 @@ to_bin_no_space:
 # routine: to_decu
 #
 # Convert unsigned integer to ASCII decimal string.
+# RV32I, RV32E, RV64I, RV128I, RV32IM, RV64IM, RV128IM
 # Optimizations:
 # - HAS_M: Uses hardware div/rem (Fastest).
 # - HAS_ZBA: Uses optimal sh2add/sh3add for corrections (via mul10 macro)
@@ -149,8 +150,15 @@ to_decu_loop:
 	add	a4, a4, t0
 	srli	t0, a4, 16
 	add	a4, a4, t0
-.if CPU_BITS == 64
+
+.if CPU_BITS >= 64
 	srli	t0, a4, 32
+	add	a4, a4, t0
+.endif
+
+.if CPU_BITS == 128
+	# extends series to 128 bits
+	srli	t0, a4, 64
 	add	a4, a4, t0
 .endif
 	srli	a4, a4, 3		# a4 = q_est

@@ -7,100 +7,167 @@
 ################################################################################
 # routine: gcd
 #
-# Compute the greatest common divisor (gcd) of two unsigned numbers.
-# 64 bit algorithm on 64-bit CPUs, 32-bit algorithm on 32-bit CPUs.
+# Compute GCD of two unsigned numbers. RV32I/RV32E/RV64I compatible.
 #
-# input registers:
-# a0 = first number (u)
-# a1 = second number (v)
+# Optimizations:
+# - HAS_M: Uses 'remu' (Euclidean algorithm) for O(log N) speed.
+# - Base/Zbb: Uses Stein's Algorithm (Binary GCD) for O(log N) without div.
 #
-# output registers:
-# a0 = gcd(u, v)
+# input:  a0 (u), a1 (v)
+# output: a0 gcd(u,v) (result)
 ################################################################################
-gcd:
-	# Use s0 and s1 for our main variables
-	FRAME	3
-	PUSH	ra, 0
-	PUSH	s0, 1
-	PUSH	s1, 2
 
+gcd:
+	# Handle Base Cases: gcd(0, v) = v, gcd(u, 0) = u
 	beqz	a0, gcd_return_v
 	beqz	a1, gcd_return_u
 
-	mv	s0, a0		# s0 = u
-	mv	s1, a1		# s1 = v
-
-gcd_loop:			
-	bltu	s0, s1, gcd_skip_swap
-	mv	t0, s0		# Save u
-	mv	s0, s1		# u = v
-	mv	s1, t0		# v = old u
-
-gcd_skip_swap:	
-	sub	s1, s1, s0	# v -= u
-	bnez	s1, gcd_loop	# Continue if v != 0
-	
-	mv	a0, s0		# Return u
-
-gcd_cleanup:	
-	POP	ra, 0
-	POP	s0, 1
-	POP	s1, 2
-	EFRAME	3
+.if HAS_M
+	# =========================================================
+	# Strategy 1: Euclidean Algorithm (Modulo)
+	# Requires M Extension. Fastest/Smallest.
+	# =========================================================
+gcd_mod_loop:
+	remu	t0, a0, a1	# t0 = u % v
+	mv	a0, a1		# u = v
+	mv	a1, t0		# v = remainder
+	bnez	a1, gcd_mod_loop
 	ret
+
+.else
+	# =========================================================
+	# Strategy 2: Stein's Algorithm (Binary GCD)
+	# Best for processors without hardware division.
+	# =========================================================
+	
+	# 1. Find common factors of 2 (k)
+	or	t0, a0, a1	# t0 = u | v
+.if HAS_ZBB
+	ctz	a2, t0		# a2 = k = ctz(u | v)
+	srl	a0, a0, a2	# u >>= k
+	srl	a1, a1, a2	# v >>= k
+.else
+	# Manual CTZ Loop for 'k' if no Zbb
+	li	a2, 0
+gcd_find_k:
+	andi	t0, t0, 1
+	bnez	t0, gcd_remove_u_zeros
+	srli	a0, a0, 1
+	srli	a1, a1, 1
+	or	t0, a0, a1
+	addi	a2, a2, 1
+	j	gcd_find_k
+.endif
+
+gcd_remove_u_zeros:
+	# 2. Divide u by 2 until odd
+.if HAS_ZBB
+	ctz	t0, a0
+	srl	a0, a0, t0
+.else
+gcd_u_loop:
+	andi	t0, a0, 1
+	bnez	t0, gcd_inner_loop
+	srli	a0, a0, 1
+	j	gcd_u_loop
+.endif
+
+gcd_inner_loop:
+	# 3. Divide v by 2 until odd
+.if HAS_ZBB
+	ctz	t0, a1
+	srl	a1, a1, t0
+.else
+gcd_v_loop:
+	andi	t0, a1, 1
+	bnez	t0, gcd_check_swap
+	srli	a1, a1, 1
+	j	gcd_v_loop
+.endif
+
+gcd_check_swap:
+	# 4. Ensure u <= v
+	bgeu	a1, a0, gcd_sub
+	mv	t0, a0
+	mv	a0, a1
+	mv	a1, t0
+
+gcd_sub:
+	# 5. v = v - u
+	sub	a1, a1, a0
+	bnez	a1, gcd_inner_loop
+
+	# 6. Restore common factor of 2: result = u << k
+	sll	a0, a0, a2
+	ret
+.endif
 
 gcd_return_v:
 	mv	a0, a1
 gcd_return_u:
-	j	gcd_cleanup
+	ret
+.size gcd, .-gcd
 
-.size	gcd, .-gcd
-	
 ################################################################################
 # routine: lcm
 #
 # Compute the least common multiple (lcm) of two unsigned numbers.
-# 64 bit algorithm on 64-bit CPUs, 32-bit algorithm on 32-bit CPUs.
+# Formula: lcm(u,v) = (u / gcd(u,v)) * v. RV32I/RV32E/RV64I compatible.
 #
-# input registers:
-# a0 = u
-# a1 = v
+# Optimizations:
+# - HAS_M: Inlines hardware div/mul to avoid function call overhead.
 #
-# output registers:
-# a0 = lcm(u,v)
+# Input:  a0 (u), a1 (v)
+# Output: a0 (lcm)
 ################################################################################
+
 lcm:
+	# Check for zero inputs early (lcm(0, x) = 0)
+	beqz	a0, lcm_return_zero
+	beqz	a1, lcm_return_zero
+
+	# Setup Stack (Need to preserve ra, s0, s1 across calls)
 	FRAME	3
 	PUSH	ra, 0
 	PUSH	s0, 1
 	PUSH	s1, 2
 
-	beqz	a0, lcm_check_a1	# check to see if both a0 and a1 are 0
+	mv	s0, a0		# s0 = u
+	mv	s1, a1		# s1 = v
 
-lcm_start:	
-	mv	s0, a0		# Save first number
-	mv	s1, a1		# Save second number
+	# 1. Calculate GCD(u, v)
+	# Result returns in a0
+	jal	gcd
 
-	# Calculate GCD first
-	jal	gcd		# gcd result in a0
-	mv	a1, a0		# Move GCD to divisor register
-	mv	a0, s0		# First number
-	call	divremu		# Divide first number by GCD
-	mv	t0, a0		# Save quotient temporarily
+	# 2. Calculate u / GCD
+	# Input: a0=u, a1=gcd
+	mv	a1, a0		# Move GCD to divisor
+	mv	a0, s0		# Move u to dividend
 
-	mv	a0, t0		# Load saved quotient
-	mv	a1, s1		# Second number
-	call	nmul		# Multiply to get LCM
+.if HAS_M
+	divu	a0, a0, a1	# a0 = u / gcd
+.else
+	call	divremu		# a0 = u / gcd
+.endif
 
-lcm_cleanup:	
-	POP	ra, 0
-	POP	s0, 1
+	# 3. Calculate (u/gcd) * v
+	# Input: a0=(u/gcd), a1=v
+	mv	a1, s1		# Move v to multiplier
+
+.if HAS_M
+	mul	a0, a0, a1	# a0 = result * v
+.else
+	call	nmul		# a0 = result * v
+.endif
+
+	# Cleanup and Return
 	POP	s1, 2
+	POP	s0, 1
+	POP	ra, 0
 	EFRAME	3
 	ret
 
-lcm_check_a1:
-	bnez	a1, lcm_start
-	j	lcm_cleanup	# if a0, a1 both zero, return zero
-	
+lcm_return_zero:
+	li	a0, 0
+	ret
 .size lcm, .-lcm

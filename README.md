@@ -13,8 +13,8 @@ where those two goals clash, I went with concise.
 
 ## Division
 
-### On 32-bit processors
-- 32-bit by 32-bit signed and unsigned division with 32-bit result and remainder. (unsigned division is RV32E compatible)
+### On 32-bit processors (RV32I, RV32E)
+- 32-bit by 32-bit signed and unsigned division with 32-bit result and remainder.
 - Fast 32-bit unsigned division by 3
 - Fast 32-bit unsigned division by 5
 - Fast 32-bit unsigned division by 6
@@ -37,8 +37,9 @@ where those two goals clash, I went with concise.
 - Fast 32-bit signed division by 13 (no tests)
 - Fast 32-bit signed division by 100 (no tests)
 - Fast 32-bit signed division by 1000 (no tests)
-### On 64-bit processors
-- 64-bit by 64-bit signed and unsigned division with 64-bit result and remainder. (unsigned division is RV64E compatible)
+
+### On 64-bit processors (RV64I)
+- 64-bit by 64-bit signed and unsigned division with 64-bit result and remainder.
 - Fast 64-bit unsigned division by 3
 - Fast 64-bit unsigned division by 5
 - Fast 64-bit unsigned division by 6
@@ -64,11 +65,11 @@ where those two goals clash, I went with concise.
 
 ## Multiplication
 
-### On 32-bit processors:
+### On 32-bit processors (RV32E, RV32I):
 - 32-bit by 32-bit signed and unsigned multiplication with 32-bit result.
 - 32-bit by 32-bit signed and unsigned multiplication with 64-bit result.
 
-### on 64-bit processors:
+### on 64-bit processors (RV64i):
 - 32-bit by 32-bit signed and unsigned multiplication with 64-bit result.
 - 64-bit by 64-bit signed and unsigned multiplication with 64-bit result.
 - 64-bit by 64-bit signed and unsigned multiplication with 128-bit result.
@@ -76,48 +77,49 @@ where those two goals clash, I went with concise.
 ## Base Conversions & I/O Operations
 
 These operations support 32-bit numbers on 32-bit architectures and
-64-bit numbers on 64-bit architectures.
+64-bit numbers on 64-bit architectures. All routines are RV32E, RV32I,
+and RV64I compatible.
 
-- ASCII binary to binary. (RV32E compatible)
-- ASCII unsigned decimal to binary. (RV32E compatible)
-- ASCII signed decimal to two's complement binary. (RV32E compatible)
-- ASCII hexadecimal to binary. (RV32E compatible)
-- binary to ASCII binary. (RV32E compatible)
-- two's complement binary to ASCII signed decimal. (RV32E compatible)
-- unsigned binary to unsigned ASCII decimal. (RV32E compatible)
-- binary to ASCII hexadecimal. (RV32E compatible)
+- ASCII binary to binary.
+- ASCII unsigned decimal to binary.
+- ASCII signed decimal to two's complement binary.
+- ASCII hexadecimal to binary.
+- binary to ASCII binary.
+- two's complement binary to ASCII signed decimal.
+- unsigned binary to unsigned ASCII decimal.
+- binary to ASCII hexadecimal.
 
-## Square Root
+## Square Root (RV32E, RV32I, and RV64I compatible)
 - 32-bit integer square root on 32-bit processors.
 - 64-bit integer square root on 64-bit processors.
 
-## Greatest Common Divisor
+## Greatest Common Divisor (RV32E, RV32I, and RV64I compatible)
 - 32-bit GCD of two unsigned 32-bit numbers on 32-bit processors.
 - 64-bit GCD of two unsigned 64-bit numbers on 64-bit processors.
 
-## Least Common Multiple
+## Least Common Multiple (RV32E, RV32I, and RV64I compatible)
 - 32-bit LCM of two unsigned 32-bit numbers on 32-bit processors.
 - 64-bit LCM of two unsigned 64-bit numbers on 64-bit processors.
 
-## Bit Operations
-- Count leading zeroes in 32-bit number on 32-bit processors. (RV32E compatible)
-- Count leading zeroes in 64-bit number on 64-bit processors. (RV64E compatible)
-- Count trailing zeroes in 32-bit number on 32-bit processors. (RV32E compatible)
-- Count trailing zeroes in 64-bit number on 64-bit processors. (RV64E compatible)
+## Bit Operations (RV32E, RV32I, and RV64I compatible)
+- Count leading zeroes in 32-bit number on 32-bit processors.
+- Count leading zeroes in 64-bit number on 64-bit processors.
+- Count trailing zeroes in 32-bit number on 32-bit processors.
+- Count trailing zeroes in 64-bit number on 64-bit processors.
 
 ## Building
 
 clang, lld, and make are assumed. I'm currently using clang 18.
 The TARGET, ARCH, and ABI should be edited in the Makefile,
 and the CPU_BITS constant should be set to match in config.s
+HAS_... flags should be set for available extensions.
 
 A static library, `librvint.a`, will be created to link against.
 
-Only certain routines support RV32E and RV64E. The
-routines that do not currently give compile errors; this will
-be fixed in the future. RV64E is not a focus as I am unaware of
-any real world implementations. The Makefile has a CH32V003 target
-that is an RV32EC_zicsr target.
+Only certain routines support RV32E. The routines that do not
+currently give compile errors; this will be fixed in the future. RV64E
+is not a focus as I am unaware of any real world implementations. The
+Makefile has a CH32V003 target that is an RV32EC_zicsr target.
 
 ## Tests
 
@@ -132,6 +134,22 @@ syscall 64 is write and 93 is exit.
 ## API
 
 ### Bit manipulation - [bits.s](src/bits.s):
+
+#### bits_ctz
+
+Count number of trailing zeroes on machines with no ZBB extension. O(log n).
+
+| Metric       | Cycles |
+|--------------|--------|
+| Best Case    | 3      |
+| Average Case | ~25    |
+| Worst Case   | ~28    |
+
+##### Input
+a0 = number
+
+##### Output
+a0 = count of trailing zeroes
 
 
 ```riscv

@@ -5,6 +5,7 @@
 .equ	HAS_ZBB, 	0	# 1 = has Zbb extension
 .equ	HAS_ZBS,	0	# 1 = has Zbs extension - single bit instructions
 .equ	HAS_ZICOND, 	0	# 1 = has Zicond extension
+.equ	HAS_M,		0	# 1 = has M (integer math) extension
 
 # Macros and constants used in subroutines
 	
