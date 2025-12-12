@@ -23,16 +23,15 @@
 
 .macro mul6 dest src scratch0
 .if HAS_ZBA
-	sh1add	\dest, \src, \src
-	slli	\dest, \dest, 1
+	sh1add	\dest, \src, \src	# dest = 3*src
+	slli	\dest, \dest, 1		# dest = 6*src
 .else
-	slli	\scratch0, \src, 2
-	slli	\dest, \src, 1
-	add	\dest, \dest, \scratch0
-
+	# Fixed for dest == scratch case
+	slli	\dest, \src, 1		# dest = 2*src
+	add	\dest, \dest, \src	# dest = 3*src
+	slli	\dest, \dest, 1		# dest = 6*src
 .endif
-.endm	
-
+.endm
 .macro mul9 dest src scratch0
 .if HAS_ZBA	
 	sh3add	\dest, \src, \src
@@ -44,12 +43,12 @@
 
 .macro mul10 dest src scratch0
 .if HAS_ZBA
-	sh2add	\dest, \src, \src
-	slli	\dest, \dest, 1
+	sh2add	\dest, \src, \src	# dest = 5*src
+	slli	\dest, \dest, 1		# dest = 10*src
 .else
-	slli	\scratch0, \src, 3
-	slli	\dest, \src, 1
-	add	\dest, \dest, \scratch0
+	slli	\dest, \src, 2		# dest = 4*src
+	add	\dest, \dest, \src	# dest = 5*src
+	slli	\dest, \dest, 1		# dest = 10*src
 .endif
 .endm
 
