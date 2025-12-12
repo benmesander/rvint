@@ -173,42 +173,26 @@ a0 = count of leading zeroes
 
 ---
 
-```riscv
-
-################################################################################
-# routine: bits_ctz
-#
-# Count the number of trailing zeroes in a number via binary search - O(log n).
-# This is useful for processors with no B extension. This routine provides the
-# functionality of the ctz instruction (on 32-bit processors) and ctzw (on
-# 64-bit processors).
-# RV32E compatible.
-#
-# input registers:
-# a0 = number
-#
-# output registers:
-# a0 = result containing the number of trailing zeroes
-################################################################################
-
-################################################################################
-# routine: bits_clz
-#
-# Count the number of leading zeroes in a number via binary search - O(log n).
-# This is useful for processors with no B extension. This routine provides the
-# functionality of the clz instruction (on 32-bit processors) and clzw (on
-# 64-bit processors).
-# RV32E compatible.
-#
-# input registers:
-# a0 = number
-#
-# output registers:
-# a0 = result containing the number of leading zeroes in the input
-################################################################################
-```
-
 ### Division - [div.s](src/div.s):
+
+---
+
+#### divremu
+
+Unsigned integer division for CPUs without M extension. RV32E/RV32I/RV64I compatible.
+Restoring division algorithm. Available in ROLLED (compact) and UNROLLED (fast) versions
+(this is selected in config.s with the DIVREMU_UNROLLED flag). Worst-case performance:
+
+| Metric                     | Cycles (32) | Cycles (64) |
+|----------------------------|-------------|-------------|
+| Base ISA (Rolled)          | 455         | 903         |
+| Base ISA (Unrolled)        | 351         | 695         |
+| With Extensions (Rolled)   | 391         | 775         |
+| With Extensions (Unrolled) | 287         | 567         |
+
+---
+
+
 
 ```riscv
 ################################################################################
