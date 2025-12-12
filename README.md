@@ -690,7 +690,7 @@ advantage of M and Zbb extensions. With M extension it uses Euclid's
 algorithm. If M is not present, it computes the gcd via Stein's
 algorithm. O(log n). RV32E/RV32I/RV64I
 
-Average cycle counts
+Average Cycle Counts
 
 | Configuration | Cycles (32) | Cycles (64) |
 |---------------|-------------|-------------|
@@ -738,7 +738,7 @@ a0 = result
 
 Convert a value in a register to an ASCII hexadecimal string. RV32E/RV32I/RV64I
 
-Cycle counts
+Cycle Counts
 
 | Configuration | Prefix? (a2) | Cycle Count | Notes |
 |---------------|--------------|-------------|-------|
@@ -762,7 +762,7 @@ a1 = length of string
 
 Convert a value in a register to an ASCII binary string. RV32E/RV32I/RV64I
 
-Cycle counts with a2=3
+Cycle Counts with a2=3
 
 | Configuration | Input Width | Cycle Count |
 |---------------|-------------|-------------| 
@@ -781,6 +781,27 @@ a0 = address of nul (\0)-terminated buffer with output<br>
 a1 = length of string
 
 ---
+
+#### to_decu
+
+Convert a value in a register to an ASCII unsigned decimal string. RV32E/RV32I/RV64I/RV128I
+
+
+| Configuration | Cycles (32) | Cycles (64) | Cycles (128) |
+|---------------|-------------|-------------|--------------|
+| Base ISA      | 230         | 590         | 1,450        |
+| Base + Zba    | 194         | 495         | 1,220        |
+| Base + M      | ~410        | ~850        | Not recommended|
+
+##### Input
+a0 = number to convert to ascii decimal
+
+##### Output
+a0 = address of nul (\0)-terminated buffer with output<br>
+a1 = length of string
+
+---
+
 
 
 ```riscv

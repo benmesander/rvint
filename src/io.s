@@ -141,7 +141,7 @@ to_decu:
 	la	a2, iobuf
 	addi	a2, a2, IOBUF_CAPACITY
 	mv	a1, a2			# end pointer
-	sb	zero, 0(a2)		# null-terminate
+	sb	zero, 0(a2)		# nul-terminate
 
 	# 2. loop setup
 	mv	a3, a0			# a3 = n
