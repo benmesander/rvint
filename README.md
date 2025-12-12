@@ -762,19 +762,19 @@ a1 = length of string
 
 Convert a value in a register to an ASCII binary string. RV32E/RV32I/RV64I
 
-Cycle counts
+Cycle counts with a2=3
 
 | Configuration | Input Width | Cycle Count |
 |---------------|-------------|-------------| 
-| Base ISA      | 32          | 298         |
-| Base ISA      | 64          | 586         |
-| Zbs           | 32          | 266         |
-| Zbs           | 64          | 522         |
+| Base ISA      | 32          | 438         |
+| Base ISA      | 64          | 870         |
+| With Zbs      | 32          | 406         |
+| With Zbs      | 64          | 806         |
 
 ##### Input
 a0 = number to convert to ascii binary<br>
 a1 = number of bytes to convert (eg 1, 2, 4, 8)<br>
-a2 = 0 do not insert spaces every 8 bits, 1 insert spaces every 8 bits
+a2 = flags (0=none, 1=0b prefix, 2=spaces every 8 bits, 3=both)
 
 ##### Output
 a0 = address of nul (\0)-terminated buffer with output<br>
