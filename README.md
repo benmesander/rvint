@@ -147,7 +147,7 @@ heavyweight enough that they are not useful in places like inner loops in divisi
 
 Count number of trailing zeroes on CPUs with no ZBB extension. O(log n). RV32E/RV32I/RV64I compatible.
 
-| Metric       | Cycles (32) | Cycles (64) |
+| Configuration       | Cycles (32) | Cycles (64) |
 |--------------|-------------|-------------|
 | Best Case    | 3           | 3           |
 | Average Case | ~21         | ~25         |
@@ -165,7 +165,7 @@ a0 = count of trailing zeroes
 
 Count number of leading zeroes on CPUs with no ZBB extension. O(log n). RV32E/RV32I/RV64I compatible.
 
-| Metric       | Cycles (32) | Cycles (64) |
+| Configuration       | Cycles (32) | Cycles (64) |
 |--------------|-------------|-------------|
 | Best Case    | 3           | 3           |
 | Average Case | ~21         | ~25         |
@@ -196,7 +196,7 @@ Unsigned integer division for CPUs without M extension. RV32E/RV32I/RV64I compat
 Restoring division algorithm. Available in ROLLED (compact) and UNROLLED (faster) versions
 (this is selected in config.s with the DIVREMU_UNROLLED flag). Worst-case performance:
 
-| Metric                     | Cycles (32) | Cycles (64) |
+| Configuration                     | Cycles (32) | Cycles (64) |
 |----------------------------|-------------|-------------|
 | Base ISA (Rolled)          | 455         | 903         |
 | Base ISA (Unrolled)        | 351         | 695         |
@@ -219,7 +219,7 @@ Signed integer division that rounds towards zero. RV32E/RV32I/RV64I compatible
 restoring division algorithm. Uses divremu, so performance depends upon whether
 that routine is used in ROLLED or UNROLLED form. Worst case performance:
 
-| Metric                     | Cycles (32) | Cycles (64) |
+| Configuration                     | Cycles (32) | Cycles (64) |
 |----------------------------|-------------|-------------|
 | Base ISA (Rolled)          | 496         | 944         |
 | Base ISA (Unrolled)        | 392         | 736         |
@@ -252,7 +252,7 @@ then an estimated remainder is calculated, and the quotient is corrected.
 
 Unsigned integer divide by 3. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 15          | 17          |
 | With Extensions | 14          | 16          |
@@ -269,7 +269,7 @@ a0 = quotient
 
 Unsigned integer divide by 5. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 15          | 17          |
 | With Extensions | 14          | 16          |
@@ -287,7 +287,7 @@ a0 = quotient
 Unsigned integer divide by 6. You may be better off calling div3u and
 shifting the result. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 18          | 22          |
 | With Extensions | 17          | 21          |
@@ -305,7 +305,7 @@ a0 = quotient
 Unsigned integer divide by 7. Note that only the base ISA is used here, so there
 is no accelleration from ISA extensions. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 16          | 20          |
 
@@ -321,7 +321,7 @@ a0 = quotient
 
 Unsigned integer divide by 9. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 15          | 17          |
 | With Extensions | 14          | 16          |
@@ -338,7 +338,7 @@ a0 = quotient
 
 Unsigned integer divide by 10. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 16          | 18          |
 | With Extensions | 15          | 17          |
@@ -355,7 +355,7 @@ a0 = quotient
 
 Unsigned integer divide by 11.  RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 18          | 20          |
 | With Extensions | 15          | 17          |
@@ -372,7 +372,7 @@ a0 = quotient
 
 Unsigned integer divide by 12.  RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 17          | 19          |
 | With Extensions | 16          | 18          |
@@ -389,7 +389,7 @@ a0 = quotient
 
 Unsigned integer divide by 13. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 18          | 20          |
 | With Extensions | 16          | 18          |
@@ -406,7 +406,7 @@ a0 = quotient
 
 Unsigned integer divide by 100. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 10          | 21          |
 | With Extensions | 17          | 19          |
@@ -423,7 +423,7 @@ a0 = quotient
 
 Unsigned integer divide by 1000. This basically divides by 10, then by 100. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 37          | 41          |
 | With Extensions | 35          | 39          |
@@ -440,7 +440,7 @@ a0 = quotient
 
 Signed integer divide by 3. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 24          | 26          |
 | With Extensions | 23          | 25          |
@@ -457,7 +457,7 @@ a0 = quotient
 
 Signed integer divide by 5. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 24          | 26          |
 | With Extensions | 23          | 25          |
@@ -474,7 +474,7 @@ a0 = quotient
 
 Signed integer divide by 6. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 27          | 31          |
 | With Extensions | 26          | 30          |
@@ -491,7 +491,7 @@ a0 = quotient
 
 Signed integer divide by 7. Note that ISA extensions are not used by this routine. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 25          | 29          |
 
@@ -507,7 +507,7 @@ a0 = quotient
 
 Signed integer divide by 9. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 24          | 26          |
 | With Extensions | 23          | 25          |
@@ -524,7 +524,7 @@ a0 = quotient
 
 Signed integer divide by 10. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 25          | 27          |
 | With Extensions | 24          | 26          |
@@ -541,7 +541,7 @@ a0 = quotient
 
 Signed integer divide by 11. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 27          | 29          |
 | With Extensions | 24          | 26          |
@@ -558,7 +558,7 @@ a0 = quotient
 
 Signed integer divide by 12. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 26          | 28          |
 | With Extensions | 25          | 27          |
@@ -575,7 +575,7 @@ a0 = quotient
 
 Signed integer divide by 13. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 27          | 31          |
 | With Extensions | 25          | 29          |
@@ -592,7 +592,7 @@ a0 = quotient
 
 Signed integer divide by 100. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 24          | 26          |
 | With Extensions | 22          | 24          |
@@ -612,7 +612,7 @@ series expansion for 63 bit numbers (one bit reserved for sign), thus
 the signed divide by 1000 is one cycle shorter than the unsigned
 divide by 1000 on 64-bit architectures! RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 39          | 41          |
 | With Extensions | 36          | 38          |
@@ -643,7 +643,7 @@ These routines run in constant time and are branchless.
 
 unsigned integer remainder after division by 3. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 21          | 23          |
 | With Extensions | 19          | 21          |
@@ -660,7 +660,7 @@ a0 = quotient
 
 signed integer remainder after division by 3. RV32E/RV32I/RV64I
 
-| Metric          | Cycles (32) | Cycles (64) |
+| Configuration   | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
 | Base ISA        | 24          | 26          |
 | With Extensions | 22          | 24          |
@@ -679,6 +679,29 @@ a0 = quotient
 These routines calculate the greatest common divisor (gcd) and least
 common multiple (lcm) of two numbers. They can take advantage of the M
 and Zbb extensions, if available.
+
+---
+
+#### gcd
+
+Computes gcd(u,v). Can take advantage of M and Zbb extensions. With M extension
+it uses Euclid's algorithm. If M is not present, it computes The gcd via Stein's
+algorithm. O(log n). RV32E/RV32I/RV64I
+
+Average cycle counts
+
+| Configuration | Cycles (32) | Cycles (64) |
+|---------------|-------------|-------------|
+| Base ISA      | ~500        | ~1000       |
+| With Zbb      | ~150        | ~300        |
+| With M        | ~100        | ~400        |
+
+##### Input
+a0 = u
+a1 = v
+
+##### Output
+a0 = result
 
 ---
 
