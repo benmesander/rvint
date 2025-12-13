@@ -63,6 +63,10 @@ where those two goals clash, I went with concise.
 - Fast 64-bit signed division by 100 (no tests)
 - Fast 64-bit signed division by 1000 (no tests)
 
+## Math Macros
+
+- abs (absolute value) of 32 or 64 bit register.
+
 ## Multiplication
 
 ### On 32-bit processors (RV32E, RV32I):
@@ -73,6 +77,19 @@ where those two goals clash, I went with concise.
 - 32-bit by 32-bit signed and unsigned multiplication with 64-bit result.
 - 64-bit by 64-bit signed and unsigned multiplication with 64-bit result.
 - 64-bit by 64-bit signed and unsigned multiplication with 128-bit result.
+
+## Multiplication Macros
+
+- Multiply 32-bit or 64-bit register by 3.
+- Multiply 32-bit or 64-bit register by 5.
+- Multiply 32-bit or 64-bit register by 6.
+- Multiply 32-bit or 64-bit register by 9.
+- Multiply 32-bit or 64-bit register by 10.
+- Multiply 32-bit or 64-bit register by 11.
+- Multiply 32-bit or 64-bit register by 12.
+- Multiply 32-bit or 64-bit register by 13.
+- Multiply 32-bit or 64-bit register by 100.
+- Multiply 32-bit or 64-bit register by 1000.
 
 ## Base Conversions & I/O Operations
 
@@ -963,7 +980,21 @@ a0 = product (low order)
 
 #### mul32
 
-...
+Unified (RV64E, RV32I, and RV32I) Unsigned/Signed 32x32-bit to 64-bit multiply.
+
+| Configuration | Cycles (32) | Cycles (64) |
+|---------------|-------------|-------------|
+| Base ISA      | ~415        | ~280        |
+| Zbb Extension | ~410        | ~165        |
+
+##### Input
+a0 = op1<br>
+a1 = op2<br>
+a2 = signed_flag: 0=unsigned, 1=signed
+
+##### Output
+a0 = product low word<br>
+a1 = product high word
 
 ---
 
@@ -985,27 +1016,6 @@ a2 = Signedness flag (0 for unsigned, non-zero for signed)
 ##### Output
 a0 = Lower 64 bits of the 128-bit product<br>
 a1 = Upper 64 bits of the 128-bit product
-
-
-
-```riscv
-
-################################################################################
-# routine: mul32
-#
-# Unified (RV64I and RV32I) Unsigned/Signed 32x32-bit to 64-bit multiply. This
-# provides the functionality of the M extension mul/mulh instructions
-#
-# input registers:
-# a0 = op1
-# a1 = op2
-# a2 = signed_flag: 0=unsigned, 1=signed
-#
-# output registers:
-# a0 = product low word
-# a1 = product high word
-################################################################################
-```
 
 ---
 
