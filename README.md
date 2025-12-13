@@ -906,7 +906,39 @@ a2 = error check: 0 if no digits found, otherwise 1
 
 ---
 
+### Math macros [mac.s](src/mac.s)
+
+---
+
+#### abs
+
+A macro to compute the absolute value of a number. 
+
+The src and dest registers can be the same if src does not need to be preserved.
+
+
+| Configuration | Cycles |
+|---------------|--------|
+| Base ISA	| 3      |
+| Zbb Extension | 2      |
+
+
+abs dest src scratch
+
+##### Input
+
+src - input register<br>
+scratch - temporary register
+
+##### Output
+
+dest - output register
+
+---
+
 ### Multiplication [mul.s](src/mul.s)
+
+---
 
 #### nmul
 
@@ -931,24 +963,6 @@ a0 = product (low order)
 
 
 ```riscv
-################################################################################
-# routine: nmul
-#
-# Native word length (64 on 64-bit processors, 32 on 32-bit processors)
-# multiplication via shift-and-add technique.
-#
-# - RV32I: 32x32 -> 32 bit result (signed or unsigned)
-# - RV64I: 64x64 -> 64 bit result (signed or unsigned)
-# Implemented using only RV32I / RV64I base instructions (No 'M' Extension).
-# This provides the functionality of the M extension mul/mulu/mulw instructions
-#
-# input registers:
-# a0 = CPU_BITS-bit multiplicand
-# a1 = CPU_BITS-bit multiplier
-#
-# output registers:
-# a0 = CPU_BITS-bit product (lower bits)
-################################################################################
 
 ################################################################################
 # routine: mul32
@@ -982,6 +996,236 @@ a0 = product (low order)
 # a1 = Upper 64 bits of the 128-bit product
 ################################################################################
 ```
+
+---
+
+### Multiplication macros [mul-macs.s](src/mul-macs.s)
+
+Macros which implement multiplication by a constant. All macros are designed
+such that dest and src registers can be the same, or destination and scratch
+registers can be the same.
+
+---
+
+#### mul3
+
+Multiply a register by 3.
+
+| Configuration | Cycles |
+|---------------|--------|
+| Base ISA      | 2      |
+| Zba Extension | 1      |
+
+mul3 dest src scratch0
+
+##### Input
+
+src = source register containing number to multiply.<br>
+scratch0 = scratch register used for intermediate computation
+
+##### Output
+
+dest = destination register containing src*3
+
+---
+
+#### mul5
+
+Multiply a register by 5.
+
+| Configuration | Cycles |
+|---------------|--------|
+| Base ISA      | 2      |
+| Zba Extension | 1      |
+
+mul5 dest src scratch0
+
+##### Input
+
+src = source register containing number to multiply.<br>
+scratch0 = scratch register used for intermediate computation
+
+##### Output
+
+dest = destination register containing src*5
+
+---
+
+#### mul6
+
+Multiply a register by 6.
+
+| Configuration | Cycles |
+|---------------|--------|
+| Base ISA      | 3      |
+| Zba Extension | 2      |
+
+mul6 dest src scratch0
+
+##### Input
+
+src = source register containing number to multiply.<br>
+scratch0 = scratch register used for intermediate computation
+
+##### Output
+
+dest = destination register containing src*6
+
+---
+
+#### mul9
+
+Multiply a register by 9.
+
+| Configuration | Cycles |
+|---------------|--------|
+| Base ISA      | 2      |
+| Zba Extension | 1      |
+
+mul9 dest src scratch0
+
+##### Input
+
+src = source register containing number to multiply.<br>
+scratch0 = scratch register used for intermediate computation
+
+##### Output
+
+dest = destination register containing src*9
+
+---
+
+#### mul10
+
+Multiply a register by 10.
+
+| Configuration | Cycles |
+|---------------|--------|
+| Base ISA      | 3      |
+| Zba Extension | 2      |
+
+mul10 dest src scratch0
+
+##### Input
+
+src = source register containing number to multiply.<br>
+scratch0 = scratch register used for intermediate computation
+
+##### Output
+
+dest = destination register containing src*10
+
+---
+
+#### mul11
+
+Multiply a register by 11.
+
+| Configuration | Cycles |
+|---------------|--------|
+| Base ISA      | 4      |
+| Zba Extension | 2      |
+
+mul11 dest src scratch0
+
+##### Input
+
+src = source register containing number to multiply.<br>
+scratch0 = scratch register used for intermediate computation
+
+##### Output
+
+dest = destination register containing src*11
+
+---
+
+#### mul12
+
+Multiply a register by 12.
+
+| Configuration | Cycles |
+|---------------|--------|
+| Base ISA      | 3      |
+| Zba Extension | 2      |
+
+mul12 dest src scratch0
+
+##### Input
+
+src = source register containing number to multiply.<br>
+scratch0 = scratch register used for intermediate computation
+
+##### Output
+
+dest = destination register containing src*12
+
+---
+
+#### mul13
+
+Multiply a register by 13.
+
+| Configuration | Cycles |
+|---------------|--------|
+| Base ISA      | 4      |
+| Zba Extension | 2      |
+
+mul13 dest src scratch0
+
+##### Input
+
+src = source register containing number to multiply.<br>
+scratch0 = scratch register used for intermediate computation
+
+##### Output
+
+dest = destination register containing src*13
+
+---
+
+#### mul100
+
+Multiply a register by 100.
+
+| Configuration | Cycles |
+|---------------|--------|
+| Base ISA      | 5      |
+| Zba Extension | 3      |
+
+mul100 dest src scratch0
+
+##### Input
+
+src = source register containing number to multiply.<br>
+scratch0 = scratch register used for intermediate computation
+
+##### Output
+
+dest = destination register containing src*100
+
+---
+
+#### mul1000
+
+Multiply a register by 1000.
+
+| Configuration | Cycles |
+|---------------|--------|
+| Base ISA      | 5      |
+| Zba Extension | 3      |
+
+mul1000 dest src scratch0
+
+##### Input
+
+src = source register containing number to multiply.<br>
+scratch0 = scratch register used for intermediate computation
+
+##### Output
+
+dest = destination register containing src*1000
+
+---
 
 ### Square Root [sqrt.s](src/sqrt.s)
 
