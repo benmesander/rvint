@@ -45,11 +45,7 @@ isqrt:
 .else
 	# Base ISA: Start at max power of 4 and shift down
 	li	a3, 1
-.if CPU_BITS == 64
-	slli	a3, a3, 62
-.else	# CPU_BITS == 32
-	slli	a3, a3, 30
-.endif
+	slli	a3, a3, CPU_BITS - 2
 
 	# Adjust 'place' down until place <= n
 isqrt_adjust_place_loop:
