@@ -2,10 +2,15 @@
 .data
 .align	8
 # use dwords for 64-bit
-.word	0	# dividend
-.word	0	# quotient
-.word	div3u	# pointer to routine
+divtab:	
+.word	0		# testnum
 .word	div3u_label	# pointer to nul-terminated ascii string
+.word	6		# len of label
+.word	0		# dividend
+.word	0		# quotient
+.word	div3u		# pointer to routine
+
+
 .text
 	
 # runs on linux
@@ -384,7 +389,8 @@ test11:
 
 	la	a1, pass
 	call	result
-	j	div3u_tests
+	#	j	div3u_tests
+	j	foo
 
 test11_fail:
 
@@ -392,6 +398,74 @@ test11_fail:
 	call	result
 
 # --- XXX: new division tests go here ---
+foo:	
+	la	s0, divtab
+loopy:	
+	lw	a0, 0(s0)	# s0 = testnum
+	jal	to_dec
+	mv	a2, a1
+	mv	a1, a0
+	jal	print
+	la	a1, colon	# ": "
+	li	a2, 2
+	jal	print
+
+	lw	a1, 4(s0)	# label
+	lw	a2, 8(s0)	# len of label
+	jal	print
+
+	lw	s1, 12(s0)	# s1 = dividend
+	mv	a0, s1
+	li	a1, CPU_BYTES
+	li	a2, 1
+	jal	to_hex		# print dividend
+	mv	a2, a1
+	mv	a1, a0
+	jal	print		# print dividend
+	la	a1, space
+	li	a2, 1
+	jal	print		# print space
+
+	lw	a0, 16(s0)	# expected quotient is in 16(s0)
+	mv	s2, a0		# expected quotient is in s2
+	li	a1, CPU_BYTES
+	li	a2, 1
+	jal	to_hex
+	mv	a2, a1
+	mv	a1, a0
+	jal	print		# print expected quotient
+	la	a1, space
+	li	a2, 1
+	jal	print		# print space
+
+	lw	a1, 20(s0)	# routine pointer
+	mv	a0, s1		# get dividend in a0
+	jalr	a1		# call routine
+
+	bne	a0, s2, test_fail
+	
+	la	a1, pass
+	li	a2, 5
+	jal	print
+	j	next
+	
+test_fail:
+	li	a1, CPU_BYTES
+	li	a2, 1
+	jal	to_hex
+	mv	a2, a1
+	mv	a1, a0
+	jal	print
+	la	a1, space
+	li	a2, 1
+	jal	print
+	la	a1, fail
+	li	a2, 5
+	jal	print
+next:	
+
+	
+
 
 
 

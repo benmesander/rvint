@@ -355,12 +355,12 @@ from_decu:
 
 from_decu_digit:
 	lb	t0, (a0)
-	addi	a5, t0, -'0'
-	bgtu	a5, t1, from_decu_done
+	addi	a4, t0, -'0'
+	bgtu	a4, t1, from_decu_done
 
 	li	a2, 1
 	mul10	a1, a1, a3
-	add	a1, a1, a5	# add in new digit
+	add	a1, a1, a4	# add in new digit
 	addi	a0, a0, 1
 	j	from_decu_digit
 
@@ -388,7 +388,7 @@ from_dec:
 	FRAME	1
 	PUSH	ra, 0
 
-	li	a3, 0	# sign bit (not used by from_decu)
+	li	a5, 0	# sign bit (not used by from_decu)
 	li	a4, '-'
 	lb	a2, (a0)
 	beq	a2, a4, from_dec_handle_minus
@@ -397,13 +397,13 @@ from_dec:
 	j	from_dec_convert
 
 from_dec_handle_minus:
-	li	a3, 1
+	li	a5, 1
 from_dec_handle_plus:
 	addi	a0, a0, 1
 
 from_dec_convert:
 	jal	from_decu
-	beq	a3, zero, from_dec_done
+	beq	a5, zero, from_dec_done
 	sub	a1, zero, a1
 
 from_dec_done:
