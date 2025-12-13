@@ -999,7 +999,7 @@ a0 = product (low order)
 
 ---
 
-### Multiplication macros [mul-macs.s](src/mul-macs.s)
+### Multiplication Macros [mul-macs.s](src/mul-macs.s)
 
 Macros which implement multiplication by a constant. All macros are designed
 such that dest and src registers can be the same, or destination and scratch
@@ -1229,19 +1229,25 @@ dest = destination register containing src*1000
 
 ### Square Root [sqrt.s](src/sqrt.s)
 
-```riscv
-################################################################################
-# routine: isqrt
-#
-# Compute the integer square root of an unsigned number - floor(sqrt(N)).
-# Algorithm: Non-restoring binary square root. On 64-bit processors this is
-# a 64-bit algorithm, on 32-bit, it is 32-bits.
-#
-# input registers:
-# a0 = n
-# output registers:
-# a0 = root - isqrt(n)
-################################################################################
+---
 
-```
+#### isqrt
+
+Integer square root - floor(sqrt(n)) using a binary non-restoring algorithm.
+RV32E/RV32I/RV64I
+
+| Configuration | Cycles (32) | Cycles (64) |
+|---------------|-------------|-------------|
+| Base ISA      | ~130        | ~260        |
+| Zbb Extension | ~105        | ~ 210       |
+
+##### Input
+
+a0 = number to compute square root of
+
+##### Output
+
+a0 = root
+
+---
 
