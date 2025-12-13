@@ -70,7 +70,6 @@ nmul_done:
 	ret
 .size nmul, .-nmul
 
-
 ################################################################################
 # routine: mul32
 #
@@ -89,11 +88,10 @@ nmul_done:
 mul32:
 .if CPU_BITS == 64
 	# ---------------------------------------------------------
-	# RV64I Implementation (Base ISA)
+	# RV64I Implementation
 	# ---------------------------------------------------------
-	# Logic: Sign-extend inputs -> Abs -> 64-bit Mul Loop -> Restore Sign -> Split.
-
-	# 1. Sign Extend Inputs (Base RV64I instruction)
+	
+	# 1. Sign Extend Inputs
 	sext.w	a0, a0
 	sext.w	a1, a1
 
@@ -101,14 +99,19 @@ mul32:
 	xor	t0, a0, a1		# t0 = Sign Diff
 
 	# 3. Absolute Values
-	# Abs(a0)
+.if HAS_ZBB
+	neg	t1, a0
+	max	a0, a0, t1		# a0 = max(a0, -a0) = abs(a0)
+	neg	t1, a1
+	max	a1, a1, t1		# a1 = max(a1, -a1) = abs(a1)
+.else
 	srai	t1, a0, 63
 	xor	a0, a0, t1
 	sub	a0, a0, t1
-	# Abs(a1)
 	srai	t1, a1, 63
 	xor	a1, a1, t1
 	sub	a1, a1, t1
+.endif
 
 	# 4. Swap for Optimization (Smallest as Multiplier)
 	bgeu	a0, a1, mul32_rv64_no_swap
@@ -122,55 +125,79 @@ mul32_rv64_no_swap:
 	# a1 = Multiplier (Small)
 	mv	a2, a0			# a2 = Working Mcand
 	li	a0, 0			# a0 = Accumulator
+	
+	# Optimization: Early exit for 0
+	beqz	a1, mul32_rv64_split
 
+# ==============================================================================
+# Path A: Zbb Optimized Loop (Skip Zeros)
+# ==============================================================================
+.if HAS_ZBB
+mul32_rv64_loop:
+	ctz	t1, a1			# Find count of trailing zeros
+	srl	a1, a1, t1		# Shift multiplier right by count
+	sll	a2, a2, t1		# Shift multiplicand left by count
+	
+	add	a0, a0, a2		# Unconditional Add (LSB is known 1)
+
+	srli	a1, a1, 1		# Consume the '1'
+	slli	a2, a2, 1		# Shift Mcand
+	bnez	a1, mul32_rv64_loop	# Continue if multiplier not empty
+	
+# ==============================================================================
+# Path B: Base ISA Loop
+# ==============================================================================
+.else
 mul32_rv64_loop:
 	andi	t1, a1, 1		# Check LSB
 	beqz	t1, mul32_rv64_skip
-	add	a0, a0, a2		# Accum += Mcand (64-bit native add)
+	add	a0, a0, a2		# Accum += Mcand
 mul32_rv64_skip:
 	srli	a1, a1, 1		# Multiplier >> 1
 	slli	a2, a2, 1		# Mcand << 1
 	bnez	a1, mul32_rv64_loop
+.endif
 
-	# 5. Restore Sign
-	# t0 holds the sign difference. If negative, negate result.
+	# 5. Restore Sign & Split
 	bgez	t0, mul32_rv64_split
-	sub	a0, zero, a0		# Negate (2's complement)
+	
+.if HAS_ZBB
+	neg	a0, a0
+.else
+	sub	a0, zero, a0
+.endif
 
 mul32_rv64_split:
-	# 6. Split 64-bit result into a0 (Lo) and a1 (Hi)
 	srli	a1, a0, 32
-	sext.w	a1, a1			# Sign-extend High part
-	sext.w	a0, a0			# Sign-extend Low part
+	sext.w	a1, a1
+	sext.w	a0, a0
 	ret
 
 .else
 	# ---------------------------------------------------------
 	# RV32I / RV32E Implementation
 	# ---------------------------------------------------------
-	# Logic: Abs -> Unsigned 32x32->64 Loop -> Restore Sign
-	# Registers:
-	#  a0, a1: Inputs / Outputs
-	#  a2: Multiplier
-	#  a3: Mcand Low
-	#  a4: Mcand High
-	#  a5: Sign Flag
-	#  t0: Product Low
-	#  t1: Product High
-	#  t2: Scratch
+	# Note: Zbb loop is not implemented for RV32 here because 
+	# variable 64-bit shifting on 32-bit registers is costly 
+	# and register constrained (RV32E). We stick to the standard loop.
 
 	# 1. Determine Result Sign
-	xor	a5, a0, a1		# a5 = Sign Diff
+	xor	a5, a0, a1
 
 	# 2. Absolute Values
-	# Abs(a0)
+.if HAS_ZBB
+	neg	t0, a0
+	max	a0, a0, t0
+	neg	t0, a1
+	max	a1, a1, t0
+.else
 	srai	t0, a0, 31
 	xor	a0, a0, t0
 	sub	a0, a0, t0
-	# Abs(a1)
 	srai	t0, a1, 31
 	xor	a1, a1, t0
 	sub	a1, a1, t0
+.endif
 
 	# 3. Swap for Optimization
 	bgeu	a0, a1, mul32_rv32_no_swap
@@ -215,7 +242,7 @@ mul32_rv32_sign:
 	not	t0, t0
 	not	t1, t1
 	addi	t0, t0, 1		# Lo += 1
-	sltu	t2, t0, 1		# Carry out of Low? (1 if t0 wrapped to 0)
+	sltu	t2, t0, 1		# Carry out of Low?
 	add	t1, t1, t2		# Hi += Carry
 
 mul32_rv32_done:
