@@ -961,6 +961,32 @@ a0 = product (low order)
 
 ----
 
+#### mul32
+
+...
+
+---
+
+#### m128
+
+64x64 bit to 128-bit multiplication (signed/unsigned) on RV64I CPUs.
+
+| Configuration | Cycles |
+|---------------|--------|
+| Base ISA      | ~710   |
+| Zbb Extension | ~660   |
+
+
+##### Input
+a0 = 64-bit Operand 1 (multiplicand)<br>
+a1 = 64-bit Operand 2 (multiplier)<br>
+a2 = Signedness flag (0 for unsigned, non-zero for signed)
+
+##### Output
+a0 = Lower 64 bits of the 128-bit product<br>
+a1 = Upper 64 bits of the 128-bit product
+
+
 
 ```riscv
 
@@ -978,22 +1004,6 @@ a0 = product (low order)
 # output registers:
 # a0 = product low word
 # a1 = product high word
-################################################################################
-
-################################################################################
-# routine: m128
-#
-# 64x64-bit to 128-bit Multiplication (Signed/Unsigned) on 64-bit processors.
-# This provides the functionality of the mulhu/mulhsu instructions on RV64.
-#
-# input registers:
-# a0 = 64-bit Operand 1 (multiplicand)
-# a1 = 64-bit Operand 2 (multiplier)
-# a2 = Signedness flag (0 for unsigned, non-zero for signed)
-#
-# output registers:
-# a0 = Lower 64 bits of the 128-bit product
-# a1 = Upper 64 bits of the 128-bit product
 ################################################################################
 ```
 
