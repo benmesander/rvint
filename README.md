@@ -1212,7 +1212,7 @@ Multiply a register by 1000.
 | Configuration | Cycles |
 |---------------|--------|
 | Base ISA      | 5      |
-| Zba Extension | 3      |
+| Zba Extension | 4      |
 
 mul1000 dest src scratch0
 
