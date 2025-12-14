@@ -1,4 +1,4 @@
-	.include "config.s"
+.include "config.s"
 .include "mul-macs.s"
 
 .globl divremu
@@ -316,7 +316,6 @@ div3u:
 
 	# 2. Calculate Remainder / Error Term
 	#    R = N - 3*Q_est
-	#    Reuses 'mul3' macro: mul3 dest, src, scratch
 	mul3	a2, a1, a2		# a2 = 3 * Q_est
 	sub	a2, a0, a2		# a2 = N - 3*Q_est (Remainder/Error)
 
@@ -1036,7 +1035,7 @@ div7:
 #
 # Signed fast division by 9.
 # Algorithm: abs(n) / 9 -> restore sign.
-# Core Logic: Reuses the efficient div9u series (n * 7/8 * geometric_series).
+# Core Logic: uses the efficient div9u series (n * 7/8 * geometric_series).
 #
 # input:  a0 = signed dividend (32 or 64 bits)
 # output: a0 = signed quotient
@@ -1306,7 +1305,7 @@ div13:
 #
 # Signed fast division by 100.
 # Algorithm: abs(n) / 100 -> restore sign.
-# Core Logic: Reuses the optimized div100u series (n * 0.64).
+# Core Logic: uses the optimized div100u series (n * 0.64).
 #
 # input:  a0 = signed dividend
 # output: a0 = signed quotient
@@ -1365,7 +1364,7 @@ div100:
 #
 # Signed fast division by 1000.
 # Algorithm: abs(n) / 1000 -> restore sign.
-# Core Logic: Reuses the optimized div1000u chained division (n/10)/100.
+# Core Logic: uses the optimized div1000u chained division (n/10)/100.
 #
 # input:  a0 = signed dividend
 # output: a0 = signed quotient
