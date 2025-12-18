@@ -458,6 +458,130 @@ divtab:
 ######################################################################
 # div9u tests
 
+.dword	900
+.dword	div9u_label
+.dword	6
+.dword	0
+.dword	0
+.dword	div9u
+.dword	1
+
+.dword	901
+.dword	div9u_label
+.dword	6
+.dword	9
+.dword	1
+.dword	div9u
+.dword	1
+
+.dword	902
+.dword	div9u_label
+.dword	6
+.dword	17
+.dword	1
+.dword	div9u
+.dword	1
+
+.dword	903
+.dword	div9u_label
+.dword	6
+.dword	81
+.dword	9
+.dword	div9u
+.dword	1
+
+.dword	904
+.dword	div9u_label
+.dword	6
+.dword	0x7FFFFFFF
+.dword	238609294
+.dword	div9u
+.dword	1
+
+.dword	905
+.dword	div9u_label
+.dword	6
+.dword	0xAAAAAAAA
+.dword	318145725
+.dword	div9u
+.dword	1
+
+.dword	906
+.dword	div9u_label
+.dword	6
+.dword	0xFFFFFFFB
+.dword	477218587
+.dword	div9u
+.dword	1
+
+.dword	907
+.dword	div9u_label
+.dword	6
+.dword	0xFFFFFFFC
+.dword	477218588
+.dword	div9u
+.dword	1
+
+.dword	908
+.dword	div9u_label
+.dword	6
+.dword	0xFFFFFFFF
+.dword	477218588
+.dword	div9u
+.dword	1
+
+.if CPU_BITS == 64
+
+.dword	910
+.dword	div9u_label
+.dword	6
+.dword	0x0000000100000000
+.dword	477218588
+.dword	div9u
+.dword	1
+
+.dword	911
+.dword	div9u_label
+.dword	6
+.dword	0x7FFFFFFFFFFFFFFF
+.dword	1024819115206086200
+.dword	div9u
+.dword	1
+
+.dword	912
+.dword	div9u_label
+.dword	6
+.dword	0xAAAAAAAAAAAAAAAA
+.dword	1366425486941448267
+.dword	div9u
+.dword	1
+
+.dword	913
+.dword	div9u_label
+.dword	6
+.dword	0xFFFFFFFFFFFFFFF6
+.dword	2049638230412172400
+.dword	div9u
+.dword	1
+
+.dword	913
+.dword	div9u_label
+.dword	6
+.dword	0xFFFFFFFFFFFFFFF8
+.dword	2049638230412172400
+.dword	div9u
+.dword	1
+
+.dword	914
+.dword	div9u_label
+.dword	6
+.dword	0xFFFFFFFFFFFFFFFF
+.dword	2049638230412172401
+.dword	div9u
+.dword	1
+
+.endif
+
 ######################################################################
 # div10u tests
 
@@ -1059,7 +1183,7 @@ div3u_label:		.asciz	"div3u "
 div5u_label:		.asciz	"div5u: "
 div6u_label:		.asciz	"div6u: "
 div7u_label:		.asciz	"div7u: "
-div8u_label:		.asciz	"div9u: "
+div9u_label:		.asciz	"div9u: "
 div10u_label:		.asciz	"div10u: "
 div11u_label:		.asciz	"div11u: "
 div12u_label:		.asciz	"div12u: "
@@ -1070,7 +1194,7 @@ div3_label:		.asciz	"div3 "
 div5_label:		.asciz	"div5: "
 div6_label:		.asciz	"div6: "
 div7_label:		.asciz	"div7: "
-div8_label:		.asciz	"div9: "
+div9_label:		.asciz	"div9: "
 div10_label:		.asciz	"div10: "
 div11_label:		.asciz	"div11: "
 div12_label:		.asciz	"div12: "
