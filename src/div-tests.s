@@ -331,6 +331,130 @@ divtab:
 ######################################################################
 # div7u tests
 
+.dword	700
+.dword	div7u_label
+.dword	6
+.dword	0
+.dword	0
+.dword	div7u
+.dword	1
+
+.dword	701
+.dword	div7u_label
+.dword	6
+.dword	7
+.dword	1
+.dword	div7u
+.dword	1
+
+.dword	702
+.dword	div7u_label
+.dword	6
+.dword	13
+.dword	1
+.dword	div7u
+.dword	1
+
+.dword	703
+.dword	div7u_label
+.dword	6
+.dword	49
+.dword	7
+.dword	div7u
+.dword	1
+
+.dword	704
+.dword	div7u_label
+.dword	6
+.dword	2147483647
+.dword	306783378
+.dword	div7u
+.dword	1
+
+.dword	705
+.dword	div7u_label
+.dword	6
+.dword	2863311530
+.dword	409044504
+.dword	div7u
+.dword	1
+
+.dword	706
+.dword	div7u_label
+.dword	6
+.dword	4294967289
+.dword	613566755
+.dword	div7u
+.dword	1
+
+.dword	707
+.dword	div7u_label
+.dword	6
+.dword	4294967295
+.dword	613566756
+.dword	div7u
+.dword	1
+
+.if CPU_BITS == 64
+
+.dword	708
+.dword	div7u_label
+.dword	6
+.dword	4294967296
+.dword	613566756
+.dword	div7u
+.dword	1
+
+.dword	709
+.dword	div7u_label
+.dword	6
+.dword	0x7FFFFFFFFFFFFFFF
+.dword	1317624576693539401
+.dword	div7u
+.dword	1
+
+.dword	710
+.dword	div7u_label
+.dword	6
+.dword	0xAAAAAAAAAAAAAAAA
+.dword	1756832768924719201
+.dword	div7u
+.dword	1
+
+.dword	711
+.dword	div7u_label
+.dword	6
+.dword	0x5555555555555555
+.dword	878416384462359600
+.dword	div7u
+.dword	1
+
+.dword	712
+.dword	div7u_label
+.dword	6
+.dword	0xFFFFFFFFFFFFFFF8
+.dword	2635249153387078801
+.dword	div7u
+.dword	1
+
+.dword	713
+.dword	div7u_label
+.dword	6
+.dword	0xFFFFFFFFFFFFFFF9
+.dword	2635249153387078801
+.dword	div7u
+.dword	1
+
+.dword	714
+.dword	div7u_label
+.dword	6
+.dword	0xFFFFFFFFFFFFFFFF
+.dword	2635249153387078802
+.dword	div7u
+.dword	1
+
+.endif
+
 ######################################################################
 # div9u tests
 
