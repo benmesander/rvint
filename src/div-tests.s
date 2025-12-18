@@ -11,6 +11,9 @@ divtab:
 .equ	offset_flags,	48
 .equ	struct_len, 	56
 
+######################################################################
+# div3u tests
+
 .dword	300		# testnum
 .dword	div3u_label	# pointer to nul-terminated ascii string
 .dword	6		# len of label
@@ -102,6 +105,9 @@ divtab:
 .dword	1
 
 .endif	
+
+######################################################################
+# div5u tests
 
 .dword	500
 .dword	div5u_label
@@ -219,6 +225,210 @@ divtab:
 
 .endif
 
+######################################################################
+# div6u tests
+
+.dword	600
+.dword	div6u_label
+.dword	6
+.dword	0
+.dword	0
+.dword	div6u
+.dword	1
+
+.dword	601
+.dword	div6u_label
+.dword	6
+.dword	5
+.dword	0
+.dword	div6u
+.dword	1
+
+.dword	602
+.dword	div6u_label
+.dword	6
+.dword	6
+.dword	1
+.dword	div6u
+.dword	1
+
+.dword	603
+.dword	div6u_label
+.dword	6
+.dword	11
+.dword	1
+.dword	div6u
+.dword	1
+
+.dword	604
+.dword	div6u_label
+.dword	6
+.dword	123
+.dword	20
+.dword	div6u
+.dword	1
+
+.dword	605
+.dword	div6u_label
+.dword	6
+.dword	0x7fffffff
+.dword	0x15555555
+.dword	div6u
+.dword	1
+
+.dword	606
+.dword	div6u_label
+.dword	6
+.dword	0x80000000
+.dword	0x15555555
+.dword	div6u
+.dword	1
+
+.dword	607
+.dword	div6u_label
+.dword	6
+.dword	0xffffffff
+.dword	0x2aaaaaaa
+.dword	div6u
+.dword	1
+
+.if CPU_BITS == 64
+
+.dword	608
+.dword	div6u_label
+.dword	6
+.dword	0x100000000
+.dword	0x2aaaaaaa
+.dword	div6u
+.dword	1
+
+.dword	609
+.dword	div6u_label
+.dword	6
+.dword	0x7fffffffffffffff
+.dword	0x1555555555555555
+.dword	div6u
+.dword	1
+
+.dword	610
+.dword	div6u_label
+.dword	6
+.dword	0x8000000000000000
+.dword	0x1555555555555555
+.dword	div6u
+.dword	1
+
+.dword	611
+.dword	div6u_label
+.dword	6
+.dword	-1
+.dword	0x2aaaaaaaaaaaaaaa
+.dword	div6u
+.dword	1
+	
+.endif
+
+######################################################################
+# div7u tests
+
+######################################################################
+# div9u tests
+
+######################################################################
+# div10u tests
+
+.dword	1000
+.dword	div10u_label
+.dword	7
+.dword	0
+.dword	0
+.dword	div10u
+.dword	1
+
+.dword	1001
+.dword	div10u_label
+.dword	7
+.dword	9
+.dword	0
+.dword	div10u
+.dword	1
+
+.dword	1002
+.dword	div10u_label
+.dword	7
+.dword	10
+.dword	1
+.dword	div10u
+.dword	1
+
+.dword	1003
+.dword	div10u_label
+.dword	7
+.dword	19
+.dword	1
+.dword	div10u
+.dword	1
+
+.dword	1004
+.dword	div10u_label
+.dword	7
+.dword	123
+.dword	12
+.dword	div10u
+.dword	1
+
+.dword	1005
+.dword	div10u_label
+.dword	7
+.dword	0x7fffffff
+.dword	214748364
+.dword	div10u
+.dword	1
+
+.dword	1006
+.dword	div10u_label
+.dword	7
+.dword	0x80000000
+.dword	214748364
+.dword	div10u
+.dword	1
+
+.dword	1007
+.dword	div10u_label
+.dword	7
+.dword	0xffffffff
+.dword	429496729
+.dword	div10u
+.dword	1
+
+.if CPU_BITS == 64
+
+.dword	1008
+.dword	div10u_label
+.dword	7
+.dword	0x100000000
+.dword	0x19999999
+.dword	div10u
+.dword	1
+
+.dword	1009
+.dword	div10u_label
+.dword	7
+.dword	0x7fffffffffffffff
+.dword	0x0ccccccccccccccc
+.dword	div10u
+.dword	1
+
+.dword	1010
+.dword	div10u_label
+.dword	7
+.dword	-1
+.dword	0x1999999999999999
+.dword	div10u
+.dword	1
+
+.endif
+
 # loop terminator
 .dword	0
 .dword	0
@@ -245,16 +455,7 @@ divtab:
 # Test Case Structure:
 # Each test case will:
 # Load values into registers.
-# Call the function under test.
-
-	# straight line division tests
-	# dividend, divisor, expected quotient, actual quotient
-	# 32 or 64 bits
-	# test number counter
-	# test name
-	# output format:
-	# 1: div10u: 0x0000000000000000 0x0000000000000000 pass
-	# 2: div10u: 0x0000000000000009 0x0000000000000000 fail 0x0000000000000007
+# Jal the function under test.
 
 .globl _start
 
@@ -266,11 +467,11 @@ _start:
 test1:
 	la	a1, test1s
 	li	a2, 7
-	call	title
+	jal	print
 
 	li	a0, 10		# Load dividend (10) into a0
 	li	a1, 3		# Load divisor (3) into a1
-	jal	divremu		# Call divremu
+	jal	divremu		# Jal divremu
 
 	# Check results
 	# a0 (quotient) should be 3
@@ -282,14 +483,14 @@ test1:
 	bnez	a1, test1_fail
 
 	la	a1, pass
-	call	result
+	jal	result
 	
 	j	test2
 
 test1_fail:
 
 	la	a1, fail
-	call	result
+	jal	result
 	
 test2:
 
@@ -298,11 +499,11 @@ test2:
 
 	la	a1, test2s
 	li	a2, 7
-	call	title
+	jal	print
 
 	li	a0, 0		# Load dividend (0) into a0
 	li	a1, 3		# Load divisor (3) into a1
-	jal	divremu		# Call divremu
+	jal	divremu		# Jal divremu
 
 	# Check results
 	# a0 (quotient) should be 0
@@ -312,14 +513,14 @@ test2:
 	bnez	a1, test2_fail
 
 	la	a1, pass
-	call	result
+	jal	result
 
 	j	test3
 
 test2_fail:
 
 	la	a1, fail
-	call	result
+	jal	result
 
 test3:
 
@@ -328,11 +529,11 @@ test3:
 
 	la	a1, test3s
 	li	a2, 7
-	call	title
+	jal	print
 
 	li	a0, 10		# Load dividend (10) into a0
 	li	a1, 0		# Load divisor (0) into a1
-	jal	divremu		# Call divremu
+	jal	divremu		# Jal divremu
 
 	# Check results
 	# a0 (quotient) should be -1
@@ -344,14 +545,14 @@ test3:
 	bnez	a0, test3_fail
 
 	la	a1, pass
-	call	result
+	jal	result
 
 	j	test4
 
 test3_fail:
 
 	la	a1, fail
-	call	result
+	jal	result
 
 test4:
 
@@ -360,11 +561,11 @@ test4:
 
 	la	a1, test4s
 	li	a2, 7
-	call	title
+	jal	print
 
 	li	a0, 3		# Load dividend (3) into a0
 	li	a1, 10		# Load divisor (10) into a1
-	jal	divremu		# Call divremu
+	jal	divremu		# Jal divremu
 
 	# Check results
 	# a0 (quotient) should be 0
@@ -375,12 +576,12 @@ test4:
 	bnez	a1, test4_fail
 
 	la	a1, pass
-	call	result
+	jal	result
 	j	test5
 
 test4_fail:
 	la	a1, fail
-	call	result
+	jal	result
 
 test5:
 
@@ -389,11 +590,11 @@ test5:
 
 	la	a1, test5s
 	li	a2, 7
-	call	title
+	jal	print
 
 	li	a0, -10		# Load dividend (-10) into a0
 	li	a1, 3		# Load divisor (3) into a1
-	jal	divrem		# Call divrem
+	jal	divrem		# Jal divrem
 	
 	# Check results
 	# a0 (quotient) should be -3
@@ -405,12 +606,12 @@ test5:
 	bnez	a1, test5_fail
 	
 	la	a1, pass
-	call	result
+	jal	result
 	j	test6
 	
 test5_fail:
 	la	a1, fail
-	call	result
+	jal	result
 
 test6:
 
@@ -419,11 +620,11 @@ test6:
 
 	la	a1, test6s
 	li	a2, 7
-	call	title
+	jal	print
 	
 	li	a0, 10		# Load dividend (10) into a0
 	li	a1, -3		# Load divisor (-3) into a1
-	jal	divrem		# Call divrem
+	jal	divrem		# Jal divrem
 
 	# Check results
 	# a0 (quotient) should be -3
@@ -435,13 +636,13 @@ test6:
 	bnez	a0, test6_fail
 
 	la	a1, pass
-	call	result
+	jal	result
 
 	j	test7
 
 test6_fail:
 	la	a1, fail
-	call	result
+	jal	result
 
 test7:
 
@@ -450,11 +651,11 @@ test7:
 
 	la	a1, test7s
 	li	a2, 7
-	call	title
+	jal	print
 
 	li	a0, -10		# Load dividend (-10) into a0
 	li	a1, -3		# Load divisor (-3) into a1
-	jal	divrem		# Call divrem
+	jal	divrem		# Jal divrem
 
 	# Check results
 	# a0 (quotient) should be 3
@@ -466,13 +667,13 @@ test7:
 	bnez	a1, test7_fail
 
 	la	a1, pass
-	call	result
+	jal	result
 
 	j	test8
 
 test7_fail:
 	la	a1, fail
-	call	result
+	jal	result
 
 test8:
 
@@ -481,11 +682,11 @@ test8:
 
 	la	a1, test8s
 	li	a2, 7
-	call	title
+	jal	print
 
 	li	a0, 123456	# Load dividend (123456) into a0
 	li	a1, 123		# Load divisor (123) into a1
-	jal	divremu		# Call divremu
+	jal	divremu		# Jal divremu
 
 	# Check results
 	# a0 (quotient) should be 1003
@@ -497,14 +698,14 @@ test8:
 	bnez	a1, test8_fail
 
 	la	a1, pass
-	call	result
+	jal	result
 
 	j	test9
 
 test8_fail:
 
 	la	a1, fail
-	call	result
+	jal	result
 
 test9:
 
@@ -513,11 +714,11 @@ test9:
 
 	la	a1, test9s
 	li	a2, 7
-	call	title
+	jal	print
 
 	li	a0, 1024	# Load dividend (1024) into a0
 	li	a1, 2		# Load divisor (2) into a1
-	jal	divremu		# Call divremu
+	jal	divremu		# Jal divremu
 
 	# Check results
 	# a0 (quotient) should be 512
@@ -528,12 +729,12 @@ test9:
 	bnez	a1, test9_fail
 
 	la	a1, pass
-	call	result
+	jal	result
 	j	test10
 
 test9_fail:
 	la	a1, fail
-	call	result
+	jal	result
 
 test10:
 
@@ -542,11 +743,11 @@ test10:
 
 	la	a1, test10s
 	li	a2, 8
-	call	title
+	jal	print
 
 	li	a0, 2147483647	# Load maximum 32-bit signed integer into a0
 	li	a1, 1		# Load divisor (1) into a1
-	jal	divremu		# Call divremu
+	jal	divremu		# Jal divremu
 
 	# Check results
 	# a0 (quotient) should be 2147483647
@@ -558,20 +759,20 @@ test10:
 	bnez	a1, test10_fail
 
 	la	a1, pass
-	call	result
+	jal	result
 	j	test11
 
 test10_fail:
 
 	la	a1, fail
-	call	result
+	jal	result
 
 test11:
 	# Expected Result: Quotient = 4, Remainder = 21
 
 	la	a1, test11s
 	li	a2, 8
-	call	title
+	jal	print
 
 	li	a0, 433
 	li	a1, 103
@@ -583,21 +784,21 @@ test11:
 	# a1 (remainder) should be 21
 	mv	s0, a0
 	mv	s1, a1
-	call	to_decu
+	jal	to_decu
 	mv	a2, a1
 	mv	a1, a0
-	call	print
+	jal	print
 	la	a1, space
 	li	a2, 1
-	call	print
+	jal	print
 	mv	a0, s1
-	call	to_decu
+	jal	to_decu
 	mv	a2, a1
 	mv	a1, a0
-	call	print
+	jal	print
 	la	a1, space
 	li	a2, 1
-	call	print
+	jal	print
 
 	mv	a0, s0
 	mv	a1, s1
@@ -607,14 +808,14 @@ test11:
 	bnez	a1, test11_fail
 
 	la	a1, pass
-	call	result
+	jal	result
 	#	j	div3u_tests
 	j	foo
 
 test11_fail:
 
 	la	a1, fail
-	call	result
+	jal	result
 
 .macro	load	reg addr
 .if CPU_BITS == 64
@@ -669,7 +870,7 @@ loopy:
 
 	load	a1, offset_ptr(s0)	# routine pointer
 	mv	a0, s1		# get dividend in a0
-	jalr	a1		# call routine
+	jalr	a1		# jal routine
 
 	bne	a0, s2, test_fail
 	
@@ -695,364 +896,12 @@ next:
 	addi	s0, s0, struct_len
 	j	loopy
 
-
-
-# --- div6u tests ---
-div6u_tests:
-	# Test 1: 0 / 6 = 0
-	li	a0, 0
-	li	a1, 0
-	call	div6u_test_case
-
-	# Test 2: 5 / 6 = 0
-	li	a0, 5
-	li	a1, 0
-	call	div6u_test_case
-
-	# Test 3: 6 / 6 = 1
-	li	a0, 6
-	li	a1, 1
-	call	div6u_test_case
-
-	# Test 4: 11 / 6 = 1
-	li	a0, 11
-	li	a1, 1
-	call	div6u_test_case
-
-	# Test 5: 123 / 6 = 20
-	li	a0, 123
-	li	a1, 20
-	call	div6u_test_case
-
-	# Test 6: 0x7fffffff / 6 = 0x15555555
-	li	a0, 0x7fffffff
-	li	a1, 0x15555555
-	call	div6u_test_case
-
-	# Test 7: 0x80000000 / 6 = 0x15555555
-	li	a0, 0x80000000
-	li	a1, 0x15555555
-	call	div6u_test_case
-
-	# Test 8: 0xffffffff / 6 = 0x2aaaaaaa
-	li	a0, 0xffffffff
-	li	a1, 0x2aaaaaaa
-	call	div6u_test_case
-
-.if CPU_BITS == 64
-	# 64-bit test cases
-	# Test 9: 0x100000000 / 6 = 0x2aaaaaaa
-	li	a0, 0x100000000
-	li	a1, 0x2aaaaaaa
-	call	div6u_test_case
-
-	# Test 10: 0x7fffffffffffffff / 6 = 0x1555555555555555
-	li	a0, 0x7fffffffffffffff
-	li	a1, 0x1555555555555555
-	call	div6u_test_case
-	
-	# Test 11: 0x8000000000000000 / 6 = 0x1555555555555555
-	li	a0, 0x8000000000000000
-	li	a1, 0x1555555555555555
-	call	div6u_test_case
-
-	# Test 12: 0xffffffffffffffff / 6 = 0x2aaaaaaaaaaaaaaa
-	li	a0, -1
-	li	a1, 0x2aaaaaaaaaaaaaaa
-	call	div6u_test_case
-.endif
-	j	div10u_tests
-
-# --- div10u tests ---
-div10u_tests:
-	# Test 1: 0 / 10 = 0
-	li	a0, 0
-	li	a1, 0
-	call	div10u_test_case
-
-	# Test 2: 9 / 10 = 0
-	li	a0, 9
-	li	a1, 0
-	call	div10u_test_case
-
-	# Test 3: 10 / 10 = 1
-	li	a0, 10
-	li	a1, 1
-	call	div10u_test_case
-
-	# Test 4: 19 / 10 = 1
-	li	a0, 19
-	li	a1, 1
-	call	div10u_test_case
-
-	# Test 5: 123 / 10 = 12
-	li	a0, 123
-	li	a1, 12
-	call	div10u_test_case
-
-	# Test 6: 0x7fffffff / 10 = 214748364
-	li	a0, 0x7fffffff
-	li	a1, 214748364
-	call	div10u_test_case
-
-	# Test 7: 0x80000000 / 10 = 214748364
-	li	a0, 0x80000000
-	li	a1, 214748364
-	call	div10u_test_case
-
-	# Test 8: 0xffffffff / 10 = 429496729
-	li	a0, 0xffffffff
-	li	a1, 429496729
-	call	div10u_test_case
-
-.if CPU_BITS == 64
-	# 64-bit test cases
-	# Test 9: 0x100000000 / 10 = 0x19999999
-	li	a0, 0x100000000
-	li	a1, 0x19999999
-	call	div10u_test_case
-
-	# Test 10: 0x7fffffffffffffff / 10 = 0xcccccccccccccc
-	li	a0, 0x7fffffffffffffff
-	li	a1, 0x0ccccccccccccccc
-	call	div10u_test_case
-	
-	# Test 11: 0xffffffffffffffff / 10 = 0x1999999999999999
-	li	a0, -1
-	li	a1, 0x1999999999999999
-	call	div10u_test_case
-.endif
-
-	j	_end
-
-
-div5u_fail:
-	# Print expected value in hex
-.if CPU_BITS == 64
-	li	a1, 8
-.else
-	li	a1, 4
-.endif
-	li	a2, 1
-	mv	a0, s1
-	call	to_hex
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-	la	a1, space
-	li	a2, 1
-	call	print
-	la	a1, fail
-	call	result
-	POP	ra, 0
-	EFRAME	1
-	ret
-
-#
-# a0 = value to divide, a1 = expected result
-#
-div6u_test_case:
-	FRAME	1
-	PUSH	ra, 0
-	# Save input and expected value
-	mv	s0, a0		# input n
-	mv	s1, a1		# expected quotient
-
-	# Print test number
-	la	t3, div6u_test_counter
-	lw	t6, 0(t3)
-	addi	t6, t6, 1
-	sw	t6, 0(t3)
-	mv	a0, t6
-	call	to_decu
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-
-	# Print label
-	la	a1, colon
-	li	a2, 2
-	call	print
-	la	a1, div6u_label
-	li	a2, 7
-	call	print
-
-	# Print input in hex
-.if CPU_BITS == 64
-	li	a1, 8
-.else
-	li	a1, 4
-.endif
-	li	a2, 1
-	mv	a0, s0
-	call	to_hex
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-	la	a1, space
-	li	a2, 1
-	call	print
-	
-	# Call div6u
-	mv	a0, s0
-	call	div6u
-	mv	s2, a0		# result
-
-	# Print result in hex
-.if CPU_BITS == 64
-	li	a1, 8
-.else
-	li	a1, 4
-.endif
-	li	a2, 1
-	mv	a0, s2
-	call	to_hex
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-	la	a1, space
-	li	a2, 1
-	call	print
-	
-	# Check result
-	mv	a0, s2
-	bne	a0, s1, div6u_fail
-
-	# Pass
-	la	a1, pass
-	call	result
-	POP	ra, 0
-	EFRAME	1
-	ret
-
-div6u_fail:
-	# Print expected value in hex
-.if CPU_BITS == 64
-	li	a1, 8
-.else
-	li	a1, 4
-.endif
-	li	a2, 1
-	mv	a0, s1
-	call	to_hex
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-	la	a1, space
-	li	a2, 1
-	call	print
-	la	a1, fail
-	call	result
-	POP	ra, 0
-	EFRAME	1
-	ret
-
-#
-# a0 = value to divide, a1 = expected result
-#
-div10u_test_case:
-	FRAME	1
-	PUSH	ra, 0
-	# Save input and expected value
-	mv	s0, a0		# input n
-	mv	s1, a1		# expected quotient
-
-	# Print test number
-	la	t3, div10u_test_counter
-	lw	t6, 0(t3)
-	addi	t6, t6, 1
-	sw	t6, 0(t3)
-	mv	a0, t6
-	call	to_decu
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-
-	# Print label
-	la	a1, colon
-	li	a2, 2
-	call	print
-	la	a1, div10u_label
-	li	a2, 8
-	call	print
-
-	# Print input in hex
-.if CPU_BITS == 64
-	li	a1, 8
-.else
-	li	a1, 4
-.endif
-	li	a2, 1
-	mv	a0, s0
-	call	to_hex
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-	la	a1, space
-	li	a2, 1
-	call	print
-	
-	# Call div10u
-	mv	a0, s0
-	call	div10u
-	mv	s2, a0		# result
-
-	# Print result in hex
-.if CPU_BITS == 64
-	li	a1, 8
-.else
-	li	a1, 4
-.endif
-	li	a2, 1
-	mv	a0, s2
-	call	to_hex
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-	la	a1, space
-	li	a2, 1
-	call	print
-	
-	# Check result
-	mv	a0, s2
-	bne	a0, s1, div10u_fail
-
-	# Pass
-	la	a1, pass
-	call	result
-	POP	ra, 0
-	EFRAME	1
-	ret
-
-div10u_fail:
-	# Print expected value in hex
-.if CPU_BITS == 64
-	li	a1, 8
-.else
-	li	a1, 4
-.endif
-	li	a2, 1
-	mv	a0, s1
-	call	to_hex
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-	la	a1, space
-	li	a2, 1
-	call	print
-	la	a1, fail
-	call	result
-	POP	ra, 0
-	EFRAME	1
-	ret
 _end:
-	
 	li	a0, 0		# exit code
-	li	a7, 93		# syscall exit
+	li	a7, 93		# sysjal exit
 	ecall
 
 print:	
-title:
 	li	a0, 1
 	li	a7, 64
 	ecall
@@ -1064,7 +913,6 @@ result:
 	li	a7, 64
 	ecall
 	ret
-
 
 test1s:	.asciz	"test1: "
 test2s:	.asciz	"test2: "
@@ -1083,14 +931,26 @@ space:	.asciz	" "
 colon:	.asciz	": "
 
 .data
-.align 2
 div3u_label:		.asciz	"div3u "
-div3u_test_counter:	.word	0
 div5u_label:		.asciz	"div5u: "
-div5u_test_counter:	.word	0
 div6u_label:		.asciz	"div6u: "
-div6u_test_counter:	.word	0
+div7u_label:		.asciz	"div7u: "
+div8u_label:		.asciz	"div9u: "
 div10u_label:		.asciz	"div10u: "
-div10u_test_counter:	.word	0
-
+div11u_label:		.asciz	"div11u: "
+div12u_label:		.asciz	"div12u: "
+div13u_label:		.asciz	"div13u: "
+div100u_label:		.asciz	"div100u: "
+div1000u_label:		.asciz	"div1000u "
+div3_label:		.asciz	"div3 "
+div5_label:		.asciz	"div5: "
+div6_label:		.asciz	"div6: "
+div7_label:		.asciz	"div7: "
+div8_label:		.asciz	"div9: "
+div10_label:		.asciz	"div10: "
+div11_label:		.asciz	"div11: "
+div12_label:		.asciz	"div12: "
+div13_label:		.asciz	"div13: "
+div100_label:		.asciz	"div100: "
+div1000_label:		.asciz	"div1000 "
 
