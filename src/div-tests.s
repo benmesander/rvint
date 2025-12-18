@@ -3,12 +3,18 @@
 .align	8
 # use dwords for 64-bit
 divtab:	
-.word	0		# testnum
-.word	div3u_label	# pointer to nul-terminated ascii string
-.word	6		# len of label
-.word	0		# dividend
-.word	0		# quotient
-.word	div3u		# pointer to routine
+.equ 	offset_testnum, 0
+.dword	100		# testnum
+.equ	offset_label, 	8
+.dword	div3u_label	# pointer to nul-terminated ascii string
+.equ	offset_len,	16
+.dword	6		# len of label
+.equ	offset_dividend,24
+.dword	0		# dividend
+.equ	offset_quotient,32
+.dword	0		# quotient
+.equ	offset_ptr, 	40
+.dword	div3u		# pointer to routine
 
 
 .text
@@ -398,10 +404,18 @@ test11_fail:
 	call	result
 
 # --- XXX: new division tests go here ---
+.macro	load	reg addr
+.if CPU_BITS == 64
+	ld	\reg, \addr
+.else
+	lw	\reg, \addr
+.endif
+.endm
+
 foo:	
 	la	s0, divtab
 loopy:	
-	lw	a0, 0(s0)	# s0 = testnum
+	load	a0, offset_testnum(s0)	# s0 = testnum
 	jal	to_dec
 	mv	a2, a1
 	mv	a1, a0
@@ -410,15 +424,15 @@ loopy:
 	li	a2, 2
 	jal	print
 
-	lw	a1, 4(s0)	# label
-	lw	a2, 8(s0)	# len of label
+	load	a1, offset_label(s0)	# label
+	load	a2, offset_len(s0)	# len of label
 	jal	print
 
-	lw	s1, 12(s0)	# s1 = dividend
+	load	s1,offset_dividend(s0)	# s1 = dividend
 	mv	a0, s1
 	li	a1, CPU_BYTES
 	li	a2, 1
-	jal	to_hex		# print dividend
+	jal	to_hex		# convert dividend to hex
 	mv	a2, a1
 	mv	a1, a0
 	jal	print		# print dividend
@@ -426,7 +440,7 @@ loopy:
 	li	a2, 1
 	jal	print		# print space
 
-	lw	a0, 16(s0)	# expected quotient is in 16(s0)
+	load	a0, offset_quotient(s0)	# expected quotient is in 16(s0)
 	mv	s2, a0		# expected quotient is in s2
 	li	a1, CPU_BYTES
 	li	a2, 1
@@ -438,7 +452,7 @@ loopy:
 	li	a2, 1
 	jal	print		# print space
 
-	lw	a1, 20(s0)	# routine pointer
+	load	a1, offset_ptr(s0)	# routine pointer
 	mv	a0, s1		# get dividend in a0
 	jalr	a1		# call routine
 
@@ -464,7 +478,7 @@ test_fail:
 	jal	print
 next:	
 
-	
+	j	_end
 
 
 
