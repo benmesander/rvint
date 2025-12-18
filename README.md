@@ -24,8 +24,8 @@ where those two goals clash, I went with concise.
 - Fast 32-bit unsigned division by 11
 - Fast 32-bit unsigned division by 12
 - Fast 32-bit unsigned division by 13
-- Fast 32-bit unsigned division by 100 (no tests)
-- Fast 32-bit unsigned division by 1000 (no tests)
+- Fast 32-bit unsigned division by 100
+- Fast 32-bit unsigned division by 1000
 - Fast 32-bit signed division by 3 (no tests)
 - Fast 32-bit signed division by 5 (no tests)
 - Fast 32-bit signed division by 6 (no tests)
@@ -49,8 +49,8 @@ where those two goals clash, I went with concise.
 - Fast 64-bit unsigned division by 11
 - Fast 64-bit unsigned division by 12
 - Fast 64-bit unsigned division by 13
-- Fast 64-bit unsigned division by 100 (no tests)
-- Fast 64-bit unsigned division by 1000 (no tests)
+- Fast 64-bit unsigned division by 100
+- Fast 64-bit unsigned division by 1000
 - Fast 64-bit signed division by 3 (no tests)
 - Fast 64-bit signed division by 5 (no tests)
 - Fast 64-bit signed division by 6 (no tests)
