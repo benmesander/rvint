@@ -1,7 +1,6 @@
 .include "config.s"
 .data
 .align	8
-# use dwords for 64-bit
 divtab:	
 .equ 	offset_testnum, 0
 .equ	offset_label, 	8
@@ -12,8 +11,7 @@ divtab:
 .equ	offset_flags,	48
 .equ	struct_len, 	56
 
-
-.dword	100		# testnum
+.dword	300		# testnum
 .dword	div3u_label	# pointer to nul-terminated ascii string
 .dword	6		# len of label
 .dword	0		# dividend
@@ -21,7 +19,7 @@ divtab:
 .dword	div3u		# pointer to routine
 .dword	1		# flags, 0 = end of list	
 
-.dword	101
+.dword	301
 .dword	div3u_label
 .dword	6
 .dword	1
@@ -29,7 +27,7 @@ divtab:
 .dword	div3u
 .dword	1
 
-.dword	102
+.dword	302
 .dword	div3u_label
 .dword	6
 .dword	2
@@ -37,7 +35,7 @@ divtab:
 .dword	div3u
 .dword	1
 	
-.dword	103
+.dword	303
 .dword	div3u_label
 .dword	6
 .dword	3
@@ -45,7 +43,7 @@ divtab:
 .dword	div3u
 .dword	1
 
-.dword	104
+.dword	304
 .dword	div3u_label
 .dword	6
 .dword	0x7fffffff
@@ -53,7 +51,7 @@ divtab:
 .dword	div3u
 .dword	1
 
-.dword	105
+.dword	305
 .dword	div3u_label
 .dword	6
 .dword	0x80000000
@@ -61,7 +59,7 @@ divtab:
 .dword	div3u
 .dword	1
 	
-.dword	106
+.dword	306
 .dword	div3u_label
 .dword	6
 .dword	0xffffffff
@@ -71,7 +69,7 @@ divtab:
 
 .if CPU_BITS == 64
 
-.dword	107
+.dword	307
 .dword	div3u_label
 .dword	6
 .dword	0x100000000
@@ -79,7 +77,7 @@ divtab:
 .dword	div3u
 .dword	1
 
-.dword	108
+.dword	308
 .dword	div3u_label
 .dword	6
 .dword	0x7fffffffffffffff
@@ -87,7 +85,7 @@ divtab:
 .dword	div3u
 .dword	1
 
-.dword	109
+.dword	309
 .dword	div3u_label
 .dword	6
 .dword	0x8000000000000000
@@ -95,7 +93,7 @@ divtab:
 .dword	div3u
 .dword	1
 
-.dword	110
+.dword	310
 .dword	div3u_label
 .dword	6
 .dword	-1
@@ -103,8 +101,123 @@ divtab:
 .dword	div3u
 .dword	1
 
-
 .endif	
+
+.dword	500
+.dword	div5u_label
+.dword	6
+.dword	0
+.dword	0
+.dword	div5u
+.dword	1
+
+.dword	501
+.dword	div5u_label
+.dword	6
+.dword	1
+.dword	0
+.dword	div5u
+.dword	1
+
+.dword	502
+.dword	div5u_label
+.dword	6
+.dword	4
+.dword	0
+.dword	div5u
+.dword	1
+
+.dword	503
+.dword	div5u_label
+.dword	6
+.dword	5
+.dword	1
+.dword	div5u
+.dword	1
+
+.dword	504
+.dword	div5u_label
+.dword	6
+.dword	9
+.dword	1
+.dword	div5u
+.dword	1
+
+.dword	505
+.dword	div5u_label
+.dword	6
+.dword	10
+.dword	2
+.dword	div5u
+.dword	1
+
+.dword	506
+.dword	div5u_label
+.dword	6
+.dword	123
+.dword	24
+.dword	div5u
+.dword	1
+
+.dword	507
+.dword	div5u_label
+.dword	6
+.dword	0x7fffffff
+.dword	0x19999999
+.dword	div5u
+.dword	1
+
+.dword	508
+.dword	div5u_label
+.dword	6
+.dword	0x80000000
+.dword	0x19999999
+.dword	div5u
+.dword	1
+
+.dword	509
+.dword	div5u_label
+.dword	6
+.dword	0xffffffff
+.dword	0x33333333
+.dword	div5u
+.dword	1
+
+.if CPU_BITS == 64
+
+.dword	510
+.dword	div5u_label
+.dword	6
+.dword	0x100000000
+.dword	0x33333333
+.dword	div5u
+.dword	1
+
+.dword	511
+.dword	div5u_label
+.dword	6
+.dword	0x7fffffffffffffff
+.dword	0x1999999999999999
+.dword	div5u
+.dword	1
+
+.dword	512
+.dword	div5u_label
+.dword	6
+.dword	0x8000000000000000
+.dword	0x1999999999999999
+.dword	div5u
+.dword	1
+
+.dword	513
+.dword	div5u_label
+.dword	6
+.dword	-1
+.dword	0x3333333333333333
+.dword	div5u
+.dword	1
+
+.endif
 
 # loop terminator
 .dword	0
@@ -503,7 +616,6 @@ test11_fail:
 	la	a1, fail
 	call	result
 
-# --- XXX: new division tests go here ---
 .macro	load	reg addr
 .if CPU_BITS == 64
 	ld	\reg, \addr
@@ -584,137 +696,6 @@ next:
 	j	loopy
 
 
-
-
-
-# --- div3u tests ---
-
-div3u_tests:
-	# Test 1: 0
-	li	a0, 0
-	li	a1, 0
-	call	div3u_test_case
-	# Test 2: 1
-	li	a0, 1
-	li	a1, 0
-	call	div3u_test_case
-	# Test 3: 2
-	li	a0, 2
-	li	a1, 0
-	call	div3u_test_case
-	# Test 4: 3
-	li	a0, 3
-	li	a1, 1
-	call	div3u_test_case
-	# Test 5: 0x7fffffff
-	li	a0, 0x7fffffff
-	li	a1, 0x2aaaaaaa
-	call	div3u_test_case
-	# Test 6: 0x80000000
-	li	a0, 0x80000000
-	li	a1, 0x2aaaaaaa
-	call	div3u_test_case
-	# Test 7: 0xffffffff
-	li	a0, 0xffffffff
-	li	a1, 0x55555555
-	call	div3u_test_case
-
-.if CPU_BITS == 64
-	# 64-bit test values
-	# Test 8: 0x100000000
-	li	a0, 0x100000000
-	li	a1, 0x55555555
-	call	div3u_test_case
-	# Test 9: 0x7fffffffffffffff
-	li	a0, 0x7fffffffffffffff
-	li	a1, 0x2aaaaaaaaaaaaaaa
-	call	div3u_test_case
-	# Test 10: 0x8000000000000000
-	li	a0, 0x8000000000000000
-	li	a1, 0x2aaaaaaaaaaaaaaa
-	call	div3u_test_case
-	# Test 11: 0xffffffffffffffff
-	li	a0, -1
-	li	a1, 0x5555555555555555
-	call	div3u_test_case
-.endif
-	j	div5u_tests
-
-# --- div5u tests ---
-div5u_tests:
-	# Test 1: 0 / 5 = 0
-	li	a0, 0
-	li	a1, 0
-	call	div5u_test_case
-
-	# Test 2: 1 / 5 = 0
-	li	a0, 1
-	li	a1, 0
-	call	div5u_test_case
-
-	# Test 3: 4 / 5 = 0
-	li	a0, 4
-	li	a1, 0
-	call	div5u_test_case
-
-	# Test 4: 5 / 5 = 1
-	li	a0, 5
-	li	a1, 1
-	call	div5u_test_case
-
-	# Test 5: 9 / 5 = 1
-	li	a0, 9
-	li	a1, 1
-	call	div5u_test_case
-
-	# Test 6: 10 / 5 = 2
-	li	a0, 10
-	li	a1, 2
-	call	div5u_test_case
-
-	# Test 7: 123 / 5 = 24
-	li	a0, 123
-	li	a1, 24
-	call	div5u_test_case
-
-	# Test 8: 0x7fffffff / 5 = 0x19999999
-	li	a0, 0x7fffffff
-	li	a1, 0x19999999
-	call	div5u_test_case
-
-	# Test 9: 0x80000000 / 5 = 0x19999999
-	li	a0, 0x80000000
-	li	a1, 0x19999999
-	call	div5u_test_case
-
-	# Test 10: 0xffffffff / 5 = 0x33333333
-	li	a0, 0xffffffff
-	li	a1, 0x33333333
-	call	div5u_test_case
-
-.if CPU_BITS == 64
-	# 64-bit test cases
-	# Test 11: 0x100000000 / 5 = 0x33333333
-	li	a0, 0x100000000
-	li	a1, 0x33333333
-	call	div5u_test_case
-
-	# Test 12: 0x7fffffffffffffff / 5 = 0x1999999999999999
-	li	a0, 0x7fffffffffffffff
-	li	a1, 0x1999999999999999
-	call	div5u_test_case
-
-	# Test 13: 0x8000000000000000 / 5 = 0x1999999999999999
-	li	a0, 0x8000000000000000
-	li	a1, 0x1999999999999999
-	call	div5u_test_case
-
-	# Test 14: 0xffffffffffffffff / 5 = 0x3333333333333333
-	li	a0, -1
-	li	a1, 0x3333333333333333
-	call	div5u_test_case
-.endif
-	j	div6u_tests
 
 # --- div6u tests ---
 div6u_tests:
@@ -844,180 +825,6 @@ div10u_tests:
 
 	j	_end
 
-#
-# a0 = value to divide, a1 = expected result
-#
-div3u_test_case:
-	FRAME	1
-	PUSH	ra, 0
-	# Save input and expected value in s-registers
-	mv	s0, a0		# input
-	mv	s1, a1		# expected
-
-	# Print test number
-	la	t3, div3u_test_counter
-	lw	t6, 0(t3)
-	addi	t6, t6, 1
-	sw	t6, 0(t3)
-	mv	a0, t6
-	call	to_decu
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-
-	# Print label
-	la	a1, colon
-	li	a2, 2
-	call	print
-	la	a1, div3u_label
-	li	a2, 6
-	call	print
-
-	# Print input in hex
-.if CPU_BITS == 64
-	li	a1, 8
-.else
-	li	a1, 4
-.endif
-	li	a2, 1
-	mv	a0, s0
-	call	to_hex
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-	la	a1, space
-	li	a2, 1
-	call	print
-
-	# Call div3u
-	mv	a0, s0
-	call	div3u
-	mv	s2, a0		# result
-
-	# Print result in hex
-.if CPU_BITS == 64
-	li	a1, 8
-.else
-	li	a1, 4
-.endif
-	li	a2, 1
-	mv	a0, s2
-	call	to_hex
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-	la	a1, space
-	li	a2, 1
-	call	print
-
-	# Compare result to expected (s1)
-	mv	a0, s2
-	mv	a1, s1
-	bne	a0, a1, div3u_fail
-	la	a1, pass
-	call	result
-	POP 	ra, 0
-	EFRAME 	1
-	ret
-
-div3u_fail:
-	# Print expected value in hex
-.if CPU_BITS == 64
-	li	a1, 8
-.else
-	li	a1, 4
-.endif
-	li	a2, 1
-	mv	a0, s1
-	call	to_hex
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-	la	a1, space
-	li	a2, 1
-	call	print
-	la	a1, fail
-	call	result
-	POP 	ra,0
-	EFRAME 	1
-	ret
-
-#
-# a0 = value to divide, a1 = expected result
-#
-div5u_test_case:
-	FRAME	1
-	PUSH	ra, 0
-	# Save input and expected value
-	mv	s0, a0		# input n
-	mv	s1, a1		# expected quotient
-
-	# Print test number
-	la	t3, div5u_test_counter
-	lw	t6, 0(t3)
-	addi	t6, t6, 1
-	sw	t6, 0(t3)
-	mv	a0, t6
-	call	to_decu
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-
-	# Print label
-	la	a1, colon
-	li	a2, 2
-	call	print
-	la	a1, div5u_label
-	li	a2, 7
-	call	print
-
-	# Print input in hex
-.if CPU_BITS == 64
-	li	a1, 8
-.else
-	li	a1, 4
-.endif
-	li	a2, 1
-	mv	a0, s0
-	call	to_hex
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-	la	a1, space
-	li	a2, 1
-	call	print
-	
-	# Call div5u
-	mv	a0, s0
-	call	div5u
-	mv	s2, a0		# result
-
-	# Print result in hex
-.if CPU_BITS == 64
-	li	a1, 8
-.else
-	li	a1, 4
-.endif
-	li	a2, 1
-	mv	a0, s2
-	call	to_hex
-	mv	a2, a1
-	mv	a1, a0
-	call	print
-	la	a1, space
-	li	a2, 1
-	call	print
-	
-	# Check result
-	mv	a0, s2
-	bne	a0, s1, div5u_fail
-
-	# Pass
-	la	a1, pass
-	call	result
-	POP	ra, 0
-	EFRAME	1
-	ret
 
 div5u_fail:
 	# Print expected value in hex
