@@ -677,6 +677,456 @@ divtab:
 
 .endif
 
+######################################################################
+# div11u tests
+
+# Test 0: 0 / 11 = 0
+.dword	1100
+.dword	div11u_label
+.dword	7
+.dword	0
+.dword	0
+.dword	div11u
+.dword	1
+
+# Test 11: 11 / 11 = 1
+.dword	1101
+.dword	div11u_label
+.dword	7
+.dword	11
+.dword	1
+.dword	div11u
+.dword	1
+
+# Test 21: 21 / 11 = 1 (Max Remainder 10 case)
+.dword	1102
+.dword	div11u_label
+.dword	7
+.dword	21
+.dword	1
+.dword	div11u
+.dword	1
+
+# Test 121: 121 / 11 = 11 (Square)
+.dword	1103
+.dword	div11u_label
+.dword	7
+.dword	121
+.dword	11
+.dword	div11u
+.dword	1
+
+# Test Max Signed 32-bit: 0x7FFFFFFF / 11
+.dword	1104
+.dword	div11u_label
+.dword	7
+.dword	0x7fffffff
+.dword	195225786
+.dword	div11u
+.dword	1
+
+# Test Alternating Bits: 0xAAAAAAAA / 11
+.dword	1105
+.dword	div11u_label
+.dword	7
+.dword	0xaaaaaaaa
+.dword	260301048
+.dword	div11u
+.dword	1
+
+# Test UINT32_MAX - 11 (Exact boundary)
+.dword	1106
+.dword	div11u_label
+.dword	7
+.dword	0xfffffff4
+.dword	390451571
+.dword	div11u
+.dword	1
+
+# Test UINT32_MAX - 4 (Max Remainder 10 case)
+.dword	1107
+.dword	div11u_label
+.dword	7
+.dword	0xfffffffb
+.dword	390451571
+.dword	div11u
+.dword	1
+
+# Test UINT32_MAX
+.dword	1108
+.dword	div11u_label
+.dword	7
+.dword	0xffffffff
+.dword	390451572
+.dword	div11u
+.dword	1
+
+.if CPU_BITS == 64
+
+# Test 2^32 / 11
+.dword	1109
+.dword	div11u_label
+.dword	7
+.dword	0x100000000
+.dword	390451572
+.dword	div11u
+.dword	1
+
+# Test Max Signed 64-bit
+.dword	1110
+.dword	div11u_label
+.dword	7
+.dword	0x7fffffffffffffff
+.dword	838488366986797800
+.dword	div11u
+.dword	1
+
+# Test Alternating Bits 64-bit
+.dword	1111
+.dword	div11u_label
+.dword	7
+.dword	0xaaaaaaaaaaaaaaaa
+.dword	1117984489315730400
+.dword	div11u
+.dword	1
+
+# Test UINT64_MAX - 11 (Exact boundary)
+.dword	1112
+.dword	div11u_label
+.dword	7
+.dword	0xfffffffffffffff4
+.dword	1676976733973595600
+.dword	div11u
+.dword	1
+
+# Test UINT64_MAX - 5 (Max Remainder 10 case)
+.dword	1113
+.dword	div11u_label
+.dword	7
+.dword	0xfffffffffffffffa
+.dword	1676976733973595600
+.dword	div11u
+.dword	1
+
+# Test UINT64_MAX
+.dword	1114
+.dword	div11u_label
+.dword	7
+.dword	-1			# 0xffffffffffffffff
+.dword	1676976733973595601
+.dword	div11u
+.dword	1
+
+.endif
+
+
+######################################################################
+# div12u tests
+
+# --- div12u Tests ---
+
+# Test 0: 0 / 12 = 0
+.dword	1200
+.dword	div12u_label
+.dword	7
+.dword	0
+.dword	0
+.dword	div12u
+.dword	1
+
+# Test 12: 12 / 12 = 1
+.dword	1201
+.dword	div12u_label
+.dword	7
+.dword	12
+.dword	1
+.dword	div12u
+.dword	1
+
+# Test 23: 23 / 12 = 1 (Max Remainder 11 case)
+.dword	1202
+.dword	div12u_label
+.dword	7
+.dword	23
+.dword	1
+.dword	div12u
+.dword	1
+
+# Test 144: 144 / 12 = 12 (Square)
+.dword	1203
+.dword	div12u_label
+.dword	7
+.dword	144
+.dword	12
+.dword	div12u
+.dword	1
+
+# Test Max Signed 32-bit: 0x7FFFFFFF / 12
+.dword	1204
+.dword	div12u_label
+.dword	7
+.dword	0x7fffffff
+.dword	178956970
+.dword	div12u
+.dword	1
+
+# Test Alternating Bits: 0xAAAAAAAA / 12
+.dword	1205
+.dword	div12u_label
+.dword	7
+.dword	0xaaaaaaaa
+.dword	238609294
+.dword	div12u
+.dword	1
+
+# Test UINT32_MAX - 12 (Exact boundary)
+# UINT32_MAX % 12 == 3. So UINT32_MAX - 3 is exact.
+.dword	1206
+.dword	div12u_label
+.dword	7
+.dword	0xfffffffc
+.dword	357913941
+.dword	div12u
+.dword	1
+
+# Test UINT32_MAX - 4 (Max Remainder 11 case)
+# UINT32_MAX is Rem 3. 3 - 4 = -1 = 11 (mod 12).
+.dword	1207
+.dword	div12u_label
+.dword	7
+.dword	0xfffffffb
+.dword	357913940
+.dword	div12u
+.dword	1
+
+# Test UINT32_MAX
+.dword	1208
+.dword	div12u_label
+.dword	7
+.dword	0xffffffff
+.dword	357913941
+.dword	div12u
+.dword	1
+
+.if CPU_BITS == 64
+
+# Test 2^32 / 12
+.dword	1209
+.dword	div12u_label
+.dword	7
+.dword	0x100000000
+.dword	357913941
+.dword	div12u
+.dword	1
+
+# Test Max Signed 64-bit
+.dword	1210
+.dword	div12u_label
+.dword	7
+.dword	0x7fffffffffffffff
+.dword	768614336404564650
+.dword	div12u
+.dword	1
+
+# Test Alternating Bits 64-bit
+.dword	1211
+.dword	div12u_label
+.dword	7
+.dword	0xaaaaaaaaaaaaaaaa
+.dword	1024819115206086200
+.dword	div12u
+.dword	1
+
+# Test UINT64_MAX - 12 (Exact boundary)
+# UINT64_MAX % 12 == 3. So UINT64_MAX - 3 is exact.
+.dword	1212
+.dword	div12u_label
+.dword	7
+.dword	0xfffffffffffffffc
+.dword	1537228672809129301
+.dword	div12u
+.dword	1
+
+# Test UINT64_MAX - 4 (Max Remainder 11 case)
+# UINT64_MAX is Rem 3. 3 - 4 = -1 = 11 (mod 12).
+.dword	1213
+.dword	div12u_label
+.dword	7
+.dword	0xfffffffffffffffb
+.dword	1537228672809129300
+.dword	div12u
+.dword	1
+
+# Test UINT64_MAX
+.dword	1214
+.dword	div12u_label
+.dword	7
+.dword	-1			# 0xffffffffffffffff
+.dword	1537228672809129301
+.dword	div12u
+.dword	1
+
+.endif
+
+
+######################################################################
+# div13u tests
+
+# --- div13u Tests ---
+
+# Test 0: 0 / 13 = 0
+.dword	1300
+.dword	div13u_label
+.dword	7
+.dword	0
+.dword	0
+.dword	div13u
+.dword	1
+
+# Test 13: 13 / 13 = 1
+.dword	1301
+.dword	div13u_label
+.dword	7
+.dword	13
+.dword	1
+.dword	div13u
+.dword	1
+
+# Test 25: 25 / 13 = 1 (Max Remainder 12 case)
+.dword	1302
+.dword	div13u_label
+.dword	7
+.dword	25
+.dword	1
+.dword	div13u
+.dword	1
+
+# Test 169: 169 / 13 = 13 (Square)
+.dword	1303
+.dword	div13u_label
+.dword	7
+.dword	169
+.dword	13
+.dword	div13u
+.dword	1
+
+# Test Max Signed 32-bit: 0x7FFFFFFF / 13
+.dword	1304
+.dword	div13u_label
+.dword	7
+.dword	0x7fffffff
+.dword	165191049
+.dword	div13u
+.dword	1
+
+# Test Alternating Bits: 0xAAAAAAAA / 13
+.dword	1305
+.dword	div13u_label
+.dword	7
+.dword	0xaaaaaaaa
+.dword	220254733
+.dword	div13u
+.dword	1
+
+# Test UINT32_MAX - 13 (Exact boundary)
+# UINT32_MAX % 13 == 8. So UINT32_MAX - 8 is exact.
+.dword	1306
+.dword	div13u_label
+.dword	7
+.dword	0xfffffff7	# UINT32_MAX - 8
+.dword	330382099
+.dword	div13u
+.dword	1
+
+# Test UINT32_MAX - 9 (Max Remainder 12 case)
+# UINT32_MAX is Rem 8. 8 - 9 = -1 = 12 (mod 13).
+.dword	1307
+.dword	div13u_label
+.dword	7
+.dword	0xfffffff6
+.dword	330382098
+.dword	div13u
+.dword	1
+
+# Test UINT32_MAX
+.dword	1308
+.dword	div13u_label
+.dword	7
+.dword	0xffffffff
+.dword	330382099
+.dword	div13u
+.dword	1
+
+.if CPU_BITS == 64
+
+# Test 2^32 / 13
+.dword	1309
+.dword	div13u_label
+.dword	7
+.dword	0x100000000
+.dword	330382099
+.dword	div13u
+.dword	1
+
+# Test Max Signed 64-bit
+.dword	1310
+.dword	div13u_label
+.dword	7
+.dword	0x7fffffffffffffff
+.dword	709490156681136600
+.dword	div13u
+.dword	1
+
+# Test Alternating Bits 64-bit
+.dword	1311
+.dword	div13u_label
+.dword	7
+.dword	0xaaaaaaaaaaaaaaaa
+.dword	945986875574848800
+.dword	div13u
+.dword	1
+
+# Test UINT64_MAX - 13 (Exact boundary)
+# UINT64_MAX % 13 == 2. So UINT64_MAX - 2 is exact.
+.dword	1312
+.dword	div13u_label
+.dword	7
+.dword	0xfffffffffffffffd
+.dword	1418980313362273201
+.dword	div13u
+.dword	1
+
+# Test UINT64_MAX - 3 (Max Remainder 12 case)
+# UINT64_MAX is Rem 2. 2 - 3 = -1 = 12 (mod 13).
+.dword	1313
+.dword	div13u_label
+.dword	7
+.dword	0xfffffffffffffffc
+.dword	1418980313362273200
+.dword	div13u
+.dword	1
+
+# Test UINT64_MAX
+.dword	1314
+.dword	div13u_label
+.dword	7
+.dword	-1			# 0xffffffffffffffff
+.dword	1418980313362273201
+.dword	div13u
+.dword	1
+
+.endif
+
+######################################################################
+# div100u tests
+
+######################################################################
+# div1000u tests
+
+
+
+
+
 # loop terminator
 .dword	0
 .dword	0
@@ -686,11 +1136,10 @@ divtab:
 .dword	0
 .dword	0
 
-
-
 .text
 	
-# runs on linux
+######################################################################
+# uses linux ecalls for write and exit
 
 # Test Categories:
 # Basic Division (small numbers)
