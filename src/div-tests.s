@@ -4,17 +4,117 @@
 # use dwords for 64-bit
 divtab:	
 .equ 	offset_testnum, 0
-.dword	100		# testnum
 .equ	offset_label, 	8
-.dword	div3u_label	# pointer to nul-terminated ascii string
 .equ	offset_len,	16
-.dword	6		# len of label
 .equ	offset_dividend,24
-.dword	0		# dividend
 .equ	offset_quotient,32
-.dword	0		# quotient
 .equ	offset_ptr, 	40
+.equ	offset_flags,	48
+.equ	struct_len, 	56
+
+
+.dword	100		# testnum
+.dword	div3u_label	# pointer to nul-terminated ascii string
+.dword	6		# len of label
+.dword	0		# dividend
+.dword	0		# quotient
 .dword	div3u		# pointer to routine
+.dword	1		# flags, 0 = end of list	
+
+.dword	101
+.dword	div3u_label
+.dword	6
+.dword	1
+.dword	0
+.dword	div3u
+.dword	1
+
+.dword	102
+.dword	div3u_label
+.dword	6
+.dword	2
+.dword	0
+.dword	div3u
+.dword	1
+	
+.dword	103
+.dword	div3u_label
+.dword	6
+.dword	3
+.dword	1
+.dword	div3u
+.dword	1
+
+.dword	104
+.dword	div3u_label
+.dword	6
+.dword	0x7fffffff
+.dword	0x2aaaaaaa
+.dword	div3u
+.dword	1
+
+.dword	105
+.dword	div3u_label
+.dword	6
+.dword	0x80000000
+.dword	0x2aaaaaaa
+.dword	div3u
+.dword	1
+	
+.dword	106
+.dword	div3u_label
+.dword	6
+.dword	0xffffffff
+.dword	0x55555555
+.dword	div3u
+.dword	1
+
+.if CPU_BITS == 64
+
+.dword	107
+.dword	div3u_label
+.dword	6
+.dword	0x100000000
+.dword	0x55555555
+.dword	div3u
+.dword	1
+
+.dword	108
+.dword	div3u_label
+.dword	6
+.dword	0x7fffffffffffffff
+.dword	0x2aaaaaaaaaaaaaaa
+.dword	div3u
+.dword	1
+
+.dword	109
+.dword	div3u_label
+.dword	6
+.dword	0x8000000000000000
+.dword	0x2aaaaaaaaaaaaaaa
+.dword	div3u
+.dword	1
+
+.dword	110
+.dword	div3u_label
+.dword	6
+.dword	-1
+.dword	0x5555555555555555
+.dword	div3u
+.dword	1
+
+
+.endif	
+
+# loop terminator
+.dword	0
+.dword	0
+.dword	0
+.dword	0
+.dword	0
+.dword	0
+.dword	0
+
 
 
 .text
@@ -415,6 +515,9 @@ test11_fail:
 foo:	
 	la	s0, divtab
 loopy:	
+	load	a0, offset_flags(s0)
+	beqz	a0, _end
+
 	load	a0, offset_testnum(s0)	# s0 = testnum
 	jal	to_dec
 	mv	a2, a1
@@ -476,9 +579,9 @@ test_fail:
 	la	a1, fail
 	li	a2, 5
 	jal	print
-next:	
-
-	j	_end
+next:
+	addi	s0, s0, struct_len
+	j	loopy
 
 
 
