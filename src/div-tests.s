@@ -1120,13 +1120,1238 @@ divtab:
 ######################################################################
 # div100u tests
 
+# Test 0: 0 / 100 = 0
+.dword	10000
+.dword	div100u_label
+.dword	8
+.dword	0
+.dword	0
+.dword	div100u
+.dword	1
+
+# Test 100: 100 / 100 = 1
+.dword	10001
+.dword	div100u_label
+.dword	8
+.dword	100
+.dword	1
+.dword	div100u
+.dword	1
+
+# Test 200: 200 / 100 = 2
+.dword	10002
+.dword	div100u_label
+.dword	8
+.dword	200
+.dword	2
+.dword	div100u
+.dword	1
+
+# Test 199: 199 / 100 = 1 (Max Remainder 99 case)
+.dword	10003
+.dword	div100u_label
+.dword	8
+.dword	199
+.dword	1
+.dword	div100u
+.dword	1
+
+# Test 10000: 10000 / 100 = 100 (Square)
+.dword	10004
+.dword	div100u_label
+.dword	8
+.dword	10000
+.dword	100
+.dword	div100u
+.dword	1
+
+# Test Max Signed 32-bit: 0x7FFFFFFF / 100
+# 2147483647 / 100 = 21474836
+.dword	10005
+.dword	div100u_label
+.dword	8
+.dword	0x7fffffff
+.dword	21474836
+.dword	div100u
+.dword	1
+
+# Test UINT32_MAX: 0xFFFFFFFF / 100
+# 4294967295 / 100 = 42949672
+.dword	10006
+.dword	div100u_label
+.dword	8
+.dword	0xffffffff
+.dword	42949672
+.dword	div100u
+.dword	1
+
+.if CPU_BITS == 64
+
+# Test 2^32 / 100
+# 4294967296 / 100 = 42949672
+.dword	10007
+.dword	div100u_label
+.dword	8
+.dword	0x100000000
+.dword	42949672
+.dword	div100u
+.dword	1
+
+# Test Max Signed 64-bit: 0x7FFFFFFFFFFFFFFF / 100
+# 9223372036854775807 / 100 = 92233720368547758
+.dword	10008
+.dword	div100u_label
+.dword	8
+.dword	0x7fffffffffffffff
+.dword	92233720368547758
+.dword	div100u
+.dword	1
+
+# Test UINT64_MAX: -1 / 100
+# 18446744073709551615 / 100 = 184467440737095516
+.dword	10009
+.dword	div100u_label
+.dword	8
+.dword	-1
+.dword	184467440737095516
+.dword	div100u
+.dword	1
+
+.endif
+
 ######################################################################
 # div1000u tests
 
+# Test 0: 0 / 1000 = 0
+.dword	20000
+.dword	div1000u_label
+.dword	9
+.dword	0
+.dword	0
+.dword	div1000u
+.dword	1
 
+# Test 1000: 1000 / 1000 = 1
+.dword	20001
+.dword	div1000u_label
+.dword	9
+.dword	1000
+.dword	1
+.dword	div1000u
+.dword	1
 
+# Test 2000: 2000 / 1000 = 2
+.dword	20002
+.dword	div1000u_label
+.dword	9
+.dword	2000
+.dword	2
+.dword	div1000u
+.dword	1
 
+# Test 1999: 1999 / 1000 = 1 (Max Remainder 999 case)
+.dword	20003
+.dword	div1000u_label
+.dword	9
+.dword	1999
+.dword	1
+.dword	div1000u
+.dword	1
 
+# Test 1,000,000: 1000000 / 1000 = 1000 (Square)
+.dword	20004
+.dword	div1000u_label
+.dword	9
+.dword	1000000
+.dword	1000
+.dword	div1000u
+.dword	1
+
+# Test Max Signed 32-bit: 0x7FFFFFFF / 1000
+# 2147483647 / 1000 = 2147483
+.dword	20005
+.dword	div1000u_label
+.dword	9
+.dword	0x7fffffff
+.dword	2147483
+.dword	div1000u
+.dword	1
+
+# Test UINT32_MAX: 0xFFFFFFFF / 1000
+# 4294967295 / 1000 = 4294967
+.dword	20006
+.dword	div1000u_label
+.dword	9
+.dword	0xffffffff
+.dword	4294967
+.dword	div1000u
+.dword	1
+
+.if CPU_BITS == 64
+
+# Test 2^32 / 1000
+# 4294967296 / 1000 = 4294967
+.dword	20007
+.dword	div1000u_label
+.dword	9
+.dword	0x100000000
+.dword	4294967
+.dword	div1000u
+.dword	1
+
+# Test Max Signed 64-bit: 0x7FFFFFFFFFFFFFFF / 1000
+# 9223372036854775807 / 1000 = 9223372036854775
+.dword	20008
+.dword	div1000u_label
+.dword	9
+.dword	0x7fffffffffffffff
+.dword	9223372036854775
+.dword	div1000u
+.dword	1
+
+# Test UINT64_MAX: -1 / 1000
+# 18446744073709551615 / 1000 = 18446744073709551
+.dword	20009
+.dword	div1000u_label
+.dword	9
+.dword	-1
+.dword	18446744073709551
+.dword	div1000u
+.dword	1
+
+.endif
+
+######################################################################
+# div3 tests
+
+# Test 0: 0 / 3 = 0
+.dword	3000
+.dword	div3_label
+.dword	5
+.dword	0
+.dword	0
+.dword	div3
+.dword	1
+
+# Test 3: 3 / 3 = 1
+.dword	3001
+.dword	div3_label
+.dword	5
+.dword	3
+.dword	1
+.dword	div3
+.dword	1
+
+# Test -3: -3 / 3 = -1
+.dword	3002
+.dword	div3_label
+.dword	5
+.dword	-3
+.dword	-1
+.dword	div3
+.dword	1
+
+# Test 6: 6 / 3 = 2
+.dword	3003
+.dword	div3_label
+.dword	5
+.dword	6
+.dword	2
+.dword	div3
+.dword	1
+
+# Test -6: -6 / 3 = -2
+.dword	3004
+.dword	div3_label
+.dword	5
+.dword	-6
+.dword	-2
+.dword	div3
+.dword	1
+
+# Test -1: -1 / 3 = 0
+.dword	3005
+.dword	div3_label
+.dword	5
+.dword	-1
+.dword	0
+.dword	div3
+.dword	1
+
+# Test -2: -2 / 3 = 0
+.dword	3006
+.dword	div3_label
+.dword	5
+.dword	-2
+.dword	0
+.dword	div3
+.dword	1
+
+# Test Max Signed 32-bit: 0x7FFFFFFF / 3
+# 2147483647 / 3 = 715827882 (0x2AAAAAAA)
+.dword	3007
+.dword	div3_label
+.dword	5
+.dword	0x7fffffff
+.dword	0x2aaaaaaa
+.dword	div3
+.dword	1
+
+# Test Min Signed 32-bit: -2147483648 / 3
+# -2147483648 / 3 = -715827882
+# Using decimal ensures correct sign extension for 64-bit .dword
+.dword	3008
+.dword	div3_label
+.dword	5
+.dword	-2147483648     # Replaces 0x80000000
+.dword	-715827882      # Replaces 0xd5555556
+.dword	div3
+.dword	1
+
+.if CPU_BITS == 64
+
+# Test Max Signed 64-bit: 0x7FFFFFFFFFFFFFFF / 3
+# 9223372036854775807 / 3 = 3074457345618258602
+.dword	3009
+.dword	div3_label
+.dword	5
+.dword	0x7fffffffffffffff
+.dword	0x2aaaaaaaaaaaaaaa
+.dword	div3
+.dword	1
+
+# Test Min Signed 64-bit: 0x8000000000000000 / 3
+# Using hex here is safe because the top bit is explicitly set in 64-bit width
+# -9223372036854775808 / 3 = -3074457345618258602
+.dword	3010
+.dword	div3_label
+.dword	5
+.dword	0x8000000000000000
+.dword	0xd555555555555556
+.dword	div3
+.dword	1
+
+.endif
+######################################################################
+# div5 tests
+
+# Test 0: 0 / 5 = 0
+.dword	5000
+.dword	div5_label
+.dword	6
+.dword	0
+.dword	0
+.dword	div5
+.dword	1
+
+# Test 5: 5 / 5 = 1
+.dword	5001
+.dword	div5_label
+.dword	6
+.dword	5
+.dword	1
+.dword	div5
+.dword	1
+
+# Test -5: -5 / 5 = -1
+.dword	5002
+.dword	div5_label
+.dword	6
+.dword	-5
+.dword	-1
+.dword	div5
+.dword	1
+
+# Test 13: 13 / 5 = 2
+.dword	5003
+.dword	div5_label
+.dword	6
+.dword	13
+.dword	2
+.dword	div5
+.dword	1
+
+# Test -13: -13 / 5 = -2
+.dword	5004
+.dword	div5_label
+.dword	6
+.dword	-13
+.dword	-2
+.dword	div5
+.dword	1
+
+# Test Max Signed 32-bit: 2147483647 / 5
+# 2147483647 / 5 = 429496729 (0x19999999)
+.dword	5005
+.dword	div5_label
+.dword	6
+.dword	2147483647
+.dword	429496729
+.dword	div5
+.dword	1
+
+# Test Min Signed 32-bit: -2147483648 / 5
+# -2147483648 / 5 = -429496729 (0xE6666667)
+.dword	5006
+.dword	div5_label
+.dword	6
+.dword	-2147483648
+.dword	-429496729
+.dword	div5
+.dword	1
+
+.if CPU_BITS == 64
+
+# Test Max Signed 64-bit
+# 9223372036854775807 / 5 = 1844674407370955161
+.dword	5007
+.dword	div5_label
+.dword	6
+.dword	0x7fffffffffffffff
+.dword	1844674407370955161
+.dword	div5
+.dword	1
+
+# Test Min Signed 64-bit
+# -9223372036854775808 / 5 = -1844674407370955161
+.dword	5008
+.dword	div5_label
+.dword	6
+.dword	0x8000000000000000
+.dword	-1844674407370955161
+.dword	div5
+.dword	1
+
+.endif
+
+######################################################################
+# div6 tests
+
+# Test 0: 0 / 6 = 0
+.dword	6000
+.dword	div6_label
+.dword	6
+.dword	0
+.dword	0
+.dword	div6
+.dword	1
+
+# Test 6: 6 / 6 = 1
+.dword	6001
+.dword	div6_label
+.dword	6
+.dword	6
+.dword	1
+.dword	div6
+.dword	1
+
+# Test -6: -6 / 6 = -1
+.dword	6002
+.dword	div6_label
+.dword	6
+.dword	-6
+.dword	-1
+.dword	div6
+.dword	1
+
+# Test 13: 13 / 6 = 2
+.dword	6003
+.dword	div6_label
+.dword	6
+.dword	13
+.dword	2
+.dword	div6
+.dword	1
+
+# Test -13: -13 / 6 = -2
+.dword	6004
+.dword	div6_label
+.dword	6
+.dword	-13
+.dword	-2
+.dword	div6
+.dword	1
+
+# Test Max Signed 32-bit: 2147483647 / 6
+# 2147483647 / 6 = 357913941
+.dword	6005
+.dword	div6_label
+.dword	6
+.dword	2147483647
+.dword	357913941
+.dword	div6
+.dword	1
+
+# Test Min Signed 32-bit: -2147483648 / 6
+# -2147483648 / 6 = -357913941
+.dword	6006
+.dword	div6_label
+.dword	6
+.dword	-2147483648
+.dword	-357913941
+.dword	div6
+.dword	1
+
+.if CPU_BITS == 64
+
+# Test Max Signed 64-bit
+# 9223372036854775807 / 6 = 1537228672809129301
+.dword	6007
+.dword	div6_label
+.dword	6
+.dword	0x7fffffffffffffff
+.dword	1537228672809129301
+.dword	div6
+.dword	1
+
+# Test Min Signed 64-bit
+# -9223372036854775808 / 6 = -1537228672809129301
+.dword	6008
+.dword	div6_label
+.dword	6
+.dword	0x8000000000000000
+.dword	-1537228672809129301
+.dword	div6
+.dword	1
+
+.endif
+
+######################################################################
+# div7 tests
+
+# Test 0: 0 / 7 = 0
+.dword	7000
+.dword	div7_label
+.dword	6
+.dword	0
+.dword	0
+.dword	div7
+.dword	1
+
+# Test 7: 7 / 7 = 1
+.dword	7001
+.dword	div7_label
+.dword	6
+.dword	7
+.dword	1
+.dword	div7
+.dword	1
+
+# Test -7: -7 / 7 = -1
+.dword	7002
+.dword	div7_label
+.dword	6
+.dword	-7
+.dword	-1
+.dword	div7
+.dword	1
+
+# Test 15: 15 / 7 = 2
+.dword	7003
+.dword	div7_label
+.dword	6
+.dword	15
+.dword	2
+.dword	div7
+.dword	1
+
+# Test -15: -15 / 7 = -2
+.dword	7004
+.dword	div7_label
+.dword	6
+.dword	-15
+.dword	-2
+.dword	div7
+.dword	1
+
+# Test Max Signed 32-bit: 2147483647 / 7
+# 2147483647 / 7 = 306783378
+.dword	7005
+.dword	div7_label
+.dword	6
+.dword	2147483647
+.dword	306783378
+.dword	div7
+.dword	1
+
+# Test Min Signed 32-bit: -2147483648 / 7
+# -2147483648 / 7 = -306783378
+.dword	7006
+.dword	div7_label
+.dword	6
+.dword	-2147483648
+.dword	-306783378
+.dword	div7
+.dword	1
+
+.if CPU_BITS == 64
+
+# Test Max Signed 64-bit
+# 9223372036854775807 / 7 = 1317624576693539401
+.dword	7007
+.dword	div7_label
+.dword	6
+.dword	0x7fffffffffffffff
+.dword	1317624576693539401
+.dword	div7
+.dword	1
+
+# Test Min Signed 64-bit
+# -9223372036854775808 / 7 = -1317624576693539401
+.dword	7008
+.dword	div7_label
+.dword	6
+.dword	0x8000000000000000
+.dword	-1317624576693539401
+.dword	div7
+.dword	1
+
+.endif	
+
+######################################################################
+# div9 tests
+
+# Test 0: 0 / 9 = 0
+.dword	9000
+.dword	div9_label
+.dword	6
+.dword	0
+.dword	0
+.dword	div9
+.dword	1
+
+# Test 9: 9 / 9 = 1
+.dword	9001
+.dword	div9_label
+.dword	6
+.dword	9
+.dword	1
+.dword	div9
+.dword	1
+
+# Test -9: -9 / 9 = -1
+.dword	9002
+.dword	div9_label
+.dword	6
+.dword	-9
+.dword	-1
+.dword	div9
+.dword	1
+
+# Test 19: 19 / 9 = 2
+.dword	9003
+.dword	div9_label
+.dword	6
+.dword	19
+.dword	2
+.dword	div9
+.dword	1
+
+# Test -19: -19 / 9 = -2
+.dword	9004
+.dword	div9_label
+.dword	6
+.dword	-19
+.dword	-2
+.dword	div9
+.dword	1
+
+# Test Max Signed 32-bit: 2147483647 / 9
+# 2147483647 / 9 = 238609294
+.dword	9005
+.dword	div9_label
+.dword	6
+.dword	2147483647
+.dword	238609294
+.dword	div9
+.dword	1
+
+# Test Min Signed 32-bit: -2147483648 / 9
+# -2147483648 / 9 = -238609294
+.dword	9006
+.dword	div9_label
+.dword	6
+.dword	-2147483648
+.dword	-238609294
+.dword	div9
+.dword	1
+
+.if CPU_BITS == 64
+
+# Test Max Signed 64-bit
+# 9223372036854775807 / 9 = 1024819115206086200
+.dword	9007
+.dword	div9_label
+.dword	6
+.dword	0x7fffffffffffffff
+.dword	1024819115206086200
+.dword	div9
+.dword	1
+
+# Test Min Signed 64-bit
+# -9223372036854775808 / 9 = -1024819115206086200
+.dword	9008
+.dword	div9_label
+.dword	6
+.dword	0x8000000000000000
+.dword	-1024819115206086200
+.dword	div9
+.dword	1
+
+.endif
+
+######################################################################
+# div10 tests
+
+# Test 0: 0 / 10 = 0
+.dword	10000
+.dword	div10_label
+.dword	7
+.dword	0
+.dword	0
+.dword	div10
+.dword	1
+
+# Test 10: 10 / 10 = 1
+.dword	10001
+.dword	div10_label
+.dword	7
+.dword	10
+.dword	1
+.dword	div10
+.dword	1
+
+# Test -10: -10 / 10 = -1
+.dword	10002
+.dword	div10_label
+.dword	7
+.dword	-10
+.dword	-1
+.dword	div10
+.dword	1
+
+# Test 20: 20 / 10 = 2
+.dword	10003
+.dword	div10_label
+.dword	7
+.dword	20
+.dword	2
+.dword	div10
+.dword	1
+
+# Test -20: -20 / 10 = -2
+.dword	10004
+.dword	div10_label
+.dword	7
+.dword	-20
+.dword	-2
+.dword	div10
+.dword	1
+
+# Test Max Signed 32-bit: 2147483647 / 10
+# 2147483647 / 10 = 214748364
+.dword	10005
+.dword	div10_label
+.dword	7
+.dword	2147483647
+.dword	214748364
+.dword	div10
+.dword	1
+
+# Test Min Signed 32-bit: -2147483648 / 10
+# -2147483648 / 10 = -214748364
+.dword	10006
+.dword	div10_label
+.dword	7
+.dword	-2147483648
+.dword	-214748364
+.dword	div10
+.dword	1
+
+.if CPU_BITS == 64
+
+# Test Max Signed 64-bit
+# 9223372036854775807 / 10 = 922337203685477580
+.dword	10007
+.dword	div10_label
+.dword	7
+.dword	0x7fffffffffffffff
+.dword	922337203685477580
+.dword	div10
+.dword	1
+
+# Test Min Signed 64-bit
+# -9223372036854775808 / 10 = -922337203685477580
+.dword	10008
+.dword	div10_label
+.dword	7
+.dword	0x8000000000000000
+.dword	-922337203685477580
+.dword	div10
+.dword	1
+
+.endif
+
+######################################################################
+# div11 tests
+
+# Test 0: 0 / 11 = 0
+.dword	11000
+.dword	div11_label
+.dword	7
+.dword	0
+.dword	0
+.dword	div11
+.dword	1
+
+# Test 11: 11 / 11 = 1
+.dword	11001
+.dword	div11_label
+.dword	7
+.dword	11
+.dword	1
+.dword	div11
+.dword	1
+
+# Test -11: -11 / 11 = -1
+.dword	11002
+.dword	div11_label
+.dword	7
+.dword	-11
+.dword	-1
+.dword	div11
+.dword	1
+
+# Test 22: 22 / 11 = 2
+.dword	11003
+.dword	div11_label
+.dword	7
+.dword	22
+.dword	2
+.dword	div11
+.dword	1
+
+# Test -22: -22 / 11 = -2
+.dword	11004
+.dword	div11_label
+.dword	7
+.dword	-22
+.dword	-2
+.dword	div11
+.dword	1
+
+# Test Max Signed 32-bit: 2147483647 / 11
+# 2147483647 / 11 = 195225786
+.dword	11005
+.dword	div11_label
+.dword	7
+.dword	2147483647
+.dword	195225786
+.dword	div11
+.dword	1
+
+# Test Min Signed 32-bit: -2147483648 / 11
+# -2147483648 / 11 = -195225786
+.dword	11006
+.dword	div11_label
+.dword	7
+.dword	-2147483648
+.dword	-195225786
+.dword	div11
+.dword	1
+
+.if CPU_BITS == 64
+
+# Test Max Signed 64-bit
+# 9223372036854775807 / 11 = 838488366986797800
+.dword	11007
+.dword	div11_label
+.dword	7
+.dword	0x7fffffffffffffff
+.dword	838488366986797800
+.dword	div11
+.dword	1
+
+# Test Min Signed 64-bit
+# -9223372036854775808 / 11 = -838488366986797800
+.dword	11008
+.dword	div11_label
+.dword	7
+.dword	0x8000000000000000
+.dword	-838488366986797800
+.dword	div11
+.dword	1
+
+.endif
+
+######################################################################
+# div12 tests
+
+# Test 0: 0 / 12 = 0
+.dword	12000
+.dword	div12_label
+.dword	7
+.dword	0
+.dword	0
+.dword	div12
+.dword	1
+
+# Test 12: 12 / 12 = 1
+.dword	12001
+.dword	div12_label
+.dword	7
+.dword	12
+.dword	1
+.dword	div12
+.dword	1
+
+# Test -12: -12 / 12 = -1
+.dword	12002
+.dword	div12_label
+.dword	7
+.dword	-12
+.dword	-1
+.dword	div12
+.dword	1
+
+# Test 24: 24 / 12 = 2
+.dword	12003
+.dword	div12_label
+.dword	7
+.dword	24
+.dword	2
+.dword	div12
+.dword	1
+
+# Test -24: -24 / 12 = -2
+.dword	12004
+.dword	div12_label
+.dword	7
+.dword	-24
+.dword	-2
+.dword	div12
+.dword	1
+
+# Test Max Signed 32-bit: 2147483647 / 12
+# 2147483647 / 12 = 178956970
+.dword	12005
+.dword	div12_label
+.dword	7
+.dword	2147483647
+.dword	178956970
+.dword	div12
+.dword	1
+
+# Test Min Signed 32-bit: -2147483648 / 12
+# -2147483648 / 12 = -178956970
+.dword	12006
+.dword	div12_label
+.dword	7
+.dword	-2147483648
+.dword	-178956970
+.dword	div12
+.dword	1
+
+.if CPU_BITS == 64
+
+# Test Max Signed 64-bit
+# 9223372036854775807 / 12 = 768614336404564650
+.dword	12007
+.dword	div12_label
+.dword	7
+.dword	0x7fffffffffffffff
+.dword	768614336404564650
+.dword	div12
+.dword	1
+
+# Test Min Signed 64-bit
+# -9223372036854775808 / 12 = -768614336404564650
+.dword	12008
+.dword	div12_label
+.dword	7
+.dword	0x8000000000000000
+.dword	-768614336404564650
+.dword	div12
+.dword	1
+
+.endif
+
+######################################################################
+# div13 tests
+
+# Test 0: 0 / 13 = 0
+.dword	13000
+.dword	div13_label
+.dword	7
+.dword	0
+.dword	0
+.dword	div13
+.dword	1
+
+# Test 13: 13 / 13 = 1
+.dword	13001
+.dword	div13_label
+.dword	7
+.dword	13
+.dword	1
+.dword	div13
+.dword	1
+
+# Test -13: -13 / 13 = -1
+.dword	13002
+.dword	div13_label
+.dword	7
+.dword	-13
+.dword	-1
+.dword	div13
+.dword	1
+
+# Test 26: 26 / 13 = 2
+.dword	13003
+.dword	div13_label
+.dword	7
+.dword	26
+.dword	2
+.dword	div13
+.dword	1
+
+# Test -26: -26 / 13 = -2
+.dword	13004
+.dword	div13_label
+.dword	7
+.dword	-26
+.dword	-2
+.dword	div13
+.dword	1
+
+# Test Max Signed 32-bit: 2147483647 / 13
+# 2147483647 / 13 = 165191049
+.dword	13005
+.dword	div13_label
+.dword	7
+.dword	2147483647
+.dword	165191049
+.dword	div13
+.dword	1
+
+# Test Min Signed 32-bit: -2147483648 / 13
+# -2147483648 / 13 = -165191049
+.dword	13006
+.dword	div13_label
+.dword	7
+.dword	-2147483648
+.dword	-165191049
+.dword	div13
+.dword	1
+
+.if CPU_BITS == 64
+
+# Test Max Signed 64-bit
+# 9223372036854775807 / 13 = 709490156681136600
+.dword	13007
+.dword	div13_label
+.dword	7
+.dword	0x7fffffffffffffff
+.dword	709490156681136600
+.dword	div13
+.dword	1
+
+# Test Min Signed 64-bit
+# -9223372036854775808 / 13 = -709490156681136600
+.dword	13008
+.dword	div13_label
+.dword	7
+.dword	0x8000000000000000
+.dword	-709490156681136600
+.dword	div13
+.dword	1
+
+.endif
+
+######################################################################
+# div100 tests
+
+# Test 0: 0 / 100 = 0
+.dword	100000
+.dword	div100_label
+.dword	8
+.dword	0
+.dword	0
+.dword	div100
+.dword	1
+
+# Test 100: 100 / 100 = 1
+.dword	100001
+.dword	div100_label
+.dword	8
+.dword	100
+.dword	1
+.dword	div100
+.dword	1
+
+# Test -100: -100 / 100 = -1
+.dword	100002
+.dword	div100_label
+.dword	8
+.dword	-100
+.dword	-1
+.dword	div100
+.dword	1
+
+# Test 200: 200 / 100 = 2
+.dword	100003
+.dword	div100_label
+.dword	8
+.dword	200
+.dword	2
+.dword	div100
+.dword	1
+
+# Test -200: -200 / 100 = -2
+.dword	100004
+.dword	div100_label
+.dword	8
+.dword	-200
+.dword	-2
+.dword	div100
+.dword	1
+
+# Test Max Signed 32-bit: 2147483647 / 100
+# 2147483647 / 100 = 21474836
+.dword	100005
+.dword	div100_label
+.dword	8
+.dword	2147483647
+.dword	21474836
+.dword	div100
+.dword	1
+
+# Test Min Signed 32-bit: -2147483648 / 100
+# -2147483648 / 100 = -21474836
+.dword	100006
+.dword	div100_label
+.dword	8
+.dword	-2147483648
+.dword	-21474836
+.dword	div100
+.dword	1
+
+.if CPU_BITS == 64
+
+# Test Max Signed 64-bit
+# 9223372036854775807 / 100 = 92233720368547758
+.dword	100007
+.dword	div100_label
+.dword	8
+.dword	0x7fffffffffffffff
+.dword	92233720368547758
+.dword	div100
+.dword	1
+
+# Test Min Signed 64-bit
+# -9223372036854775808 / 100 = -92233720368547758
+.dword	100008
+.dword	div100_label
+.dword	8
+.dword	0x8000000000000000
+.dword	-92233720368547758
+.dword	div100
+.dword	1
+
+.endif
+
+######################################################################
+# div1000 tests
+
+# Test 0: 0 / 1000 = 0
+.dword	1000000
+.dword	div1000_label
+.dword	8
+.dword	0
+.dword	0
+.dword	div1000
+.dword	1
+
+# Test 1000: 1000 / 1000 = 1
+.dword	1000001
+.dword	div1000_label
+.dword	8
+.dword	1000
+.dword	1
+.dword	div1000
+.dword	1
+
+# Test -1000: -1000 / 1000 = -1
+.dword	1000002
+.dword	div1000_label
+.dword	8
+.dword	-1000
+.dword	-1
+.dword	div1000
+.dword	1
+
+# Test 2000: 2000 / 1000 = 2
+.dword	1000003
+.dword	div1000_label
+.dword	8
+.dword	2000
+.dword	2
+.dword	div1000
+.dword	1
+
+# Test -2000: -2000 / 1000 = -2
+.dword	1000004
+.dword	div1000_label
+.dword	8
+.dword	-2000
+.dword	-2
+.dword	div1000
+.dword	1
+
+# Test Max Signed 32-bit: 2147483647 / 1000
+# 2147483647 / 1000 = 2147483
+.dword	1000005
+.dword	div1000_label
+.dword	8
+.dword	2147483647
+.dword	2147483
+.dword	div1000
+.dword	1
+
+# Test Min Signed 32-bit: -2147483648 / 1000
+# -2147483648 / 1000 = -2147483
+.dword	1000006
+.dword	div1000_label
+.dword	8
+.dword	-2147483648
+.dword	-2147483
+.dword	div1000
+.dword	1
+
+.if CPU_BITS == 64
+
+# Test Max Signed 64-bit
+# 9223372036854775807 / 1000 = 9223372036854775
+.dword	1000007
+.dword	div1000_label
+.dword	8
+.dword	0x7fffffffffffffff
+.dword	9223372036854775
+.dword	div1000
+.dword	1
+
+# Test Min Signed 64-bit
+# -9223372036854775808 / 1000 = -9223372036854775
+.dword	1000008
+.dword	div1000_label
+.dword	8
+.dword	0x8000000000000000
+.dword	-9223372036854775
+.dword	div1000
+.dword	1
+
+.endif
+	
 # loop terminator
 .dword	0
 .dword	0

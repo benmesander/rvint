@@ -26,17 +26,17 @@ where those two goals clash, I went with concise.
 - Fast 32-bit unsigned division by 13
 - Fast 32-bit unsigned division by 100
 - Fast 32-bit unsigned division by 1000
-- Fast 32-bit signed division by 3 (no tests)
-- Fast 32-bit signed division by 5 (no tests)
-- Fast 32-bit signed division by 6 (no tests)
-- Fast 32-bit signed division by 7 (no tests)
-- Fast 32-bit signed division by 9 (no tests)
-- Fast 32-bit signed division by 10 (no tests)
-- Fast 32-bit signed division by 11 (no tests)
-- Fast 32-bit signed division by 12 (no tests)
-- Fast 32-bit signed division by 13 (no tests)
-- Fast 32-bit signed division by 100 (no tests)
-- Fast 32-bit signed division by 1000 (no tests)
+- Fast 32-bit signed division by 3
+- Fast 32-bit signed division by 5
+- Fast 32-bit signed division by 6
+- Fast 32-bit signed division by 7
+- Fast 32-bit signed division by 9
+- Fast 32-bit signed division by 10
+- Fast 32-bit signed division by 11
+- Fast 32-bit signed division by 12
+- Fast 32-bit signed division by 13
+- Fast 32-bit signed division by 100
+- Fast 32-bit signed division by 1000
 
 ### On 64-bit processors (RV64I)
 - 64-bit by 64-bit signed and unsigned division with 64-bit result and remainder.
@@ -51,17 +51,17 @@ where those two goals clash, I went with concise.
 - Fast 64-bit unsigned division by 13
 - Fast 64-bit unsigned division by 100
 - Fast 64-bit unsigned division by 1000
-- Fast 64-bit signed division by 3 (no tests)
-- Fast 64-bit signed division by 5 (no tests)
-- Fast 64-bit signed division by 6 (no tests)
-- Fast 64-bit signed division by 7 (no tests)
-- Fast 64-bit signed division by 9 (no tests)
-- Fast 64-bit signed division by 10 (no tests)
-- Fast 64-bit signed division by 11 (no tests)
-- Fast 64-bit signed division by 12 (no tests)
-- Fast 64-bit signed division by 13 (no tests)
-- Fast 64-bit signed division by 100 (no tests)
-- Fast 64-bit signed division by 1000 (no tests)
+- Fast 64-bit signed division by 3
+- Fast 64-bit signed division by 5
+- Fast 64-bit signed division by 6
+- Fast 64-bit signed division by 7
+- Fast 64-bit signed division by 9
+- Fast 64-bit signed division by 10
+- Fast 64-bit signed division by 11
+- Fast 64-bit signed division by 12
+- Fast 64-bit signed division by 13
+- Fast 64-bit signed division by 100
+- Fast 64-bit signed division by 1000
 
 ## Math Macros
 
@@ -624,15 +624,12 @@ a0 = quotient
 
 #### div1000
 
-Signed integer divide by 1000. I was able to slightly change the
-series expansion for 63 bit numbers (one bit reserved for sign), thus
-the signed divide by 1000 is one cycle shorter than the unsigned
-divide by 1000 on 64-bit architectures! RV32E/RV32I/RV64I
+Signed integer divide by 1000. RV32E/RV32I/RV64I
 
 | Configuration          | Cycles (32) | Cycles (64) |
 |-----------------|-------------|-------------|
-| Base ISA        | 39          | 41          |
-| With Extensions | 36          | 38          |
+| Base ISA        | 39          | 43          |
+| With Extensions | 36          | 40          |
 
 ##### Input
 a0 = dividend
