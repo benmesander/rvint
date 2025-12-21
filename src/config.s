@@ -33,10 +33,24 @@
 .endif
 .endm
 
+.set STACK_ALIGN, 16
+
 .macro FRAME num_regs
-	addi	sp, sp, -CPU_BYTES*\num_regs
+    .set BYTES_NEEDED, \num_regs * CPU_BYTES
+    .set STACK_SIZE, ((BYTES_NEEDED + STACK_ALIGN - 1) / STACK_ALIGN) * STACK_ALIGN
+    
+    # Safety Check: Ensure STACK_SIZE is actually a multiple of 16
+    .if (STACK_SIZE % 16) != 0
+        .error "Calculated STACK_SIZE is not 16-byte aligned"
+    .endif
+
+    addi sp, sp, -STACK_SIZE
 .endm
 
 .macro EFRAME num_regs
-	addi	sp, sp, CPU_BYTES*\num_regs
+    .set BYTES_NEEDED, \num_regs * CPU_BYTES
+    .set STACK_SIZE, ((BYTES_NEEDED + STACK_ALIGN - 1) / STACK_ALIGN) * STACK_ALIGN
+    
+    addi sp, sp, STACK_SIZE
 .endm
+
