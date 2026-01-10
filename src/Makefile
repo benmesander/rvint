@@ -19,15 +19,15 @@ LD	:= ld.lld
 CFLAGS	:= --target=$(TARGET) -march=$(ARCH) -mabi=$(ABI)
 LDFLAGS	:=
 
-SRCS	:= div.s mul.s io.s div-tests.s mul-tests.s sqrt.s alg-tests.s gcd.s bits.s
+SRCS	:= div.s m128.s nmul.s mul32.s io.s div-tests.s mul-tests.s sqrt.s alg-tests.s gcd.s bits.s
 OBJS	:= $(SRCS:.s=.o)
-AROBJS	:= div.o mul.o io.o sqrt.o gcd.o bits.o
+AROBJS	:= div.o mul128.o nmul.o mul32.o io.o sqrt.o gcd.o bits.o
 EXES	:= div-tests.x mul-tests.x alg-tests.x 
 LIB	:= librvint.a
 
 DIV_TESTS_OBJS	:= div-tests.o div.o io.o
-MUL_TESTS_OBJS	:= mul-tests.o mul.o io.o div.o
-ALG_TESTS_OBJS	:= alg-tests.o mul.o sqrt.o io.o div.o gcd.o bits.o
+MUL_TESTS_OBJS	:= mul-tests.o mul128.o nmul.o mul32.o io.o div.o
+ALG_TESTS_OBJS	:= alg-tests.o mul128.o nmul.o mul32.o sqrt.o io.o div.o gcd.o bits.o
 
 .PHONY:	all clean
 
@@ -36,12 +36,14 @@ all: $(EXES) $(LIB)
 %.o: %.s
 	$(CC) $(CFLAGS) -c $< -o $@
 
-div.o:	div.s config.s mul-macs.s
-mul.o:	mul.s config.s
-io.o:	io.s config.s
-sqrt.o:	sqrt.s config.s
-gcd.o:	gcd.s config.s
-bits.o:	bits.s config.s
+div.o:		div.s config.s mul-macs.s
+mul128.o:	mul128.s config.s
+nmul.o: 	nmul.s config.s
+mul32.o: 	mul32.s config.s
+io.o:		io.s config.s
+sqrt.o:		sqrt.s config.s
+gcd.o:		gcd.s config.s
+bits.o:		bits.s config.s
 
 div-tests.x: div-tests.o $(LIB) 
 	$(LD) $(LDFLAGS) $^ -o $@

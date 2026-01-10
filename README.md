@@ -950,7 +950,7 @@ dest - output register
 
 ---
 
-### Multiplication [mul.s](src/mul.s)
+### Multiplication
 
 ---
 
