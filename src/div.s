@@ -1387,9 +1387,10 @@ div1000:
 	add	a1, a1, a2
 	srli	a2, a1, 16
 	add	a1, a1, a2
-	# can skip refinement for 64 bit here as signed number
-	# only has 63 bits, and testing shows we don't need it.
-	
+.if CPU_BITS == 64
+	srli	a2, a1, 32
+	add	a1, a1, a2
+.endif
 	srli	a1, a1, 3	# a1 = q_est (n/10)
 
 	# correction for div10
