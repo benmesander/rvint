@@ -12,7 +12,7 @@
 
 .bss
 .globl iobuf
-.equ IOBUF_SIZE, 80 # one punch card worth (note nul terminator makes capacity 79)
+.equ IOBUF_SIZE, CPU_BITS + CPU_BYTES + 1	# worst case for to_bin
 .equ IOBUF_CAPACITY, IOBUF_SIZE-1
 .comm iobuf, IOBUF_SIZE, 4
 
