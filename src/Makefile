@@ -24,6 +24,7 @@ AR_SRCS	:= div.s div3u.s div5u.s div6u.s div7u.s div9u.s div10u.s div11u.s div12
 		divrem.s mul128.s nmul.s mul32.s io.s sqrt.s gcd.s bits.s
 SRCS	:= $(TST_SRCS) $(AR_SRCS)
 OBJS	:= $(AR_SRCS:.s=.o)
+TST_OBJS:= $(TST_SRCS:.s=.o)
 EXES	:= $(TST_SRCS:.s=.x)
 LIB	:= librvint.a
 
@@ -41,4 +42,4 @@ $(LIB): $(OBJS)
 	$(AR) $(ARFLAGS) $(LIB) $(OBJS)
 
 clean:
-	rm -f $(OBJS) $(EXES) $(LIB)
+	rm -f $(OBJS) $(TST_OBJS) $(EXES) $(LIB)
