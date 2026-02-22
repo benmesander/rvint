@@ -30,18 +30,8 @@ LIB	:= librvint.a
 
 all: $(EXES) $(LIB)
 
-%.o: %.s
+%.o: %.s config.s mul-macs.s
 	$(CC) $(CFLAGS) -c $< -o $@
-
-div.o:		div.s config.s mul-macs.s
-divrem.o:	divrem.s config.s mul-macs.s
-mul128.o:	mul128.s config.s
-nmul.o: 	nmul.s config.s
-mul32.o: 	mul32.s config.s
-io.o:		io.s config.s mul-macs.s
-sqrt.o:		sqrt.s config.s
-gcd.o:		gcd.s config.s
-bits.o:		bits.s config.s
 
 div-tests.x: div-tests.o $(LIB) 
 	$(LD) $(LDFLAGS) $^ -o $@
