@@ -196,7 +196,7 @@ a0 = count of leading zeroes
 
 ---
 
-### Division - [div.s](src/div.s):
+### Division
 
 Signed and unsigned division for CPUs without dividers.
 
