@@ -20,7 +20,7 @@ CFLAGS	:= --target=$(TARGET) -march=$(ARCH) -mabi=$(ABI)
 LDFLAGS	:=
 
 TST_SRCS:= div-tests.s mul-tests.s alg-tests.s
-AR_SRCS	:= div.s div3u.s divrem.s mul128.s nmul.s mul32.s io.s sqrt.s gcd.s bits.s
+AR_SRCS	:= div.s div3u.s div5u.s div6u.s div7u.s div9u.s divrem.s mul128.s nmul.s mul32.s io.s sqrt.s gcd.s bits.s
 SRCS	:= $(TST_SRCS) $(AR_SRCS)
 OBJS	:= $(AR_SRCS:.s=.o)
 EXES	:= $(TST_SRCS:.s=.x)
