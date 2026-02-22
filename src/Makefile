@@ -19,15 +19,16 @@ LD	:= ld.lld
 CFLAGS	:= --target=$(TARGET) -march=$(ARCH) -mabi=$(ABI)
 LDFLAGS	:=
 
-SRCS	:= div.s m128.s nmul.s mul32.s io.s div-tests.s mul-tests.s sqrt.s alg-tests.s gcd.s bits.s
+SRCS	:= div.s divrem.s m128.s nmul.s mul32.s io.s div-tests.s mul-tests.s sqrt.s alg-tests.s gcd.s bits.s
 OBJS	:= $(SRCS:.s=.o)
-AROBJS	:= div.o mul128.o nmul.o mul32.o io.o sqrt.o gcd.o bits.o
+# XXX: this list should only exist once.
+AROBJS	:= div.o divrem.o mul128.o nmul.o mul32.o io.o sqrt.o gcd.o bits.o
 EXES	:= div-tests.x mul-tests.x alg-tests.x 
 LIB	:= librvint.a
 
-DIV_TESTS_OBJS	:= div-tests.o div.o io.o
-MUL_TESTS_OBJS	:= mul-tests.o mul128.o nmul.o mul32.o io.o div.o
-ALG_TESTS_OBJS	:= alg-tests.o mul128.o nmul.o mul32.o sqrt.o io.o div.o gcd.o bits.o
+#DIV_TESTS_OBJS	:= div-tests.o div.o divrem.o io.o
+#MUL_TESTS_OBJS	:= mul-tests.o mul128.o nmul.o mul32.o io.o div.o
+#ALG_TESTS_OBJS	:= alg-tests.o mul128.o nmul.o mul32.o sqrt.o io.o div.o gcd.o bits.o
 
 .PHONY:	all clean
 
@@ -37,6 +38,7 @@ all: $(EXES) $(LIB)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 div.o:		div.s config.s mul-macs.s
+divrem.o:	divrem.s config.s mul-macs.s
 mul128.o:	mul128.s config.s
 nmul.o: 	nmul.s config.s
 mul32.o: 	mul32.s config.s
