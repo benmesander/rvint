@@ -33,13 +33,7 @@ all: $(EXES) $(LIB)
 %.o: %.s config.s mul-macs.s
 	$(CC) $(CFLAGS) -c $< -o $@
 
-div-tests.x: div-tests.o $(LIB) 
-	$(LD) $(LDFLAGS) $^ -o $@
-
-mul-tests.x: mul-tests.o $(LIB) 
-	$(LD) $(LDFLAGS) $^ -o $@
-
-alg-tests.x: alg-tests.o $(LIB)
+$(EXES): %x: %o $(LIB)
 	$(LD) $(LDFLAGS) $^ -o $@
 
 $(LIB): $(OBJS)
