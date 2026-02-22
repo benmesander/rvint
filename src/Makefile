@@ -19,16 +19,12 @@ LD	:= ld.lld
 CFLAGS	:= --target=$(TARGET) -march=$(ARCH) -mabi=$(ABI)
 LDFLAGS	:=
 
-SRCS	:= div.s divrem.s m128.s nmul.s mul32.s io.s div-tests.s mul-tests.s sqrt.s alg-tests.s gcd.s bits.s
-OBJS	:= $(SRCS:.s=.o)
-# XXX: this list should only exist once.
-AROBJS	:= div.o divrem.o mul128.o nmul.o mul32.o io.o sqrt.o gcd.o bits.o
-EXES	:= div-tests.x mul-tests.x alg-tests.x 
+TST_SRCS:= div-tests.s mul-tests.s alg-tests.s
+AR_SRCS	:= div.s divrem.s mul128.s nmul.s mul32.s io.s sqrt.s gcd.s bits.s
+SRCS	:= $(TST_SRCS) $(AR_SRCS)
+OBJS	:= $(AR_SRCS:.s=.o)
+EXES	:= $(TST_SRCS:.s=.x)
 LIB	:= librvint.a
-
-#DIV_TESTS_OBJS	:= div-tests.o div.o divrem.o io.o
-#MUL_TESTS_OBJS	:= mul-tests.o mul128.o nmul.o mul32.o io.o div.o
-#ALG_TESTS_OBJS	:= alg-tests.o mul128.o nmul.o mul32.o sqrt.o io.o div.o gcd.o bits.o
 
 .PHONY:	all clean
 
@@ -42,7 +38,7 @@ divrem.o:	divrem.s config.s mul-macs.s
 mul128.o:	mul128.s config.s
 nmul.o: 	nmul.s config.s
 mul32.o: 	mul32.s config.s
-io.o:		io.s config.s
+io.o:		io.s config.s mul-macs.s
 sqrt.o:		sqrt.s config.s
 gcd.o:		gcd.s config.s
 bits.o:		bits.s config.s
@@ -56,8 +52,8 @@ mul-tests.x: mul-tests.o $(LIB)
 alg-tests.x: alg-tests.o $(LIB)
 	$(LD) $(LDFLAGS) $^ -o $@
 
-$(LIB): $(AROBJS)
-	$(AR) $(ARFLAGS) $(LIB) $(AROBJS)
+$(LIB): $(OBJS)
+	$(AR) $(ARFLAGS) $(LIB) $(OBJS)
 
 clean:
 	rm -f $(OBJS) $(EXES) $(LIB)
