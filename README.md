@@ -744,7 +744,7 @@ a0 = result
 
 ---
 
-### I/O and Base Conversion [io.s](src/io.s)
+### I/O and Base Conversion
 
 ---
 
