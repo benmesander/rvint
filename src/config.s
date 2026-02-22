@@ -10,6 +10,9 @@
 # Macros and constants used in subroutines
 	
 .equ 	CPU_BYTES,	CPU_BITS/8	# bytes per word
+# I/O buffer sizes (see io.s)
+.equ	IOBUF_SIZE, CPU_BITS + CPU_BYTES + 1	# worst case for to_bin
+.equ	IOBUF_CAPACITY, IOBUF_SIZE-1
 
 # build options
 
