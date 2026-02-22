@@ -150,7 +150,7 @@ syscall 64 is write and 93 is exit.
 
 ## API
 
-### Bit manipulation - [bits.s](src/bits.s):
+### Bit manipulation
 
 ---
 
