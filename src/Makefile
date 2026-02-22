@@ -23,7 +23,7 @@ TST_SRCS:= div-tests.s mul-tests.s alg-tests.s
 AR_SRCS	:= div.s div3u.s div5u.s div6u.s div7u.s div9u.s div10u.s div11u.s div12u.s \
 		div13u.s div100u.s div1000u.s div3.s div5.s div6.s div7.s div9.s div10.s \
 		div11.s div12.s div13.s div100.s div1000.s divrem.s mul128.s nmul.s \
-		mul32.s io.s sqrt.s gcd.s bits_ctz.s bits_clz.s
+		mul32.s io.s sqrt.s gcd.s lcm.s bits_ctz.s bits_clz.s
 SRCS	:= $(TST_SRCS) $(AR_SRCS)
 OBJS	:= $(AR_SRCS:.s=.o)
 TST_OBJS:= $(TST_SRCS:.s=.o)

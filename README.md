@@ -687,7 +687,7 @@ a0 = quotient
 
 ---
 
-### Algorithms: [gcd.s](src/gcd.s)
+### Algorithms:
 
 ---
 
