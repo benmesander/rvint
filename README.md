@@ -1,15 +1,20 @@
 # rvint
 
-Integer-based mathematical subroutines which implement RISC-V M and B
-extension functionality on I, and Zmmul instruction sets. There is
-partial support for the reduced functionality E instruction set
-where this is easy to do and doesn't involve a performance tradeoff.
+![rvint3](rvint3.png "RVint version 3")
 
-These routines are designed to be both concise and efficient, although
-where those two goals clash, I went with concise.
+Integer-based mathematical subroutines which implement RISC-V M and B
+extension functionality on I, and Zmmul instruction sets as well as other
+useful integer algorithms. There is support for the reduced functionality
+E instruction set. 32 and 64 bit processors are supported, and there is
+the beginnings of support for 128 bit processors.
+
+The code can optionally make use of the Zba, Zbb, Zbs, ZiCond, and M to
+increase the efficiency of routines.
+
+These routines are designed to be both concise and efficient, with a
+slight bias towards concise when these are in conflict.
 
 ![Screenshot of tests](rvint.png "Screenshot of tests")
-
 
 ## Division
 
@@ -103,7 +108,7 @@ and RV64I compatible.
 - ASCII hexadecimal to binary.
 - binary to ASCII binary.
 - two's complement binary to ASCII signed decimal.
-- unsigned binary to unsigned ASCII decimal.
+- unsigned binary to unsigned ASCII decimal (also RV128 compatible)
 - binary to ASCII hexadecimal.
 
 ## Square Root (RV32E, RV32I, and RV64I compatible)

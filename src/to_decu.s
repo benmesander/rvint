@@ -11,20 +11,19 @@
 # Optimizations:
 # - HAS_M: Uses hardware div/rem (Fastest).
 # - HAS_ZBA: Uses optimal sh2add/sh3add for corrections (via mul10 macro)
-# - Base: Uses robust series expansion for div10u.
 #
 # Input:  a0 = unsigned number
 # Output: a0 = address of string buffer
 #         a1 = length of string
 ################################################################################
 to_decu:
-	# 1. setup buffer (work backwards)
+	# setup buffer (work backwards)
 	la	a2, iobuf
 	addi	a2, a2, IOBUF_CAPACITY
 	mv	a1, a2			# end pointer
 	sb	zero, 0(a2)		# nul-terminate
 
-	# 2. loop setup
+	# loop setup
 	mv	a3, a0			# a3 = n
 
 to_decu_loop:
@@ -82,7 +81,7 @@ to_decu_loop:
 
 	bnez	a3, to_decu_loop
 
-	# 3. finalize
+	# finalize
 	mv	a0, a2			# return start ptr
 	sub	a1, a1, a2		# return length
 	ret

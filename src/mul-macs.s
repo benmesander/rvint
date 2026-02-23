@@ -26,12 +26,12 @@
 	sh1add	\dest, \src, \src	# dest = 3*src
 	slli	\dest, \dest, 1		# dest = 6*src
 .else
-	# Fixed for dest == scratch case
 	slli	\dest, \src, 1		# dest = 2*src
 	add	\dest, \dest, \src	# dest = 3*src
 	slli	\dest, \dest, 1		# dest = 6*src
 .endif
 .endm
+
 .macro mul9 dest src scratch0
 .if HAS_ZBA	
 	sh3add	\dest, \src, \src
