@@ -111,6 +111,8 @@ and RV64I compatible.
 - unsigned binary to unsigned ASCII decimal (also RV128 compatible)
 - binary to ASCII hexadecimal.
 
+**Note:** The input parsing routines (`from_bin`, `from_hex`, `from_decu`) do not detect integer overflow. If the input string represents a value larger than the native word size, the result silently wraps.
+
 ## Square Root (RV32E, RV32I, and RV64I compatible)
 - 32-bit integer square root on 32-bit processors.
 - 64-bit integer square root on 64-bit processors.
@@ -122,6 +124,8 @@ and RV64I compatible.
 ## Least Common Multiple (RV32E, RV32I, and RV64I compatible)
 - 32-bit LCM of two unsigned 32-bit numbers on 32-bit processors.
 - 64-bit LCM of two unsigned 64-bit numbers on 64-bit processors.
+
+**Note:** The result of `lcm(u, v)` can overflow a single word. If `(u / gcd(u,v)) * v` exceeds the native word size, the result silently truncates.
 
 ## Bit Operations (RV32E, RV32I, and RV64I compatible)
 - Count leading zeroes in 32-bit number on 32-bit processors.
