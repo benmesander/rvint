@@ -247,8 +247,12 @@ divrem_by_zero:
 
 divrem_overflow:
 	# Return INT_MIN / 0
+.if HAS_ZBS == 1
+	bseti	a0, zero, SIGN_BIT_SHIFT	# Q = INT_MIN
+.else
 	li	a0, 1
 	slli	a0, a0, SIGN_BIT_SHIFT	# Q = INT_MIN
+.endif
 	li	a1, 0			# R = 0
 	j	divrem_cleanup_stack
 
