@@ -1,5 +1,4 @@
 .include "config.s"
-.include "mul-macs.s"
 
 .bss
 # I/O buffer used by to_*.s routines for output
