@@ -7,7 +7,7 @@
 ################################################################################
 # routine: from_hex
 #
-# Read an ASCII hexidecimal string into a register. The parsing of the value
+# Read an ASCII hexadecimal string into a register. The parsing of the value
 # stops when we read the first non-hex character.
 # RV32E compatible.
 #
