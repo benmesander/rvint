@@ -33,6 +33,7 @@ to_bin:
 	sh	a4, 0(a3)	# Store 2 bytes
 	addi	a3, a3, 2
 to_bin_start:
+	slli	a1, a1, 3	# convert bytes to bits
 	addi	a1, a1, -1	# a1 = Bit Index (Start at MSB)
 to_bin_loop:
 	# Bit Extraction
