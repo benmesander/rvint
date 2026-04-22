@@ -26,7 +26,7 @@ to_hex:
 	slli	a1, a1, 1	# count of nibbles
 	beqz	a2, to_hex_loop
 	li	a4, 0x7830	# '0x' in ascii, little-endian
-	sw	a4, 0(a3)
+	sh	a4, 0(a3)
 	addi	a3, a3, 2
 
 to_hex_loop:
