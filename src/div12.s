@@ -15,7 +15,7 @@
 # Signed fast division by 12.
 # Algorithm: abs(n) / 12 -> restore sign.
 # Optimization: Defers correction until after the divide-by-4 shift, 
-#               allowing a simple threshold check instead of mul11.
+#               allowing a simple threshold check instead of mul12.
 #
 # input:  a0 = signed dividend
 # output: a0 = signed quotient
