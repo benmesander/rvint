@@ -1,9 +1,50 @@
 .include "config.s"
 .include "mul-macs.s"
 
+.if CONSTANT_TABLE
+.section .srodata, "a", @progbits
+.align 3
+M_div3:
+	.quad 0x5555555555555556	# M = (2**63 + 2) / 3
+.endif
+
 .globl div3
 .text
 
+.if HAS_ZMMUL == 1
+################################################################################
+# routine: div3
+#
+# Signed fast division by 3 for processors with a multiply instruction
+# Algorithm: "Magic Number"
+# Suitable for RV32I_Zmmul, RV64I_Zmmul
+# Note: unless your core has the Zkt instruction, this may not run in
+#       constant time, consult your vendor documentation.
+#
+# input:  a0 = signed dividend
+# output: a0 = signed quotient
+################################################################################
+div3:
+
+.if CPU_BITS == 64
+.if CONSTANT_TABLE
+	lui     a2, %hi(M_div3)	# look up magic number from constant table
+	ld      a2, %lo(M_div3)(a2)
+.else
+	# this option is best for constant time (no possibility of cache miss)
+	li	a2, 0x5555555555555556
+.endif
+
+	mulh	a1, a0, a2
+.else
+	li	a2, 0x55555556	# M = magic number, (2**32+2)/3
+	mulhsu	a1, a0, a2	# q = floor(M*n/2**32)
+.endif
+	slti	a2, a0, 0	# a2 = 1 if a0 < 0 (negative), else 0
+	add	a0, a1, a2	# q = a0 = a1 + a2
+
+	ret
+.else
 # The following routines started with the Hacker's Delight 2nd edition
 # Chapter 10 routines, but were extended to handle 64 bits which involved
 # refining the series expansions and the correction steps. In some
@@ -14,7 +55,7 @@
 #
 # Signed fast division by 3.
 # Algorithm: Abs(n) -> Unsigned Div -> Restore Sign.
-# Suitable for RV32I, RV32I, RV64I	
+# Suitable for RV32E, RV32I, RV64I
 #
 # input:  a0 = signed dividend
 # output: a0 = signed quotient
@@ -56,4 +97,5 @@ div3:
 	sub	a0, a0, t0
 
 	ret
+.endif
 .size div3, .-div3

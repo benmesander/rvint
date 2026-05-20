@@ -6,6 +6,7 @@
 .equ	HAS_ZBS,	0	# 1 = has Zbs extension - single bit instructions
 .equ	HAS_ZICOND, 	0	# 1 = has Zicond extension
 .equ	HAS_M,		0	# 1 = has M (integer math) extension
+.equ	HAS_ZMMUL,	1	# 1 = has Zmmul (multiplication but no division) extension
 
 # Macros and constants used in subroutines
 	
@@ -17,6 +18,7 @@
 # build options
 
 .equ 	DIVREMU_UNROLLED, 1	# 1 = unrolled 4x version, 0 = compact version
+.equ	CONSTANT_TABLE, 1	# 1 = look up constants in tables vs. materialize inline
 
 # stack frames
 
