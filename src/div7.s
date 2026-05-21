@@ -1,9 +1,50 @@
 .include "config.s"
 .include "mul-macs.s"
 
+.if CONSTANT_TABLE
+.section .srodata, "a", @progbits
+.align 3
+M_div7:
+	.quad 0x4924924924924925
+.endif
+
 .globl div7
 .text
 
+.if HAS_ZMMUL == 1
+################################################################################
+# routine: div7
+#
+# Signed fast division by 7 for processors with a multiply instruction
+# Algorithm: "Magic Number" - Hacker's Delight 2nd ed. sec 10.3,
+# Suitable for RV32I_Zmmul, RV64I_Zmmul
+# Note: unless your core has the Zkt instruction, this may not run in
+#       constant time, consult your vendor documentation.
+#
+# input:  a0 = signed dividend
+# output: a0 = signed quotient
+################################################################################
+div7:
+
+.if CPU_BITS == 64
+.if CONSTANT_TABLE
+	ld      a2, M_div7
+.else
+        li      a2, 0x4924924924924925
+.endif
+        mulh    a1, a0, a2
+        slti    a2, a0, 0       # Hides multiplier stall
+        srai    a1, a1, 1       # Exact shift for 64-bit positive magic number
+.else
+        li      a2, 0x92492493  # (2**34+5)/7
+        mulhsu  a1, a0, a2      # Signed * Unsigned entirely skips the need for 'add'
+        slti    a2, a0, 0       # Hides multiplier stall
+        srai    a1, a1, 2       # Exact shift for 32-bit mulhsu path
+.endif
+        add     a0, a1, a2      # Final sign adjustment correction
+
+        ret
+.else
 # The following routines started with the Hacker's Delight 2nd edition
 # Chapter 10 routines, but were extended to handle 64 bits which involved
 # refining the series expansions and the correction steps. In some
@@ -66,5 +107,5 @@ div7:
 	xor	a0, a1, t0
 	sub	a0, a0, t0
 	ret
-
+.endif
 .size div7, .-div7

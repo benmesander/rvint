@@ -1,9 +1,50 @@
 .include "config.s"
 .include "mul-macs.s"
 
+.if CONSTANT_TABLE
+.section .srodata, "a", @progbits
+.align 3
+M_div5:
+	.quad 0x6666666666666667
+.endif
+
 .globl div5
 .text
 
+.if HAS_ZMMUL == 1
+################################################################################
+# routine: div5
+#
+# Signed fast division by 5 for processors with a multiply instruction
+# Algorithm: "Magic Number" - Hacker's Delight 2nd ed. sec 10.3,
+# Suitable for RV32I_Zmmul, RV64I_Zmmul
+# Note: unless your core has the Zkt instruction, this may not run in
+#       constant time, consult your vendor documentation.
+#
+# input:  a0 = signed dividend
+# output: a0 = signed quotient
+################################################################################
+div5:
+
+.if CPU_BITS == 64
+.if CONSTANT_TABLE
+	ld	a2, M_div5
+.else
+	# this option is best for constant time (no possibility of cache miss)
+	li	a2, 0x6666666666666667
+.endif
+	mulh	a1, a0, a2
+	slti	a2, a0, 0	# a2 = 1 if a0 < 0 (negative), else 0
+	srai	a1, a1, 1	# shift q right once - do after slti to avoid stall
+.else
+	li	a2, 0x66666667  # (2**33+3)/5
+	mulhsu	a1, a0, a2	# q = floor(M*n/2**32)
+	slti	a2, a0, 0	# a2 = 1 if a0 < 0 (negative), else 0
+.endif
+	add	a0, a1, a2	# q = a0 = a1 + a2
+
+	ret
+.else
 # The following routines started with the Hacker's Delight 2nd edition
 # Chapter 10 routines, but were extended to handle 64 bits which involved
 # refining the series expansions and the correction steps. In some
@@ -70,5 +111,5 @@ div5:
 	xor	a0, a1, t0
 	sub	a0, a0, t0
 	ret
-
+.endif
 .size div5, .-div5

@@ -16,7 +16,7 @@ M_div3:
 # routine: div3
 #
 # Signed fast division by 3 for processors with a multiply instruction
-# Algorithm: "Magic Number"
+# Algorithm: "Magic Number" - Hacker's Delight 2nd ed. sec 10.3,
 # Suitable for RV32I_Zmmul, RV64I_Zmmul
 # Note: unless your core has the Zkt instruction, this may not run in
 #       constant time, consult your vendor documentation.
@@ -28,13 +28,11 @@ div3:
 
 .if CPU_BITS == 64
 .if CONSTANT_TABLE
-	lui     a2, %hi(M_div3)	# look up magic number from constant table
-	ld      a2, %lo(M_div3)(a2)
+	ld	a2, M_div3
 .else
 	# this option is best for constant time (no possibility of cache miss)
 	li	a2, 0x5555555555555556
 .endif
-
 	mulh	a1, a0, a2
 .else
 	li	a2, 0x55555556	# M = magic number, (2**32+2)/3
