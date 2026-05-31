@@ -31,7 +31,12 @@ div5:
 	ld	a2, M_div5
 .else
 	# this option is best for constant time (no possibility of cache miss)
-	li	a2, 0x6666666666666667
+#	li	a2, 0x6666666666666667
+	lui	a2, 0x66666
+	addi	a2, 0x666
+	slli	a3, a2, 32
+	add	a2, a3, a2
+	addi	a2, a2, 1	# ...67
 .endif
 	mulh	a1, a0, a2
 	slti	a2, a0, 0	# a2 = 1 if a0 < 0 (negative), else 0

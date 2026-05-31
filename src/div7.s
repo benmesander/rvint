@@ -30,7 +30,13 @@ div7:
 .if CONSTANT_TABLE
 	ld      a2, M_div7
 .else
-        li      a2, 0x4924924924924925
+#       li      a2, 0x4924924924924925
+	li	a2, 0x49249
+	addi	a2, 0x249
+	slli	a3, a2, 32
+	add	a2, a3, a2
+	addi	a2, a2, 1
+
 .endif
         mulh    a1, a0, a2
         slti    a2, a0, 0       # Hides multiplier stall
