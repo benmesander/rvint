@@ -5,7 +5,7 @@
 .section .srodata, "a", @progbits
 .align 3
 M_div3:
-	.quad 0x5555555555555556	# M = (2**63 + 2) / 3
+	.quad 0x5555555555555556	# M = (2**64 + 2) / 3
 .endif
 
 .globl div3

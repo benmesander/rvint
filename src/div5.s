@@ -45,6 +45,7 @@ div5:
 	li	a2, 0x66666667  # (2**33+3)/5
 	mulhsu	a1, a0, a2	# q = floor(M*n/2**32)
 	slti	a2, a0, 0	# a2 = 1 if a0 < 0 (negative), else 0
+	srai	a1, a1, 1	# q = floor(M*n/2**33)
 .endif
 	add	a0, a1, a2	# q = a0 = a1 + a2
 
