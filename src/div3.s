@@ -5,7 +5,7 @@
 .section .srodata, "a", @progbits
 .align 3
 M_div3:
-	.quad 0x5555555555555556	# M = (2**63 + 2) / 3
+	.quad 0x5555555555555556	# M = (2**64 + 2) / 3
 .endif
 
 .globl div3
@@ -31,7 +31,12 @@ div3:
 	ld	a2, M_div3
 .else
 	# this option is best for constant time (no possibility of cache miss)
-	li	a2, 0x5555555555555556
+#	li	a2, 0x5555555555555556
+	lui	a2, 0x55555	# 20 bits
+	addi	a2, 0x555	# 12 bits
+	slli	a3, a2, 32
+	add	a2, a3, a2
+	addi	a2, a2, 1	# ...56
 .endif
 	mulh	a1, a0, a2
 .else
