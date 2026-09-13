@@ -18,7 +18,7 @@ M_div7:
 # Signed fast division by 7 for processors with a multiply instruction
 # Algorithm: "Magic Number" - Hacker's Delight 2nd ed. sec 10.3,
 # Suitable for RV32I_Zmmul, RV64I_Zmmul
-# Note: unless your core has the Zkt instruction, this may not run in
+# Note: unless your core has the Zkt extension, this may not run in
 #       constant time, consult your vendor documentation.
 #
 # input:  a0 = signed dividend

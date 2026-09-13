@@ -18,7 +18,7 @@ M_div5:
 # Signed fast division by 5 for processors with a multiply instruction
 # Algorithm: "Magic Number" - Hacker's Delight 2nd ed. sec 10.3,
 # Suitable for RV32I_Zmmul, RV64I_Zmmul
-# Note: unless your core has the Zkt instruction, this may not run in
+# Note: unless your core has the Zkt extension, this may not run in
 #       constant time, consult your vendor documentation.
 #
 # input:  a0 = signed dividend
@@ -31,16 +31,21 @@ div5:
 	ld	a2, M_div5
 .else
 	# this option is best for constant time (no possibility of cache miss)
-	li	a2, 0x6666666666666667
+	# li	a2, 0x6666666666666667
+	lui     a1, 0x66666         # a1 = 0x0000000066666000
+	addi    a1, a1, 0x666       # a1 = 0x0000000066666666
+	slli    a2, a1, 32          # a2 = 0x6666666600000000
+	add     a2, a2, a1          # a2 = 0x6666666666666666
+	addi    a2, a2, 1           # a2 = 0x6666666666666667
 .endif
 	mulh	a1, a0, a2
 	slti	a2, a0, 0	# a2 = 1 if a0 < 0 (negative), else 0
-	srai	a1, a1, 1	# shift q right once - do after slti to avoid stall
 .else
 	li	a2, 0x66666667  # (2**33+3)/5
 	mulhsu	a1, a0, a2	# q = floor(M*n/2**32)
 	slti	a2, a0, 0	# a2 = 1 if a0 < 0 (negative), else 0
 .endif
+	srai	a1, a1, 1	# shift q right once - do after slti to avoid stall
 	add	a0, a1, a2	# q = a0 = a1 + a2
 
 	ret
